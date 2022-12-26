@@ -15,7 +15,7 @@ add_library(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 if(APPLE)
-add_definitions("-x objective-c++")
+	add_definitions("-x objective-c++")
 endif()
 
 find_package(Vulkan)
@@ -54,10 +54,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	${QZC_LIB}
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-	${VK_INCLUDE}
-	${MTL_INCLUDE}
-	"include/RGL"
+target_include_directories(${PROJECT_NAME} 
+	PRIVATE
+		${VK_INCLUDE}
+		${MTL_INCLUDE}
+		"include/RGL"
+	PUBLIC
+		"include"
 )
 
 set_target_properties("RGL" PROPERTIES 
