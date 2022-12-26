@@ -3,11 +3,14 @@
 #include "RGLVk.hpp"
 #include "RGLD3D12.hpp"
 #include "RGLCommon.hpp"
+#include "Device.hpp"
+#include "D3D12Device.hpp"
+#include "VkDevice.hpp"
 #include <iostream>
 
 using namespace RGL;
 
-API RGL::RGLGlobals::currentAPI = API::PlatformDefault;
+API RGL::RGLGlobals::currentAPI = API::Uninitialized;
 
 static callback_t callbackFn = [](DebugSeverity severity, const std::string& message) {
     constexpr auto severityToStr = [](DebugSeverity severity) {
@@ -28,6 +31,15 @@ static callback_t callbackFn = [](DebugSeverity severity, const std::string& mes
 
 std::shared_ptr<IDevice> RGL::IDevice::CreateSystemDefaultDevice()
 {
+    switch (RGL::RGLGlobals::currentAPI) {
+    case API::Uninitialized:
+        FatalError("RGL is not initialized! Call RGL::Init before using any RGL functions.");
+        break;
+    case API::Direct3D12:
+        return CreateDefaultDeviceD3D12();
+    case API::Vulkan:
+        return CreateDefaultDeviceVk();
+    }
     return std::shared_ptr<IDevice>();
 }
 

@@ -6,6 +6,7 @@
 namespace RGL {
 
 	enum class API : uint8_t {
+		Uninitialized,			// You didn't call RGL::Init yet
 		PlatformDefault,		// RGL will pick an API
 		Noop,					// this API does nothing
 		Metal,					// Apple Metal
@@ -44,12 +45,6 @@ namespace RGL {
 	};
 
 	API CurrentAPI();
-
-	struct IDevice {
-		virtual ~IDevice() {}
-
-		static std::shared_ptr<IDevice> CreateSystemDefaultDevice();
-	};
 
 	void Init(const InitOptions&);
 
