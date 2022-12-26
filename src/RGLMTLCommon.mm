@@ -3,7 +3,7 @@
 
 using namespace RGL;
 
-void RGL::InitMTL() {
+void RGL::InitMTL(const RGL::InitOptions&) {
 	Assert(CanInitAPI(RGL::API::Metal), "Metal cannot be initialized on this platform.");
-	RGLGlobals::currentAPI = API::Metal;
+	RGL::currentAPI = API::Metal;
 }

@@ -1,5 +1,6 @@
 #pragma once
+#include "RGLCommon.hpp"
 
 namespace RGL {
-	void InitMTL();
+	void InitMTL(const RGL::InitOptions&);
 }

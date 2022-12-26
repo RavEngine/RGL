@@ -1,12 +1,13 @@
 #pragma once
 #include "RGL.hpp"
 
-namespace RGL {
-	struct RGLGlobals {
-		static API currentAPI;
-	};
+#define STATIC(a) decltype(a) a
+#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
-	void LogMessage(DebugSeverity, const std::string&);
+namespace RGL {
+	extern API currentAPI;
+
+	void LogMessage(MessageSeverity, const std::string&);
 	void FatalError(const std::string&);
 	static void Assert(bool cond, const std::string& errormsg) {
 		if (!cond) {

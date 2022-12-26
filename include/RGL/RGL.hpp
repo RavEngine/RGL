@@ -30,22 +30,33 @@ namespace RGL {
 	bool CanInitAPI(API api);
 	const char* APIToString(API);
 
-	enum class DebugSeverity : uint8_t {
+	enum class MessageSeverity : uint8_t {
 		Info = 0,
 		Warning,
 		Error,
 		Fatal
 	};
 
-	using callback_t = std::function<void(DebugSeverity, const std::string&)>;
+	using callback_t = std::function<void(MessageSeverity, const std::string&)>;
 
 	struct InitOptions {
-		API api = API::PlatformDefault;
-		callback_t callback;
+		API api = API::PlatformDefault;	// what graphics API to use
+		callback_t callback;			// what function to invoke with debug messages
+
+		std::string appName;			// Name of your app. Used only on Vulkan.
+		std::string engineName;			// Name of your game engine. Used only on Vulkan.
+		struct Version {
+			uint8_t variant = 0;
+			uint8_t major = 0;
+			uint8_t minor = 0;
+			uint8_t patch = 0;
+		} appVersion,				// The version number of your app. Used only on Vulkan.
+			engineVersion;			// The version number of your engine. Used only on Vulkan.
 	};
 
 	API CurrentAPI();
 
 	void Init(const InitOptions&);
+	void Shutdown();
 
 }
