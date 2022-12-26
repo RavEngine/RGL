@@ -5,20 +5,8 @@
 
 using namespace RGL;
 
-constexpr bool enableValidationLayers =
-#ifdef NDEBUG
-false;
-#else
-true;
-#endif
-
 STATIC(RGL::instance) = VK_NULL_HANDLE;
 VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
-
-static const char* const validationLayers[] = {
-    "VK_LAYER_KHRONOS_validation"
-};
-
 
 // vulkan calls this on debug message
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

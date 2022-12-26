@@ -7,6 +7,17 @@
 #define VK_CHECK(a) {auto VK_CHECK_RESULT = a; assert(VK_CHECK_RESULT == VK_SUCCESS);}
 #define VK_VALID(a) {assert(a != VK_NULL_HANDLE);}
 
+constexpr bool enableValidationLayers =
+#ifdef NDEBUG
+false;
+#else
+true;
+#endif
+
+constexpr static const char* const validationLayers[] = {
+	"VK_LAYER_KHRONOS_validation"
+};
+
 
 namespace RGL {
 	void InitVk(const InitOptions&);
