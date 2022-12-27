@@ -93,12 +93,59 @@ void RGL::SwapchainVK::Resize(int width, int height)
     }
 
     VK_CHECK(vkCreateSwapchainKHR(owningDevice->device, &swapchainCreateInfo, nullptr, &swapChain));
+
+    // remember these values
+    swapChainImageFormat = surfaceFormat.format;
+    swapChainExtent = extent;
+
+    // get the swap chain images
+    vkGetSwapchainImagesKHR(owningDevice->device, swapChain, &imageCount, nullptr);
+    swapChainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(owningDevice->device, swapChain, &imageCount, swapChainImages.data());
+
+    CreateSwapChainImageViews();
+}
+
+void RGL::SwapchainVK::CreateSwapChainImageViews()
+{
+    // create image views from images
+    swapChainImageViews.resize(swapChainImages.size());
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        VkImageViewCreateInfo createInfo{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = swapChainImages[i],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = swapChainImageFormat,
+            .components{
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY, // we don't want any swizzling
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY
+        },
+            .subresourceRange{
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,    // mipmap and layer info (we don't want any here)
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+        }
+        };
+        VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &swapChainImageViews[i]));
+    }
+}
+
+void RGL::SwapchainVK::CreateFrameBuffers()
+{
+
 }
 
 void RGL::SwapchainVK::DestroySwapchainIfNeeded()
 {
     if (swapChain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(owningDevice->device, swapChain, nullptr);
+        for (auto imageView : swapChainImageViews) {
+            vkDestroyImageView(owningDevice->device, imageView, nullptr);
+        }
     }
 }
 
