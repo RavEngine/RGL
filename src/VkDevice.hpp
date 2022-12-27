@@ -12,17 +12,17 @@ namespace RGL {
 		}
 	};
 
-	class DeviceVk : public IDevice {
+	struct DeviceVk : public IDevice, public std::enable_shared_from_this<DeviceVk> {
 		VkDevice device = VK_NULL_HANDLE;
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	// does not need to be destroyed
 		QueueFamilyIndices indices;
 		VkQueue presentQueue = VK_NULL_HANDLE, graphicsQueue = VK_NULL_HANDLE;	// do not need to be destroyed
-	public:
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
 
+		// IDevice
 		std::string GetBrandString() final;
-		
+		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int width, int height) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceVk();

@@ -14,6 +14,7 @@ namespace RGL {
 		virtual ~DeviceD3D12();
 
 		std::string GetBrandString();
+		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int, int) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceD3D12();

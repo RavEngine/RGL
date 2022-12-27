@@ -1,18 +1,13 @@
 #if RGL_VK_AVAILABLE
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"
+#include "VkSwapchain.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
 #include <format>
 
 using namespace RGL;
-
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
 
 constexpr static const char* const deviceExtensions[] = {
        VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -63,33 +58,6 @@ QueueFamilyIndices findQueueFamilies (VkPhysicalDevice device) {
     return indices;
 };
 
-#if 0
- SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) {
-    // inquire surface capabilities
-    SwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-
-    // get the formats that are supported
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-    if (formatCount != 0) {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-    }
-
-    // get the present modes
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-    if (presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-    }
-
-    return details;
-};
-#endif
-
 
 std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -139,7 +107,7 @@ std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
 
 RGL::DeviceVk::DeviceVk(decltype(physicalDevice) physicalDevice) : physicalDevice(physicalDevice) {
     // next create the logical device and the queue
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+    indices = findQueueFamilies(physicalDevice);
     float queuePriority = 1.0f;     // required even if we only have one queue. Used to cooperatively schedule multiple queues
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -183,6 +151,12 @@ std::string RGL::DeviceVk::GetBrandString() {
     VkPhysicalDeviceProperties props;
     vkGetPhysicalDeviceProperties(physicalDevice, &props);
     return props.deviceName;
+}
+
+std::shared_ptr<ISwapchain> RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurface> surface, int width, int height)
+{
+
+    return std::make_shared<SwapchainVK>(std::static_pointer_cast<RGL::SurfaceVk>(surface), shared_from_this(), width, height);
 }
 
 #endif

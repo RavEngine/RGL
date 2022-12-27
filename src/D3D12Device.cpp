@@ -1,6 +1,7 @@
 #if RGL_DX12_AVAILABLE
 #include "D3D12Device.hpp"
 #include "RGLD3D12.hpp"
+#include "RGLCommon.hpp"
 #include <codecvt>
 
 using namespace RGL;
@@ -123,5 +124,10 @@ std::string DeviceD3D12::GetBrandString() {
     using convert_type = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_type, wchar_t> converter;
     return converter.to_bytes(wstr);
+}
+std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface>, int width, int height)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<ISwapchain>();
 }
 #endif

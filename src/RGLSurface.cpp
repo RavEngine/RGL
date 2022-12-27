@@ -19,9 +19,10 @@ using namespace RGL;
 std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject)
 {
     switch (CurrentAPI()) {
+#if RGL_MTL_AVAILABLE
     case API::Metal:
         return CreateMTLSurfaceFromPlatformHandle(pointer, createSurfaceObject);
-        break;
+#endif
 #if RGL_VK_AVAILABLE
     case API::Vulkan:
         return CreateVKSurfaceFromPlatformData(pointer);

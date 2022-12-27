@@ -12,6 +12,6 @@ namespace RGL {
 
 		virtual std::string GetBrandString() = 0;
 		
-		virtual std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>) = 0;
+		virtual std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int width, int height) = 0;
 	};
 }
