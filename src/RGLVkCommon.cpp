@@ -21,10 +21,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
     auto severity = vktoDebugSeverity(messageSeverity);
 
-    LogMessage(severity, pCallbackData->pMessage);
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
+        //TODO: pass through more message types if the user wants them
+        LogMessage(severity, pCallbackData->pMessage);
+
 #ifdef NDEBUG
         __debugbreak();
 #endif

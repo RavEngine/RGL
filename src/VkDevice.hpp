@@ -13,22 +13,13 @@ namespace RGL {
 	};
 
 	class DeviceVk : public IDevice {
-		VkDevice device;
-		VkPhysicalDevice physicalDevice;	// does not need to be destroyed
+		VkDevice device = VK_NULL_HANDLE;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	// does not need to be destroyed
 		QueueFamilyIndices indices;
-		VkQueue presentQueue, graphicsQueue;	// do not need to be destroyed
+		VkQueue presentQueue = VK_NULL_HANDLE, graphicsQueue = VK_NULL_HANDLE;	// do not need to be destroyed
 	public:
 		virtual ~DeviceVk();
-		DeviceVk(
-			decltype(device) logicalDevice, 
-			decltype(physicalDevice) physicalDevice, 
-			const decltype(indices)& queueFamilyIndices,
-			decltype(presentQueue) presentQueue, 
-			decltype(graphicsQueue) graphicsQueue
-		) :
-			device(logicalDevice), physicalDevice(physicalDevice), indices(queueFamilyIndices),
-			presentQueue(presentQueue), graphicsQueue(graphicsQueue)
-		{}
+		DeviceVk(decltype(physicalDevice) physicalDevice);
 
 		std::string GetBrandString() final;
 		

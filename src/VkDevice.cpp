@@ -33,6 +33,36 @@ bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
     return requiredExtensions.empty();
 };
 
+// find a queue of the right family
+QueueFamilyIndices findQueueFamilies (VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+    // Logic to find queue family indices to populate struct with
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+            indices.presentFamily = i;  // note: to do this properly, one should use vkGetPhysicalDeviceSurfaceSupportKHR and check surface support, but we don't have a surface
+            // in general graphics queues are able to present. if the use has different needs, they should not use the default device.
+        }
+
+        /*VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+        if (presentSupport) {
+            indices.presentFamily = i;
+        }*/
+        i++;
+    }
+    return indices;
+};
+
+#if 0
  SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) {
     // inquire surface capabilities
     SwapChainSupportDetails details;
@@ -57,13 +87,11 @@ bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
 
     return details;
 };
-
+#endif
 
 
 std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
-    VkPhysicalDevice physicalDevice;
-    VkDevice device;
-    VkQueue presentQueue, graphicsQueue;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
     // now select and configure a device
     uint32_t deviceCount = 0;
@@ -72,32 +100,6 @@ std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-    // find a queue of the right family
-
-    constexpr auto findQueueFamilies = [](VkPhysicalDevice device) -> QueueFamilyIndices {
-        QueueFamilyIndices indices;
-        // Logic to find queue family indices to populate struct with
-
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        int i = 0;
-        for (const auto& queueFamily : queueFamilies) {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                indices.graphicsFamily = i;
-            }
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-            if (presentSupport) {
-                indices.presentFamily = i;
-            }
-            i++;
-        }
-        return indices;
-    };
 
 
     constexpr auto isDeviceSuitable = [](const VkPhysicalDevice device) -> bool {
@@ -114,8 +116,9 @@ std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
 
         bool swapChainAdequate = false;
         if (extensionsSupported) {
-            SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-            swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty() && swapChainAdequate;
+            /*SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+            bool swapchainSupported = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();*/
+            swapChainAdequate = /*swapchainSupported &&*/ swapChainAdequate;
         }
 
         // right now we don't care so pick any gpu
@@ -130,6 +133,10 @@ std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
     }
     Assert(physicalDevice != VK_NULL_HANDLE, "failed to find a suitable GPU!");
 
+	return std::make_shared<DeviceVk>( physicalDevice);
+}
+
+RGL::DeviceVk::DeviceVk(decltype(physicalDevice) physicalDevice) : physicalDevice(physicalDevice) {
     // next create the logical device and the queue
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
     float queuePriority = 1.0f;     // required even if we only have one queue. Used to cooperatively schedule multiple queues
@@ -164,8 +171,6 @@ std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
     VK_VALID(graphicsQueue);
     vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
     VK_VALID(presentQueue);
-
-	return std::make_shared<DeviceVk>(device, physicalDevice, indices, presentQueue, graphicsQueue);
 }
 
 RGL::DeviceVk::~DeviceVk() {
