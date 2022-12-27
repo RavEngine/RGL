@@ -7,5 +7,6 @@ namespace RGL{
 		std::shared_ptr<SurfaceMTL> surface;
 		SwapchainMTL(decltype(surface) surface) : surface(surface){}
 		virtual ~SwapchainMTL() {}
+		virtual void Resize(int width, int height) final;
 	};
 }

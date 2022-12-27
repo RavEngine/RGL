@@ -12,7 +12,7 @@ namespace RGL{
 		DeviceMTL(decltype(device) device) : device(device){}
 		std::string GetBrandString() final;
 		
-		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>) final;
+		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int, int) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceMTL();
