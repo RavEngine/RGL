@@ -98,7 +98,7 @@ void RGL::Shutdown() {
         FatalError("not implemented");
         break;
     case API::Direct3D12:
-        FatalError("not implemented");
+        DeintD3D12();
         break;
     case API::Vulkan:
         DeinitVk();
