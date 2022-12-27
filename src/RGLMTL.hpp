@@ -3,4 +3,5 @@
 
 namespace RGL {
 	void InitMTL(const RGL::InitOptions&);
+	void DeinitMTL();
 }

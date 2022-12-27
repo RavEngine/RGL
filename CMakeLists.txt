@@ -31,6 +31,10 @@ if(MSVC)
 	add_subdirectory(deps/DirectX-Headers EXCLUDE_FROM_ALL)
 	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=1)
+
+	set_target_properties("DirectX-Guids" PROPERTIES 
+		FOLDER "RGL/Libraries"
+	)
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=0)
 endif()
@@ -41,7 +45,6 @@ if(APPLE)
 	find_library(FOUNDATION_LIB Cocoa REQUIRED)
     find_library(METAL_LIB Metal REQUIRED)
     find_library(QZC_LIB QuartzCore REQUIRED)
-    target_sources(${PROJECT_NAME} PRIVATE source/shaders/metal.metal)
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_MTL_AVAILABLE=0)
 endif()
@@ -65,8 +68,6 @@ target_include_directories(${PROJECT_NAME}
 
 set_target_properties("RGL" PROPERTIES 
 	FOLDER "RGL"
+	XCODE_GENERATE_SCHEME ON
 )
 
-set_target_properties("DirectX-Guids" PROPERTIES 
-	FOLDER "RGL/Libraries"
-)

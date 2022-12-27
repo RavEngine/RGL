@@ -1,3 +1,4 @@
+#if RGL_VK_AVAILABLE
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"
 #include <vector>
@@ -183,3 +184,5 @@ std::string RGL::DeviceVk::GetBrandString() {
     vkGetPhysicalDeviceProperties(physicalDevice, &props);
     return props.deviceName;
 }
+
+#endif

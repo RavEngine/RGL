@@ -1,11 +1,23 @@
 #include "RGL.hpp"
-#include "RGLMTL.hpp"
-#include "RGLVk.hpp"
-#include "RGLD3D12.hpp"
+
 #include "RGLCommon.hpp"
 #include "Device.hpp"
+
+#if RGL_DX12_AVAILABLE
 #include "D3D12Device.hpp"
+#include "RGLD3D12.hpp"
+#endif
+
+#if RGL_VK_AVAILABLE
+#include "RGLVk.hpp"
 #include "VkDevice.hpp"
+#endif
+
+#if RGL_MTL_AVAILABLE
+#include "RGLMTL.hpp"
+#include "MTLDevice.hpp"
+#endif
+
 #include <iostream>
 
 #ifdef _WIN32
@@ -45,10 +57,21 @@ std::shared_ptr<IDevice> RGL::IDevice::CreateSystemDefaultDevice()
     case API::Uninitialized:
         FatalError("RGL is not initialized! Call RGL::Init before using any RGL functions.");
         break;
+#if RGL_DX12_AVAILABLE
     case API::Direct3D12:
         return CreateDefaultDeviceD3D12();
+#endif
+#if RGL_VK_AVAILABLE
     case API::Vulkan:
         return CreateDefaultDeviceVk();
+#endif
+#if RGL_MTL_AVAILABLE
+	case API::Metal:
+		return CreateDefaultDeviceMTL();
+#endif
+	default:
+		FatalError("Invalid API");
+			
     }
     return std::shared_ptr<IDevice>();
 }
@@ -74,15 +97,21 @@ void RGL::Init(const InitOptions& options)
     }
     else {
         switch (options.api) {
+#if RGL_MTL_AVAILABLE
         case API::Metal:
             InitMTL(options);
             break;
+#endif
+#if RGL_VK_AVAILABLE
         case API::Vulkan:
             InitVk(options);
             break;
+#endif
+#if RGL_DX12_AVAILABLE
         case API::Direct3D12:
             InitD3D12(options);
             break;
+#endif
         case API::Noop:
             break;
         default:
@@ -94,15 +123,23 @@ void RGL::Init(const InitOptions& options)
 
 void RGL::Shutdown() {
     switch (RGL::currentAPI) {
-    case API::Metal:
-        FatalError("not implemented");
-        break;
+#if RGL_DX12_AVAILABLE
     case API::Direct3D12:
         DeintD3D12();
         break;
+#endif
+#if RGL_VK_AVAILABLE
     case API::Vulkan:
         DeinitVk();
         break;
+#endif
+#if RGL_MTL_AVAILABLE
+	case API::Metal:
+		DeinitMTL();
+		break;
+#endif
+	default:
+		FatalError("not implemented for this API");
     }
 
     RGL::currentAPI = API::Uninitialized;

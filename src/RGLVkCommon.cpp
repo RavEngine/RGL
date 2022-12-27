@@ -1,3 +1,4 @@
+#if RGL_VK_AVAILABLE
 #include "RGLVk.hpp"
 #include "RGLCommon.hpp"
 #include <stdexcept>
@@ -134,3 +135,4 @@ void RGL::DeinitVk() {
     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     vkDestroyInstance(instance,nullptr);
 }
+#endif

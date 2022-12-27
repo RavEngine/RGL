@@ -7,3 +7,7 @@ void RGL::InitMTL(const RGL::InitOptions&) {
 	Assert(CanInitAPI(RGL::API::Metal), "Metal cannot be initialized on this platform.");
 	RGL::currentAPI = API::Metal;
 }
+
+void RGL::DeinitMTL(){
+	// do nothing for now
+}

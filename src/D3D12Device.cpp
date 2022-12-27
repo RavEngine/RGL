@@ -1,3 +1,4 @@
+#if RGL_DX12_AVAILABLE
 #include "D3D12Device.hpp"
 #include "RGLD3D12.hpp"
 #include <codecvt>
@@ -123,3 +124,4 @@ std::string DeviceD3D12::GetBrandString() {
     std::wstring_convert<convert_type, wchar_t> converter;
     return converter.to_bytes(wstr);
 }
+#endif

@@ -1,3 +1,4 @@
+#if RGL_VK_AVAILABLE
 #include "VkSurface.hpp"
 #include "RGLVk.hpp"
 
@@ -30,3 +31,4 @@ std::shared_ptr<ISurface> RGL::CreateVKSurfaceFromPlatformData(void* pointer)
 SurfaceVk::~SurfaceVk() {
     vkDestroySurfaceKHR(instance, surface, nullptr);
 }
+#endif
