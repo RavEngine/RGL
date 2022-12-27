@@ -10,13 +10,17 @@
 #include "D3D12Surface.hpp"
 #endif
 
+#if RGL_MTL_AVAILABLE
+#include "MTLSurface.hpp"
+#endif
+
 using namespace RGL;
 
-std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer)
+std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject)
 {
     switch (CurrentAPI()) {
     case API::Metal:
-        FatalError("Not implemented");
+        return CreateMTLSurfaceFromPlatformHandle(pointer, createSurfaceObject);
         break;
 #if RGL_VK_AVAILABLE
     case API::Vulkan:
