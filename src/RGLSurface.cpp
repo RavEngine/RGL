@@ -16,6 +16,7 @@ std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer)
         return CreateVKSurfaceFromPlatformData(pointer);
     case API::Direct3D12:
         return CreateD3D12SurfaceFromPlatformData(pointer);
+        break;
     default:
         FatalError("Invalid API");
     }
