@@ -2,6 +2,7 @@
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"
 #include "VkSwapchain.hpp"
+#include "VkRenderPass.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -157,6 +158,11 @@ std::shared_ptr<ISwapchain> RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurf
 {
 
     return std::make_shared<SwapchainVK>(std::static_pointer_cast<RGL::SurfaceVk>(surface), shared_from_this(), width, height);
+}
+
+std::shared_ptr<IRenderPass> RGL::DeviceVk::CreateRenderPass(const RenderPassConfig& config)
+{
+    return std::make_shared<RenderPassVk>(shared_from_this(),config);
 }
 
 #endif

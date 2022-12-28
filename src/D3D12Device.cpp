@@ -130,4 +130,9 @@ std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<IS
     FatalError("Not implemented");
     return std::shared_ptr<ISwapchain>();
 }
+std::shared_ptr<IRenderPass> RGL::DeviceD3D12::CreateRenderPass(const RenderPassConfig&)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IRenderPass>();
+}
 #endif

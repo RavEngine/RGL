@@ -2,6 +2,7 @@
 #include "Device.hpp"
 #include <optional>
 #include <vulkan/vulkan.h>
+#include "Pipeline.hpp"
 
 namespace RGL {
 	struct QueueFamilyIndices {
@@ -23,6 +24,7 @@ namespace RGL {
 		// IDevice
 		std::string GetBrandString() final;
 		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int width, int height) final;
+		std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceVk();
