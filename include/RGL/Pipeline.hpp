@@ -54,14 +54,23 @@ namespace RGL {
 	};
 
 	struct PipelineLayoutDescriptor {
-
+		struct LayoutBindingDesc {
+			uint32_t binding = 0;
+			enum class Type : uint8_t {
+				Sampler, CombinedImageSampler, SampledImage, StorageImage, UniformTexelBuffer, StorageTexelBuffer, UniformBuffer, StorageBuffer, UniformBufferDynamic, StorageBufferDynamic, InputAttachment
+			} type;
+			uint32_t descriptorCount = 0;
+			enum class StageFlags {
+				Vertex = 0x00000001,
+				Fragment = 0x00000010,
+				Compute = 0x00000020,
+			} stageFlags;
+			//TODO: support image samplers
+		};
+		std::vector<LayoutBindingDesc> bindings;
 	};
 
 	struct IPipelineLayout {
-
-	};
-
-	struct IShaderModule {
 
 	};
 

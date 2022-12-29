@@ -196,12 +196,46 @@ namespace RGL {
         vkDestroyPipeline(owningDevice->device, graphicsPipeline, nullptr);
     }
 
-    PipelineLayoutVk::PipelineLayoutVk(decltype(owningDevice) device, const PipelineLayoutDescriptor&) : owningDevice(device)
+    PipelineLayoutVk::PipelineLayoutVk(decltype(owningDevice) device, const PipelineLayoutDescriptor& desc) : owningDevice(device)
     {
+        std::vector<VkDescriptorSetLayoutBinding> layoutbindings;
+        layoutbindings.reserve(desc.bindings.size());
+
+        for (const auto& binding : desc.bindings) {
+            layoutbindings.push_back(
+                VkDescriptorSetLayoutBinding {
+                  .binding = binding.binding,   // see vertex shader
+                  .descriptorType = static_cast<VkDescriptorType>(binding.type),
+                  .descriptorCount = binding.descriptorCount,
+                  .stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags), //TODO: support stageFlags
+                  .pImmutableSamplers = nullptr       // used for image samplers
+                }
+            );
+        }
+      
+        VkDescriptorSetLayoutCreateInfo layoutInfo{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = static_cast<uint32_t>(layoutbindings.size()),
+            .pBindings = layoutbindings.data()
+        };
+
+        // create the descriptor set layout
+        VK_CHECK(vkCreateDescriptorSetLayout(owningDevice->device, &layoutInfo, nullptr, &descriptorSetLayout));
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 1,    // the rest are optional
+            .pSetLayouts = &descriptorSetLayout,
+            .pushConstantRangeCount = 0,
+            .pPushConstantRanges = nullptr
+        };
+        VK_CHECK(vkCreatePipelineLayout(owningDevice->device, &pipelineLayoutInfo, nullptr, &layout));
+
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()
     {
+        vkDestroyDescriptorSetLayout(owningDevice->device, descriptorSetLayout, nullptr);
         vkDestroyPipelineLayout(owningDevice->device, layout, nullptr);
     }
 }
