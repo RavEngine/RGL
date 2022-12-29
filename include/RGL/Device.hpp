@@ -2,12 +2,7 @@
 #include <memory>
 #include <string>
 #include <span>
-
-namespace std {
-	namespace filesystem {
-		struct path;
-	}
-}
+#include <filesystem>
 
 namespace RGL {
 	struct ISwapchain;
@@ -20,6 +15,9 @@ namespace RGL {
 	struct RenderPipelineDescriptor;
 	struct PipelineLayoutDescriptor;
 	struct IShaderLibrary;
+
+	struct BufferConfig;
+	struct IBuffer;
 
 	struct IDevice {
 		virtual ~IDevice() {}
@@ -38,5 +36,6 @@ namespace RGL {
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibrarySourceCode(const std::string_view) = 0;
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
 
+		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
 	};
 }

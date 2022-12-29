@@ -2,6 +2,7 @@
 #include "VkRenderPipeline.hpp"
 #include "RGLVk.hpp"
 #include "VkShaderLibrary.hpp"
+#include "VkBuffer.hpp"
 
 namespace RGL {
     VkShaderStageFlagBits RGL2VKshader(RenderPipelineDescriptor::ShaderStageDesc::Type type) {
@@ -231,12 +232,56 @@ namespace RGL {
         };
         VK_CHECK(vkCreatePipelineLayout(owningDevice->device, &pipelineLayoutInfo, nullptr, &layout));
 
+        // create descriptor pool
+        VkDescriptorPoolSize poolSize{
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+        };
+        VkDescriptorPoolCreateInfo poolInfo{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .maxSets = 1,       // these 1's are replaced with the maximum number of frames in flight
+            .poolSizeCount = 1,
+            .pPoolSizes = &poolSize,
+        };
+        VK_CHECK(vkCreateDescriptorPool(owningDevice->device, &poolInfo, nullptr, &descriptorPool));
+
+        // create descriptor set
+        VkDescriptorSetAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = descriptorPool,
+        .descriptorSetCount = 1,    // if multiple frames are in flight, set this to the max number of frames
+        .pSetLayouts = &descriptorSetLayout, // for multiple, supply a pointer with N identical copies of descriptorSetLayout
+        };
+        VK_CHECK(vkAllocateDescriptorSets(owningDevice->device, &allocInfo, &descriptorSet));
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()
     {
+        vkDestroyDescriptorPool(owningDevice->device, descriptorPool, nullptr);
         vkDestroyDescriptorSetLayout(owningDevice->device, descriptorSetLayout, nullptr);
         vkDestroyPipelineLayout(owningDevice->device, layout, nullptr);
+    }
+
+    void PipelineLayoutVk::SetLayout(const LayoutConfig& config)
+    {
+        VkDescriptorBufferInfo bufferInfo{
+           .buffer = std::static_pointer_cast<BufferVk>(config.buffer)->buffer,
+           .offset = config.offset,
+           .range = config.size
+        };
+
+        VkWriteDescriptorSet descriptorWrite{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,  // optional
+            .pBufferInfo = &bufferInfo,
+            .pTexelBufferView = nullptr
+        };
+        vkUpdateDescriptorSets(owningDevice->device, 1, &descriptorWrite, 0, nullptr);
     }
 }
 

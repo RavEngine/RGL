@@ -7,7 +7,8 @@
 #include "ShaderLibrary.hpp"
 
 namespace RGL {
-	
+	struct IBuffer;
+
 	struct RenderPassConfig {
 		struct AttachmentDesc {
 			// formats, multisample count, load and store ops (see VkAttachmentDescription), and layout (from VkAttachmentReference)
@@ -70,8 +71,19 @@ namespace RGL {
 		std::vector<LayoutBindingDesc> bindings;
 	};
 
-	struct IPipelineLayout {
+	//TODO: support non-uniformbuffers (see VkDescriptorType)
+	struct LayoutConfig {
+		std::shared_ptr<IBuffer> buffer;
+		uint32_t offset = 0;
+		uint32_t size = 0;
+		LayoutConfig(decltype(buffer) buffer, decltype(offset) offset, decltype(size) size) : buffer(buffer), offset(offset), size(size) {}
 
+		template<typename T>
+		LayoutConfig(decltype(buffer) buffer, decltype(offset) offset, const T& item) : buffer(buffer), offset(offset), size(sizeof(T)) {}
+	};
+
+	struct IPipelineLayout {
+		virtual void SetLayout(const LayoutConfig& config) = 0;
 	};
 
 	enum class PrimitiveTopology : uint8_t {

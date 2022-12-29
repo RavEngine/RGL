@@ -166,4 +166,10 @@ std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(co
     return std::shared_ptr<IShaderLibrary>();
 }
 
+std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig&)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IBuffer>();
+}
+
 #endif
