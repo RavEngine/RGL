@@ -1,6 +1,7 @@
 #if RGL_VK_AVAILABLE
 #include "RGLVk.hpp"
 #include "RGLCommon.hpp"
+#include "TextureFormat.hpp"
 #include <stdexcept>
 #include <format>
 
@@ -159,6 +160,22 @@ SwapChainSupportDetails RGL::querySwapChainSupport(const VkPhysicalDevice device
     }
 
     return details;
-};
+}
+VkSampleCountFlagBits RGL::RGLMSA2VK(const RGL::MSASampleCount& sc)
+{
+    auto samplecount = sc;
+    {
+        switch (samplecount) {
+        case decltype(samplecount)::C1: return VK_SAMPLE_COUNT_1_BIT;
+        case decltype(samplecount)::C2: return VK_SAMPLE_COUNT_2_BIT;
+        case decltype(samplecount)::C4: return VK_SAMPLE_COUNT_4_BIT;
+        case decltype(samplecount)::C8: return VK_SAMPLE_COUNT_8_BIT;
+        case decltype(samplecount)::C16: return VK_SAMPLE_COUNT_16_BIT;
+        case decltype(samplecount)::C32: return VK_SAMPLE_COUNT_32_BIT;
+        case decltype(samplecount)::C64: return VK_SAMPLE_COUNT_64_BIT;
+        }
+    }
+}
+;
 
 #endif

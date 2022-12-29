@@ -3,17 +3,6 @@
 #include "RGLVk.hpp"
 
 namespace RGL{
-    VkSampleCountFlagBits RGLMSA2VK(RGL::MSASampleCount samplecount) {
-        switch (samplecount) {
-            case decltype(samplecount)::C1: return VK_SAMPLE_COUNT_1_BIT;
-            case decltype(samplecount)::C2: return VK_SAMPLE_COUNT_2_BIT;
-            case decltype(samplecount)::C4: return VK_SAMPLE_COUNT_4_BIT;
-            case decltype(samplecount)::C8: return VK_SAMPLE_COUNT_8_BIT;
-            case decltype(samplecount)::C16: return VK_SAMPLE_COUNT_16_BIT;
-            case decltype(samplecount)::C32: return VK_SAMPLE_COUNT_32_BIT;
-            case decltype(samplecount)::C64: return VK_SAMPLE_COUNT_64_BIT;
-        }
-    }
 
     VkFormat RGLFormat2VK(RGL::TextureFormat format) {
         switch (format) {

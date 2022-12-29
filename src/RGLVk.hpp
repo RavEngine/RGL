@@ -31,4 +31,7 @@ namespace RGL {
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 	SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device, const VkSurfaceKHR surface);
+
+	enum class MSASampleCount : uint8_t;
+	VkSampleCountFlagBits RGLMSA2VK(const RGL::MSASampleCount& samplecount);
 }
