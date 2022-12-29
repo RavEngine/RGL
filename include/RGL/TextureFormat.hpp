@@ -5,12 +5,12 @@ namespace RGL {
 		BGRA8_Unorm
 	};
 
-	enum class TextureLayout {
+	enum class TextureLayout : uint8_t {
 		Present,
 		ColorAttachmentOptimal
 	};
 
-	enum class MSASampleCount {
+	enum class MSASampleCount : uint8_t {
 			C1 = 1,
 			C2,
 			C4,
@@ -20,14 +20,14 @@ namespace RGL {
 			C64
 	};
 
-	enum class LoadAccessOperation {
+	enum class LoadAccessOperation : uint8_t {
 		Load = 0,
 		Clear,
 		DontCare,
 		NotAccessed
 	};
 
-	enum class StoreAccessOperation {
+	enum class StoreAccessOperation : uint8_t {
 		Store,
 		DontCare,
 		None,

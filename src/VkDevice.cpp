@@ -3,6 +3,7 @@
 #include "RGLVk.hpp"
 #include "VkSwapchain.hpp"
 #include "VkRenderPass.hpp"
+#include "VkRenderPipeline.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -163,6 +164,20 @@ std::shared_ptr<ISwapchain> RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurf
 std::shared_ptr<IRenderPass> RGL::DeviceVk::CreateRenderPass(const RenderPassConfig& config)
 {
     return std::make_shared<RenderPassVk>(shared_from_this(),config);
+}
+
+std::shared_ptr<IPipelineLayout> RGL::DeviceVk::CreatePipelineLayout(const PipelineLayoutDescriptor& pld)
+{
+    return std::make_shared<PipelineLayoutVk>(shared_from_this(),pld);
+}
+
+std::shared_ptr<IRenderPipeline> RGL::DeviceVk::CreateRenderPipeline(const std::shared_ptr<IPipelineLayout> layout, const std::shared_ptr<IRenderPass> pass, const RenderPipelineDescriptor& config)
+{
+    return std::make_shared<RenderPipelineVk>(
+        shared_from_this(),
+        std::static_pointer_cast<RenderPassVk>(pass),
+        std::static_pointer_cast<PipelineLayoutVk>(layout),
+        config);
 }
 
 #endif

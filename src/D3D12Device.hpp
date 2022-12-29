@@ -14,9 +14,12 @@ namespace RGL {
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();
 
+		// IDevice
 		std::string GetBrandString();
 		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int, int) final;
 		std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) final;
+		std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
+		std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const std::shared_ptr<IPipelineLayout>, const std::shared_ptr<IRenderPass>, const RenderPipelineDescriptor&) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceD3D12();
