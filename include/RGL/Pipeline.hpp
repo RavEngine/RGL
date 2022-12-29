@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include "TextureFormat.hpp"
+#include "ShaderLibrary.hpp"
 
 namespace RGL {
 	
@@ -60,10 +61,6 @@ namespace RGL {
 
 	};
 
-	struct IShaderModule {
-
-	};
-
 	enum class PrimitiveTopology : uint8_t {
 		PointList, LineList, LineStrip, TriangleList, TriangleStrip,TriangleFan,
 		LineListAdjacency, LineStripAdjacency, TriangleListAdjacency, TriangleStripAdjacency,
@@ -75,7 +72,7 @@ namespace RGL {
 			enum class Type : uint8_t {
 				Vertex, Fragment, Compute
 			} type;
-			std::shared_ptr<IShaderModule> shaderModule;
+			std::shared_ptr<IShaderLibrary> shaderModule;
 			std::string entryPoint;
 		};
 		std::vector<ShaderStageDesc> stages;

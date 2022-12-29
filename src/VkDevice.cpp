@@ -4,6 +4,7 @@
 #include "VkSwapchain.hpp"
 #include "VkRenderPass.hpp"
 #include "VkRenderPipeline.hpp"
+#include "VkShaderLibrary.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -178,6 +179,26 @@ std::shared_ptr<IRenderPipeline> RGL::DeviceVk::CreateRenderPipeline(const std::
         std::static_pointer_cast<RenderPassVk>(pass),
         std::static_pointer_cast<PipelineLayoutVk>(layout),
         config);
+}
+
+std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateDefaultShaderLibrary()
+{
+    return std::make_shared<ShaderLibraryVk>(shared_from_this());
+}
+
+std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibraryFromBytes(const std::span<uint8_t> data)
+{
+    return std::make_shared<ShaderLibraryVk>(shared_from_this(), data);
+}
+
+std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibrarySourceCode(const std::string_view source)
+{
+    return std::make_shared<ShaderLibraryVk>(shared_from_this(), source);
+}
+
+std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibraryFromPath(const std::filesystem::path& path)
+{
+    return std::make_shared<ShaderLibraryVk>(shared_from_this(), path);
 }
 
 #endif

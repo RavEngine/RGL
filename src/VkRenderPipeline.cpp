@@ -1,6 +1,7 @@
 #if RGL_VK_AVAILABLE
 #include "VkRenderPipeline.hpp"
 #include "RGLVk.hpp"
+#include "VkShaderLibrary.hpp"
 
 namespace RGL {
     VkShaderStageFlagBits RGL2VKshader(RenderPipelineDescriptor::ShaderStageDesc::Type type) {
@@ -46,7 +47,7 @@ namespace RGL {
             shaderStages.push_back(VkPipelineShaderStageCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = RGL2VKshader(stage.type),
-                .module = VK_NULL_HANDLE,  //TODO: implement shader modules
+                .module = std::static_pointer_cast<ShaderLibraryVk>(stage.shaderModule)->shaderModule,  //TODO: implement shader modules
                 .pName = stage.entryPoint.c_str()
             });
         }

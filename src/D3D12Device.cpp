@@ -145,4 +145,24 @@ std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const st
     FatalError("Not implemented");
     return std::shared_ptr<IRenderPipeline>();
 }
+std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateDefaultShaderLibrary()
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IShaderLibrary>();
+}
+std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromBytes(const std::span<uint8_t>)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IShaderLibrary>();
+}
+std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IShaderLibrary>();
+}
+std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path&)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IShaderLibrary>();
+}
 #endif
