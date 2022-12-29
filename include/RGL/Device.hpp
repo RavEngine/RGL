@@ -37,5 +37,6 @@ namespace RGL {
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromBytes(const std::span<uint8_t>) = 0;
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibrarySourceCode(const std::string_view) = 0;
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
+
 	};
 }

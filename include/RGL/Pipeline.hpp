@@ -61,6 +61,13 @@ namespace RGL {
 
 	};
 
+<<<<<<< HEAD
+=======
+	struct IShaderModule {
+
+	};
+
+>>>>>>> 101ae056dcc9f8b578cee4f6b714b121f2169b34
 	enum class PrimitiveTopology : uint8_t {
 		PointList, LineList, LineStrip, TriangleList, TriangleStrip,TriangleFan,
 		LineListAdjacency, LineStripAdjacency, TriangleListAdjacency, TriangleStripAdjacency,
@@ -72,7 +79,11 @@ namespace RGL {
 			enum class Type : uint8_t {
 				Vertex, Fragment, Compute
 			} type;
+<<<<<<< HEAD
 			std::shared_ptr<IShaderLibrary> shaderModule;
+=======
+			std::shared_ptr<IShaderModule> shaderModule;
+>>>>>>> 101ae056dcc9f8b578cee4f6b714b121f2169b34
 			std::string entryPoint;
 		};
 		std::vector<ShaderStageDesc> stages;

@@ -165,4 +165,5 @@ std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(co
     FatalError("Not implemented");
     return std::shared_ptr<IShaderLibrary>();
 }
+
 #endif
