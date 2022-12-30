@@ -144,10 +144,18 @@ namespace RGL {
         VK_VALID(graphicsQueue);
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
         VK_VALID(presentQueue);
+
+        VkCommandPoolCreateInfo poolInfo{
+           .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+           .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,       // use this value if we want to write over the command buffer (ie for generating it every frame)
+           .queueFamilyIndex = indices.graphicsFamily.value()
+        };
+        VK_CHECK(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool));
     }
 
     RGL::DeviceVk::~DeviceVk() {
 
+        vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyDevice(device, nullptr);
     }
 

@@ -18,6 +18,7 @@ namespace RGL {
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	// does not need to be destroyed
 		QueueFamilyIndices indices;
 		VkQueue presentQueue = VK_NULL_HANDLE, graphicsQueue = VK_NULL_HANDLE;	// do not need to be destroyed
+		VkCommandPool commandPool = VK_NULL_HANDLE;
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
 
