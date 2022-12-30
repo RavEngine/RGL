@@ -27,11 +27,13 @@ namespace RGL {
 	};
 
 	class untyped_span {
-		void* ptr = nullptr;
-		size_t size_bytes = 0;
+		const void* ptr = nullptr;
+		const size_t size_bytes = 0;
 	public:
+		untyped_span(decltype(ptr) ptr, decltype(size_bytes) size_bytes) : ptr(ptr), size_bytes(size_bytes) {}
+
 		template<typename T> 
-		untyped_span(T* ptr) : ptr(ptr), size_bytes(sizeof(T)) {}
+		untyped_span(const T&& ptr) : ptr(&ptr), size_bytes(sizeof(T)) {}
 
 		constexpr auto data() const { return ptr; }
 		constexpr auto size() const { return size_bytes; }
