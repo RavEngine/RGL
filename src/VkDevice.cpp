@@ -6,6 +6,7 @@
 #include "VkRenderPipeline.hpp"
 #include "VkShaderLibrary.hpp"
 #include "VkBuffer.hpp"
+#include "VkCommandQueue.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -14,7 +15,9 @@
 namespace RGL {
 
     constexpr static const char* const deviceExtensions[] = {
-           VK_KHR_SWAPCHAIN_EXTENSION_NAME
+           VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+           VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME,
+           VK_KHR_MAINTENANCE1_EXTENSION_NAME
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
@@ -213,6 +216,11 @@ namespace RGL {
     std::shared_ptr<IBuffer> DeviceVk::CreateBuffer(const BufferConfig& config)
     {
         return std::make_shared<BufferVk>(shared_from_this(), config);
+    }
+
+    std::shared_ptr<ICommandQueue> DeviceVk::CreateCommandQueue(QueueType type)
+    {
+        return std::make_shared<CommandQueueVk>(shared_from_this());    // vulkan does not use the queue type
     }
 
 }

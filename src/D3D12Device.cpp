@@ -172,4 +172,10 @@ std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig&)
     return std::shared_ptr<IBuffer>();
 }
 
+std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<ICommandQueue>();
+}
+
 #endif

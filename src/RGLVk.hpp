@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <cassert>
 
-#define VK_CHECK(a) {auto VK_CHECK_RESULT = a; assert(VK_CHECK_RESULT == VK_SUCCESS);}
+#define VK_CHECK(a) {auto VK_CHECK_RESULT = a; Assert(VK_CHECK_RESULT == VK_SUCCESS, "Vulkan assertion failed");}
 #define VK_VALID(a) {assert(a != VK_NULL_HANDLE);}
 
 constexpr bool enableValidationLayers =

@@ -3,6 +3,7 @@
 #include <string>
 #include <span>
 #include <filesystem>
+#include "CommandQueue.hpp"
 
 namespace RGL {
 	struct ISwapchain;
@@ -37,5 +38,7 @@ namespace RGL {
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
 
 		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
+
+		virtual std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) = 0;
 	};
 }

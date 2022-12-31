@@ -35,6 +35,8 @@ namespace RGL {
 		std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) final;
 
 		std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) final;
+
+		std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceVk();

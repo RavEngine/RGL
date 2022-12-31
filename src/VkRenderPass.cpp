@@ -114,8 +114,46 @@ namespace RGL{
         VK_CHECK(vkCreateRenderPass(device->device, &renderPassInfo, nullptr, &renderPass));
 	}
 
+    void RenderPassVk::UpdateFramebuffer(decltype(currentWidth) width, decltype(currentHeight) height) {
+        if (passFrameBuffer == VK_NULL_HANDLE || currentWidth != width || currentHeight != height) {
+            // destroy if a framebuffer is already allocated
+            if (passFrameBuffer != VK_NULL_HANDLE) {
+                vkDestroyFramebuffer(device->device, passFrameBuffer, nullptr);
+            }
+            VkFramebufferAttachmentImageInfo attachments_image_info = {
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                .viewFormatCount = 0
+            };
+            VkFramebufferAttachmentsCreateInfo attachmentsCreateInfo{
+                .attachmentImageInfoCount = 1,
+                .pAttachmentImageInfos = &attachments_image_info
+            };
+
+            VkFramebufferCreateInfo framebufferInfo{
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                .pNext = &attachmentsCreateInfo,
+                .flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT,
+                .renderPass = renderPass,
+                .attachmentCount = 1,
+                .pAttachments = nullptr,       // not needed with imageless framebufer
+                .width = width,
+                .height = height,
+                .layers = 1,
+            };
+            VK_CHECK(vkCreateFramebuffer(device->device, &framebufferInfo, nullptr, &passFrameBuffer));
+        }
+        
+
+    }
+
 	RenderPassVk::~RenderPassVk()
 	{
+        if (passFrameBuffer != VK_NULL_HANDLE) {
+            vkDestroyFramebuffer(device->device, passFrameBuffer, nullptr);
+        }
 		vkDestroyRenderPass(device->device, renderPass, nullptr);
 	}
 

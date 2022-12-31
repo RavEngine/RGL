@@ -100,12 +100,12 @@ void RGL::InitVk(const InitOptions& init) {
     }
 
     // load GLFW's specific extensions for Vulkan
-    const char* glfwExtensions[] = {
+    const char* minExtensions[] = {
         "VK_KHR_surface",
-        "VK_KHR_win32_surface"      // TODO: what is the surface for Linux?
+        "VK_KHR_win32_surface",      // TODO: what is the surface for Linux?
     };
-    instanceCreateInfo.enabledExtensionCount = ARRAYSIZE(glfwExtensions);
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + instanceCreateInfo.enabledExtensionCount);
+    instanceCreateInfo.enabledExtensionCount = ARRAYSIZE(minExtensions);
+    std::vector<const char*> extensions(minExtensions, minExtensions + instanceCreateInfo.enabledExtensionCount);
     if constexpr (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME); // debug callback
