@@ -18,7 +18,15 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     void* pUserData) {
 
     constexpr auto vktoDebugSeverity = [](VkDebugUtilsMessageSeverityFlagBitsEXT severity) {
-        return MessageSeverity::Info;   //TODO: fix
+        if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+            return MessageSeverity::Fatal;
+        }
+        else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+            return MessageSeverity::Warning;
+        }
+        else{
+            return MessageSeverity::Info;
+        }
     };
 
     auto severity = vktoDebugSeverity(messageSeverity);
@@ -28,10 +36,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     {
         //TODO: pass through more message types if the user wants them
         LogMessage(severity, pCallbackData->pMessage);
-
-#ifdef NDEBUG
-        __debugbreak();
-#endif
     }
 
     return VK_FALSE;

@@ -128,6 +128,7 @@ namespace RGL{
                 .viewFormatCount = 0
             };
             VkFramebufferAttachmentsCreateInfo attachmentsCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO,
                 .attachmentImageInfoCount = 1,
                 .pAttachmentImageInfos = &attachments_image_info
             };

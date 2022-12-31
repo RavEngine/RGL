@@ -104,6 +104,26 @@ void RGL::SwapchainVK::Resize(int width, int height)
     vkGetSwapchainImagesKHR(owningDevice->device, swapChain, &imageCount, swapChainImages.data());
 
     CreateSwapChainImageViews();
+
+    VkFenceCreateInfo fenceInfo{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT       // create it already signaled, so that we won't block forever waiting for a render that won't happen on the first call to drawFrame
+    };
+    VK_CHECK(vkCreateFence(owningDevice->device, &fenceInfo, nullptr, &swapchainFence));
+
+    VkSemaphoreCreateInfo semaphoreInfo{
+       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+    };
+    VK_CHECK(vkCreateSemaphore(owningDevice->device, &semaphoreInfo, nullptr, &imageAvailableSemaphore));
+}
+
+RGL::ITexture& RGL::SwapchainVK::GetNextImage()
+{
+    uint32_t imageIndex;
+    auto result = vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkWaitForFences(owningDevice->device, 1, &swapchainFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(owningDevice->device, 1, &swapchainFence);
+    return RGLTextureResources[imageIndex];
 }
 
 void RGL::SwapchainVK::CreateSwapChainImageViews()
@@ -128,16 +148,13 @@ void RGL::SwapchainVK::CreateSwapChainImageViews()
                 .levelCount = 1,
                 .baseArrayLayer = 0,
                 .layerCount = 1
-        }
+            }
         };
         VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &swapChainImageViews[i]));
+        RGLTextureResources.emplace_back(swapChainImageViews[i]);
     }
 }
 
-void RGL::SwapchainVK::CreateFrameBuffers()
-{
-
-}
 
 void RGL::SwapchainVK::DestroySwapchainIfNeeded()
 {
@@ -147,6 +164,8 @@ void RGL::SwapchainVK::DestroySwapchainIfNeeded()
             vkDestroyImageView(owningDevice->device, imageView, nullptr);
         }
     }
+    vkDestroySemaphore(owningDevice->device, imageAvailableSemaphore, nullptr);
+    vkDestroyFence(owningDevice->device, swapchainFence, nullptr);
 }
 
 #endif

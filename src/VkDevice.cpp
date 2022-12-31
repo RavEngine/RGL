@@ -129,7 +129,10 @@ namespace RGL {
             };
             queueCreateInfos.push_back(queueCreateInfo);
         }
-        VkPhysicalDeviceFeatures deviceFeatures{};      // we don't yet need anything
+
+        VkPhysicalDeviceFeatures deviceFeatures{
+            
+        };      // we don't yet need anything
         VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = static_cast<decltype(VkDeviceCreateInfo::queueCreateInfoCount)>(queueCreateInfos.size()),

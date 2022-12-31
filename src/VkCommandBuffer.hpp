@@ -20,6 +20,7 @@ namespace RGL {
 		void Reset() final;
 		void Begin() final;
 		void End() final;
+		void BindPipeline(std::shared_ptr<IRenderPipeline>, const BindPipelineConfig&) final;
 		void Commit() final;
 	};
 }
