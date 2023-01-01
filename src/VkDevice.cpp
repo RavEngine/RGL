@@ -7,6 +7,7 @@
 #include "VkShaderLibrary.hpp"
 #include "VkBuffer.hpp"
 #include "VkCommandQueue.hpp"
+#include "VkSynchronization.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -160,8 +161,7 @@ namespace RGL {
             deviceCreateInfo.ppEnabledLayerNames = validationLayers;
         }
         VK_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
-        vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);    // 0 because we only have 1 queue
-        VK_VALID(graphicsQueue);
+        
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
         VK_VALID(presentQueue);
 
@@ -239,7 +239,18 @@ namespace RGL {
     {
         return std::make_shared<CommandQueueVk>(shared_from_this());    // vulkan does not use the queue type
     }
-
+    std::shared_ptr<IFence> DeviceVk::CreateFence(bool preSignaled)
+    {
+        return std::make_shared<FenceVk>(shared_from_this(),preSignaled);
+    }
+    std::shared_ptr<ISemaphore> DeviceVk::CreateSemaphore()
+    {
+        return std::make_shared<SemaphoreVk>(shared_from_this());
+    }
+    void DeviceVk::BlockUntilIdle()
+    {
+        vkDeviceWaitIdle(device);
+    }
 }
 
 #endif

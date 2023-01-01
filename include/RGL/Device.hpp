@@ -19,6 +19,8 @@ namespace RGL {
 
 	struct BufferConfig;
 	struct IBuffer;
+	struct IFence;
+	struct ISemaphore;
 
 	struct IDevice {
 		virtual ~IDevice() {}
@@ -40,5 +42,9 @@ namespace RGL {
 		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
 
 		virtual std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) = 0;
+
+		virtual std::shared_ptr<IFence> CreateFence(bool preSignaled) = 0;
+		virtual std::shared_ptr<ISemaphore> CreateSemaphore() = 0;
+		virtual void BlockUntilIdle() = 0;
 	};
 }

@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include "Pipeline.hpp"
 
+#undef CreateSemaphore
+
 namespace RGL {
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
@@ -17,7 +19,7 @@ namespace RGL {
 		VkDevice device = VK_NULL_HANDLE;
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	// does not need to be destroyed
 		QueueFamilyIndices indices;
-		VkQueue presentQueue = VK_NULL_HANDLE, graphicsQueue = VK_NULL_HANDLE;	// do not need to be destroyed
+		VkQueue presentQueue = VK_NULL_HANDLE;	// do not need to be destroyed
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
@@ -37,6 +39,9 @@ namespace RGL {
 		std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) final;
 
 		std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) final;
+		std::shared_ptr<IFence> CreateFence(bool preSignaled) final;
+		std::shared_ptr<ISemaphore> CreateSemaphore() final;
+		void BlockUntilIdle() final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceVk();

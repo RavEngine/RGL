@@ -10,8 +10,6 @@ namespace RGL {
 		std::shared_ptr<RGL::DeviceVk> owningDevice;
 		std::shared_ptr<SurfaceVk> owningSurface;
 		VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-		VkFence swapchainFence = VK_NULL_HANDLE;
-		VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
 		std::vector<VkImage> swapChainImages;
 		std::vector<VkImageView> swapChainImageViews;
 		std::vector<TextureVk> RGLTextureResources;
@@ -21,7 +19,13 @@ namespace RGL {
 		virtual ~SwapchainVK();
 		SwapchainVK(decltype(owningSurface), decltype(owningDevice), int width, int height);
 		void Resize(uint32_t, uint32_t) final;
-		ITexture& GetNextImage() final;
+		void GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) final;
+		ITexture* ImageAtIndex(uint32_t index) final {
+			return &(RGLTextureResources[index]);
+		}
+
+		void Present(const SwapchainPresentConfig&) final;
+
 	private:
 		void DestroySwapchainIfNeeded();
 	};

@@ -3,6 +3,7 @@
 #include <array>
 #include "Texture.hpp"
 #include "Buffer.hpp"
+#include "Synchronization.hpp"
 
 namespace RGL {
 	struct IRenderPipeline;
@@ -35,7 +36,10 @@ namespace RGL {
 		Scissor scissor;
 	};
 
-	
+	struct CommitConfig {
+		std::shared_ptr<IFence> signalFence;
+		std::span<std::shared_ptr<ISemaphore>> waitSemaphores, signalSemaphores;
+	};
 
 	struct ICommandBuffer {
 		// clear the command buffer, to encode new commands
@@ -50,6 +54,6 @@ namespace RGL {
 		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>, const BindPipelineConfig&) = 0;
 
 		// submit onto the queue that created this command buffer
-		virtual void Commit() = 0;
+		virtual void Commit(const CommitConfig&) = 0;
 	};
 }

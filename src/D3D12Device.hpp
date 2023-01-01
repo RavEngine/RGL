@@ -5,6 +5,8 @@
 #include <dxgi1_6.h>
 #include <wrl.h>
 
+#undef CreateSemaphore
+
 namespace RGL {
 
 	class DeviceD3D12 : public IDevice{
@@ -29,6 +31,9 @@ namespace RGL {
 		std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) final;
 
 		std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) final;
+		std::shared_ptr<IFence> CreateFence(bool preSignaled) final;
+		std::shared_ptr<ISemaphore> CreateSemaphore() final;
+		void BlockUntilIdle() final;
 	};
 
 	std::shared_ptr<IDevice> CreateDefaultDeviceD3D12();

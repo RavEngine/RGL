@@ -1,6 +1,7 @@
 #if RGL_VK_AVAILABLE
 #include "VkSwapchain.hpp"
 #include "RGLVk.hpp"
+#include "VkSynchronization.hpp"
 #include <algorithm>
 
 RGL::SwapchainVK::~SwapchainVK(){
@@ -128,26 +129,40 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
         VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &swapChainImageViews[i]));
         RGLTextureResources.emplace_back(swapChainImageViews[i], Dimension{ width,height });
     }
-
-    VkFenceCreateInfo fenceInfo{
-        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-        .flags = VK_FENCE_CREATE_SIGNALED_BIT       // create it already signaled, so that we won't block forever waiting for a render that won't happen on the first call to drawFrame
-    };
-    VK_CHECK(vkCreateFence(owningDevice->device, &fenceInfo, nullptr, &swapchainFence));
-
-    VkSemaphoreCreateInfo semaphoreInfo{
-       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-    };
-    VK_CHECK(vkCreateSemaphore(owningDevice->device, &semaphoreInfo, nullptr, &imageAvailableSemaphore));
 }
 
-RGL::ITexture& RGL::SwapchainVK::GetNextImage()
+void RGL::SwapchainVK::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> isemaphore)
 {
-    uint32_t imageIndex;
-    auto result = vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-    vkWaitForFences(owningDevice->device, 1, &swapchainFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(owningDevice->device, 1, &swapchainFence);
-    return RGLTextureResources[imageIndex];
+    auto semaphore = std::static_pointer_cast<SemaphoreVk>(isemaphore);
+    vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, semaphore->semaphore, VK_NULL_HANDLE, index);
+}
+
+void RGL::SwapchainVK::Present(const SwapchainPresentConfig& config)
+{
+    uint32_t nwait = config.waitSemaphores.size();
+    stackarray(waitSemaphores, VkSemaphore, nwait);
+    for (int i = 0; i < nwait; i++) {
+        waitSemaphores[i] = std::static_pointer_cast<SemaphoreVk>(config.waitSemaphores[i])->semaphore;
+    }
+
+    VkSwapchainKHR swapChains[] = { swapChain };
+    VkPresentInfoKHR presentInfo{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = nwait,
+        .pWaitSemaphores = waitSemaphores,
+        .swapchainCount = 1,
+        .pSwapchains = swapChains,
+        .pImageIndices = &(config.imageIndex),
+        .pResults = nullptr         // optional
+    };
+    auto result = vkQueuePresentKHR(owningDevice->presentQueue, &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        auto size = RGLTextureResources[0].GetSize();
+        Resize(size.width, size.height);
+    }
+    else if (result != VK_SUCCESS) {
+        FatalError("Failed to present swapchain image");
+    }
 }
 
 
@@ -159,8 +174,6 @@ void RGL::SwapchainVK::DestroySwapchainIfNeeded()
             vkDestroyImageView(owningDevice->device, imageView, nullptr);
         }
     }
-    vkDestroySemaphore(owningDevice->device, imageAvailableSemaphore, nullptr);
-    vkDestroyFence(owningDevice->device, swapchainFence, nullptr);
     RGLTextureResources.clear();
 }
 

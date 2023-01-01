@@ -178,4 +178,21 @@ std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType ty
     return std::shared_ptr<ICommandQueue>();
 }
 
+std::shared_ptr<IFence> RGL::DeviceD3D12::CreateFence(bool preSignaled)
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<IFence>();
+}
+
+std::shared_ptr<ISemaphore> RGL::DeviceD3D12::CreateSemaphore()
+{
+    FatalError("Not implemented");
+    return std::shared_ptr<ISemaphore>();
+}
+
+void RGL::DeviceD3D12::BlockUntilIdle()
+{
+    FatalError("Not implemented");
+}
+
 #endif

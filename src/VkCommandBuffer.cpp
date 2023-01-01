@@ -82,9 +82,9 @@ namespace RGL {
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 		vkCmdEndRenderPass(commandBuffer);
 	}
-	void CommandBufferVk::Commit()
+	void CommandBufferVk::Commit(const CommitConfig& config)
 	{
-
+		owningQueue->Submit(this, config);
 	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
