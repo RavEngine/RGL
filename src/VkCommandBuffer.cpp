@@ -80,6 +80,7 @@ namespace RGL {
 		};
 		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		vkCmdDraw(commandBuffer, config.numVertices, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
 	}
 	void CommandBufferVk::Commit(const CommitConfig& config)

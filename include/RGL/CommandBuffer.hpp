@@ -32,6 +32,7 @@ namespace RGL {
 		ITexture* targetFramebuffer = nullptr;
 
 		BindBuffersConfig buffers;
+		uint32_t numVertices = 0;
 		Viewport viewport;
 		Scissor scissor;
 	};
