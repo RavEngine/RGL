@@ -133,13 +133,27 @@ namespace RGL {
         VkPhysicalDeviceFeatures deviceFeatures{
             
         };      // we don't yet need anything
+
+        VkPhysicalDeviceImagelessFramebufferFeatures imagelessFramebuffer{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES,
+        };
+        VkPhysicalDeviceFeatures2 deviceFeatures2{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+            .pNext = &imagelessFramebuffer
+        };
+        vkGetPhysicalDeviceFeatures2(physicalDevice, &deviceFeatures2);
+        if (imagelessFramebuffer.imagelessFramebuffer == VK_FALSE) {
+            FatalError("Cannot init - imageless framebuffer is not supported");
+        }
+
         VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pNext = &deviceFeatures2,
             .queueCreateInfoCount = static_cast<decltype(VkDeviceCreateInfo::queueCreateInfoCount)>(queueCreateInfos.size()),
             .pQueueCreateInfos = queueCreateInfos.data(),      // could pass an array here if we were making more than one queue
             .enabledExtensionCount = ARRAYSIZE(deviceExtensions),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
             .ppEnabledExtensionNames = deviceExtensions,
-            .pEnabledFeatures = &deviceFeatures,
+            .pEnabledFeatures = nullptr,        // because we are using deviceFeatures2
         };
         if constexpr (enableValidationLayers) {
             deviceCreateInfo.enabledLayerCount = ARRAYSIZE(validationLayers);

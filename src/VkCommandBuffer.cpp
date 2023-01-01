@@ -45,7 +45,7 @@ namespace RGL {
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.pNext = &attachment_begin_info,	// imageless framebuffer
 		.renderPass = pipeline->renderPass->renderPass,
-		.framebuffer = VK_NULL_HANDLE,	// imageless framebuffer
+		.framebuffer = pipeline->renderPass->passFrameBuffer,	// imageless framebuffer
 		.renderArea = {
 			.offset = {0, 0},
 			.extent = VkExtent2D(texSize.width, texSize.height)

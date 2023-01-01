@@ -6,7 +6,7 @@ namespace RGL {
 
 	struct TextureVk : public ITexture {
 		const VkImageView vkImageView = VK_NULL_HANDLE;
-		TextureVk(decltype(vkImageView) image) : vkImageView(image) {}
+		TextureVk(decltype(vkImageView) image, const Dimension& size);
 
 		Dimension GetSize() const final;
 	};

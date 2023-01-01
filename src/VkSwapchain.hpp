@@ -20,10 +20,9 @@ namespace RGL {
 
 		virtual ~SwapchainVK();
 		SwapchainVK(decltype(owningSurface), decltype(owningDevice), int width, int height);
-		void Resize(int, int) final;
+		void Resize(uint32_t, uint32_t) final;
 		ITexture& GetNextImage() final;
 	private:
-		void CreateSwapChainImageViews();
 		void DestroySwapchainIfNeeded();
 	};
 }

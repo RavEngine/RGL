@@ -9,6 +9,7 @@ namespace RGL {
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 		VkFramebuffer passFrameBuffer = VK_NULL_HANDLE;
 		uint32_t currentWidth = 0, currentHeight = 0;
+		std::vector<VkFormat> attachmentFormats;
 
 		RenderPassVk(decltype(device), const RenderPassConfig&);
 		virtual ~RenderPassVk();

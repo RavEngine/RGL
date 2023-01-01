@@ -44,10 +44,13 @@ namespace RGL{
 
         // attachments
         std::vector<VkAttachmentDescription> colorAttachments;
+        colorAttachments.reserve(config.attachments.size());
+        attachmentFormats.reserve(config.attachments.size());
         {
             for (const auto& attachment : config.attachments) {
+                auto format = RGLFormat2VK(attachment.format);
                 colorAttachments.push_back(VkAttachmentDescription{
-                     .format = RGLFormat2VK(attachment.format),
+                        .format = format,
                         .samples = RGLMSA2VK(attachment.sampleCount),
                         .loadOp = RGL2LoadOp(attachment.loadOp),  // what to do before and after
                         .storeOp = RGL2StoreOp(attachment.storeOp),
@@ -57,6 +60,7 @@ namespace RGL{
                         .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR  // see https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes (VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) for more info
                     }
                 );
+                attachmentFormats.push_back(format);
             }
         }
 
@@ -124,8 +128,13 @@ namespace RGL{
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
-                .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                .viewFormatCount = 0
+                .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                .width = width,
+                .height = height,
+                .layerCount = 1,
+                .viewFormatCount = 1,
+                .pViewFormats = attachmentFormats.data(),
+              
             };
             VkFramebufferAttachmentsCreateInfo attachmentsCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO,
@@ -146,8 +155,6 @@ namespace RGL{
             };
             VK_CHECK(vkCreateFramebuffer(device->device, &framebufferInfo, nullptr, &passFrameBuffer));
         }
-        
-
     }
 
 	RenderPassVk::~RenderPassVk()
