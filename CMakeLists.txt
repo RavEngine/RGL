@@ -10,9 +10,32 @@ endif()
 
 project(RGL)
 
+#setup main library
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" "src/*.mm")
 add_library(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+# setup compiler
+add_subdirectory(deps/ShaderTranspiler EXCLUDE_FROM_ALL)
+file(GLOB_RECURSE LIBRGLC_SOURCES "tools/librglc/*.cpp" "tools/librglc/*.hpp")
+add_library(librglc ${LIBRGLC_SOURCES}) 
+target_link_libraries(librglc PRIVATE ShaderTranspiler)
+target_compile_features(librglc PRIVATE cxx_std_20)
+target_include_directories(librglc
+	PRIVATE
+		"tools/librglc/include/"
+	PUBLIC
+		"tools/librglc/include/"
+)
+
+# setup command line compiler utility
+file(GLOB RGLC_SOURCES "tools/rglc/*.cpp" "tools/rglc/*.hpp")
+add_executable(rglc ${RGLC_SOURCES})
+target_compile_features(rglc PRIVATE cxx_std_20)
+target_link_libraries(rglc PRIVATE librglc)
+target_include_directories(rglc PRIVATE "deps/cxxopts/include")
+set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc.exe" CACHE INTERNAL "rglc compiler path")
+
 
 if(APPLE)
 	add_definitions("-x objective-c++")
@@ -69,5 +92,46 @@ target_include_directories(${PROJECT_NAME}
 set_target_properties("RGL" PROPERTIES 
 	FOLDER "RGL"
 	XCODE_GENERATE_SCHEME ON
+)
+
+set_target_properties("rglc" "librglc" "SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
+	FOLDER "RGL/Libraries"
+)
+
+set_target_properties("GenericCodeGen" "glslang" "MachineIndependent" "OGLCompiler" "OSDependent" "SPIRV" PROPERTIES 
+	FOLDER "RGL/Libraries/glslang"
+)
+
+set_target_properties(
+	"spirv-tools-build-version" 
+	"spirv-tools-header-DebugInfo" 
+	"spirv-tools-header-NonSemanticShaderDebugInfo100" 
+	"spirv-tools-header-OpenCLDebugInfo100" 
+	"spv-tools-cldi100" 
+	"spv-tools-clspvreflection" 
+	"spv-tools-debuginfo"
+	"spv-tools-shdi100"
+	"spv-tools-spv-amd-gs"
+	"spv-tools-spv-amd-sb"
+	"spv-tools-spv-amd-stm"
+	"spv-tools-spv-amd-sevp"
+	PROPERTIES 
+	FOLDER "RGL/Libraries/SPIRV-Tools build"
+)
+
+set_target_properties(
+	"SPIRV-Tools-opt" "SPIRV-Tools-reduce" "SPIRV-Tools-static"
+	PROPERTIES 
+	FOLDER "RGL/Libraries/SPIRV-Tools Libraries"
+)
+
+set_target_properties(
+	"core_tables"
+	"enum_string_mapping"
+	"extinst_tables"
+	"spirv-cross-core"
+	"spirv-cross-glsl" "spirv-cross-hlsl" "spirv-cross-msl" "spirv-cross-reflect"
+	PROPERTIES 
+	FOLDER "RGL/Libraries/SPIRV-Cross"
 )
 
