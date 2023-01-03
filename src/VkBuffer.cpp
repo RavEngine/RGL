@@ -1,4 +1,4 @@
-#ifdef RGL_VK_AVAILABLE
+#if RGL_VK_AVAILABLE
 #include "VkBuffer.hpp"
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"

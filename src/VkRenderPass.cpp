@@ -1,4 +1,4 @@
-#ifdef RGL_VK_AVAILABLE
+#if RGL_VK_AVAILABLE
 #include "VkRenderPass.hpp"
 #include "RGLVk.hpp"
 
