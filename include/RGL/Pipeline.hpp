@@ -159,7 +159,7 @@ namespace RGL {
 
 			enum class WindingOrder : uint8_t {
 				Clockwise, Counterclockwise
-			} windingOrder : 1 = WindingOrder::Clockwise;
+			} windingOrder : 1 = WindingOrder::Counterclockwise;
 
 			struct DepthBias {
 				float clamp = 0, constantFactor = 0, slopeFactor = 0;

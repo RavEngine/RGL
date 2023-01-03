@@ -101,7 +101,7 @@ namespace RGL {
         // the viewport
         VkViewport viewport{
             .x = desc.viewport.x,
-            .y = desc.viewport.height,
+            .y = desc.viewport.height - desc.viewport.y,    // this is reversed for the same reason as the comment below
             .width = desc.viewport.width,
             .height = -desc.viewport.height,            // this is negative to convert Vulkan to use a Y-up coordinate system like the other APIs
             .minDepth = desc.viewport.minDepth,
