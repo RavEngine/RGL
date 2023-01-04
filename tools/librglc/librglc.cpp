@@ -39,8 +39,15 @@ namespace librglc {
 	auto CompileAny(auto task, API toAPI, ShaderStage input_stage, const Config& config) {
 		shadert::Options opt;
 		opt.mobile = false;
+		opt.entryPoint = "main";
 		if (toAPI == API::Vulkan) {
 			opt.version = 15;
+		}
+		else if (toAPI == API::Direct3D12) {
+			opt.version = 60;
+		}
+		else if (toAPI == API::Metal) {
+			opt.version = 30;
 		}
 
 		ShaderTranspiler s;

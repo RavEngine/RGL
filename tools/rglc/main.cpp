@@ -5,6 +5,12 @@
 #include <stdexcept>
 #include <fstream>
 
+#ifdef NDEBUG
+#define CATCH_ERRORS 1
+#else
+#define CATCH_ERRORS 1
+#endif
+
 #define FATAL(reason) {std::cerr << "rglc error: " << reason << std::endl; return 1;}
 
 using namespace std;
@@ -89,7 +95,8 @@ int main(int argc, const char** argv) {
 		};
 		static const unordered_map<string, apiData> apiMap{
 			{"Vulkan", {decltype(api)::Vulkan}},
-			{"Metal", {decltype(api)::Metal}}
+			{"Metal", {decltype(api)::Metal}},
+			{"Direct3D12", {decltype(api)::Direct3D12}}
 		};
 		try {
 			auto& data = apiMap.at(apiString);
@@ -108,7 +115,7 @@ int main(int argc, const char** argv) {
 		FATAL("target API not provided")
 	}
 
-#ifdef NDEBUG
+#if CATCH_ERRORS
 	try 
 #endif
 	{
@@ -121,7 +128,7 @@ int main(int argc, const char** argv) {
 			return 1;
 		}
 	}
-#ifdef NDEBUG
+#if CATCH_ERRORS
 	catch (exception& e) {
 		FATAL(e.what());
 	}

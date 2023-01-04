@@ -42,12 +42,14 @@ if(APPLE)
 endif()
 
 find_package(Vulkan)
-if (Vulkan_FOUND)
+if (Vulkan_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
 	set(VK_LIBS ${Vulkan_LIBRARIES})
 	set(VK_INCLUDE ${Vulkan_INCLUDE_DIRS})
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_VK_AVAILABLE=1)
+	set(RGL_VK_AVAILABLE ON CACHE INTERNAL "RGL Vulkan")
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_VK_AVAILABLE=0)
+	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
 endif()
 
 if(MSVC)
@@ -58,8 +60,10 @@ if(MSVC)
 	set_target_properties("DirectX-Guids" PROPERTIES 
 		FOLDER "RGL/Libraries"
 	)
+	set(RGL_DX12_AVAILABLE ON CACHE INTERNAL "RGL DX12")
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=0)
+	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")
 endif()
 
 if(APPLE)
@@ -68,8 +72,10 @@ if(APPLE)
 	find_library(FOUNDATION_LIB Cocoa REQUIRED)
     find_library(METAL_LIB Metal REQUIRED)
     find_library(QZC_LIB QuartzCore REQUIRED)
+	set(RGL_MTL_AVAILABLE ON CACHE INTERNAL "RGL Metal")
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_MTL_AVAILABLE=0)
+	set(RGL_MTL_AVAILABLE OFF CACHE INTERNAL "RGL Metal")
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -89,12 +95,12 @@ target_include_directories(${PROJECT_NAME}
 		"include"
 )
 
-set_target_properties("RGL" PROPERTIES 
+set_target_properties("RGL" "rglc" "librglc" PROPERTIES 
 	FOLDER "RGL"
 	XCODE_GENERATE_SCHEME ON
 )
 
-set_target_properties("rglc" "librglc" "SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
+set_target_properties("SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
 	FOLDER "RGL/Libraries"
 )
 
