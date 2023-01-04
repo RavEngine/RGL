@@ -1,8 +1,9 @@
 #pragma once
 #include "RGL.hpp"
-
+#include "RGLCommon.hpp"
 #include <cassert>
-#define DX_CHECK(hr) (assert(!FAILED(hr)))
+#include <comdef.h>
+#define DX_CHECK(hr) {auto dx_check_hr = hr; Assert(!FAILED(hr), _com_error(hr).ErrorMessage());}
 
 namespace RGL {
 	void InitD3D12(const RGL::InitOptions&);
