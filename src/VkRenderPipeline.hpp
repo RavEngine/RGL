@@ -25,7 +25,7 @@ namespace RGL {
 		const std::shared_ptr<PipelineLayoutVk> pipelineLayout;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-		RenderPipelineVk(decltype(owningDevice), decltype(renderPass), decltype(pipelineLayout), const RenderPipelineDescriptor&);
+		RenderPipelineVk(decltype(owningDevice), const RenderPipelineDescriptor&);
 		virtual ~RenderPipelineVk();
 	};
 

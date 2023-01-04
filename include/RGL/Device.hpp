@@ -32,7 +32,7 @@ namespace RGL {
 		virtual std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) = 0;
 
 		virtual std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;
-		virtual std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const std::shared_ptr<IPipelineLayout>, const std::shared_ptr<IRenderPass>, const RenderPipelineDescriptor&) = 0;
+		virtual std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) = 0;
 
 		virtual std::shared_ptr<IShaderLibrary> CreateDefaultShaderLibrary() = 0;
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromBytes(const std::span<uint8_t>) = 0;

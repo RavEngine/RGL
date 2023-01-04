@@ -140,7 +140,7 @@ std::shared_ptr<IPipelineLayout> RGL::DeviceD3D12::CreatePipelineLayout(const Pi
     FatalError("Not implemented");
     return std::shared_ptr<IPipelineLayout>();
 }
-std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const std::shared_ptr<IPipelineLayout>, const std::shared_ptr<IRenderPass>, const RenderPipelineDescriptor&)
+std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor&)
 {
     FatalError("Not implemented");
     return std::shared_ptr<IRenderPipeline>();

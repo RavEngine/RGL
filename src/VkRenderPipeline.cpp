@@ -39,7 +39,7 @@ namespace RGL {
         }
     }
 
-	RenderPipelineVk::RenderPipelineVk(decltype(owningDevice) device, decltype(renderPass) renderPass, decltype(pipelineLayout) layout, const RenderPipelineDescriptor& desc) : owningDevice(device), renderPass(renderPass), pipelineLayout(layout)
+	RenderPipelineVk::RenderPipelineVk(decltype(owningDevice) device, const RenderPipelineDescriptor& desc) : owningDevice(device), renderPass(std::static_pointer_cast<RenderPassVk>(desc.renderpass)), pipelineLayout(std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout))
 	{
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         shaderStages.reserve(desc.stages.size());
