@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 # setup compiler
+set(ST_BUNDLED_DXC OFF CACHE INTERNAL "")
 add_subdirectory(deps/ShaderTranspiler EXCLUDE_FROM_ALL)
 file(GLOB_RECURSE LIBRGLC_SOURCES "tools/librglc/*.cpp" "tools/librglc/*.hpp")
 add_library(librglc ${LIBRGLC_SOURCES}) 
@@ -140,4 +141,14 @@ set_target_properties(
 	PROPERTIES 
 	FOLDER "RGL/Libraries/SPIRV-Cross"
 )
+if(ST_BUNDLED_DXC)
+set_target_properties(
+	"DxcDisassembler" "DxcOptimizer" "DxilConstants" "DxilDocs" "DxilInstructions" "DxilIntrinsicTables"
+	"DxilMetadata" "DxilOperations" "DxilPIXPasses" "DxilShaderModel" "DxilShaderModelInc" "DxilSigPoint"
+	"DxilValidation" "DxilValidationInc" "HCTGen" "HLSLIntrinsicOp" "HLSLOptions" "RDAT_LibraryTypes"
+	PROPERTIES 
+	FOLDER "RGL/Libraries/DirectXShaderCompiler"
+)
+endif()
+
 
