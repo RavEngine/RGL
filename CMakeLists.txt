@@ -16,7 +16,7 @@ add_library(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 # setup compiler
-set(ST_BUNDLED_DXC ON CACHE INTERNAL "")
+set(ST_BUNDLED_DXC OFF CACHE INTERNAL "")
 add_subdirectory(deps/ShaderTranspiler EXCLUDE_FROM_ALL)
 file(GLOB_RECURSE LIBRGLC_SOURCES "tools/librglc/*.cpp" "tools/librglc/*.hpp")
 add_library(librglc ${LIBRGLC_SOURCES}) 

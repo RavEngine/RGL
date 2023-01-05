@@ -9,12 +9,17 @@
 
 namespace RGL {
 
-	class DeviceD3D12 : public IDevice{
+	struct CommandQueueD3D12;
+
+	struct DeviceD3D12 : public IDevice, public std::enable_shared_from_this<DeviceD3D12>{
 		Microsoft::WRL::ComPtr<ID3D12Device2> device;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter;
-	public:
+		std::shared_ptr<CommandQueueD3D12> internalQueue;
+
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();
+
+		void Flush();
 
 		// IDevice
 		std::string GetBrandString();

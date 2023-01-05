@@ -4,6 +4,7 @@
 #include <span>
 #include <filesystem>
 #include "CommandQueue.hpp"
+#undef CreateSemaphore
 
 namespace RGL {
 	struct ISwapchain;
