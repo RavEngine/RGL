@@ -32,29 +32,56 @@ namespace RGL {
 
 		VkClearValue clearColor = { {{config.clearColor[0], config.clearColor[1], config.clearColor[2], config.clearColor[3]}}};
 
-		// Update the renderPass's framebuffer if needed
-		pipeline->renderPass->UpdateFramebuffer(texSize.width, texSize.height);
-
-		VkRenderPassAttachmentBeginInfo attachment_begin_info = {
-			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO,
-			.attachmentCount = 1,	//TODO: support multiple attachments
-			.pAttachments = &(texture->vkImageView)
+		const VkRenderingAttachmentInfoKHR color_attachment_info{
+			.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+			.imageView = (texture->vkImageView),
+			.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.clearValue = clearColor,
 		};
 
-		VkRenderPassBeginInfo renderPassInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.pNext = &attachment_begin_info,	// imageless framebuffer
-		.renderPass = pipeline->renderPass->renderPass,
-		.framebuffer = pipeline->renderPass->passFrameBuffer,	// imageless framebuffer
-		.renderArea = {
-			.offset = {0, 0},
-			.extent = VkExtent2D(texSize.width, texSize.height)
-		},
-		.clearValueCount = 1,
-		.pClearValues = &clearColor,
+		const VkRenderingInfoKHR render_info{
+			.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+			.renderArea = {
+				.offset = {0,0},
+				.extent = VkExtent2D(texSize.width, texSize.height),
+			},
+			.layerCount = 1,
+			.colorAttachmentCount = 1,	//TODO: support multiple attachments (make multiple VkRenderingAttachmentInfoKHR structures)
+			.pColorAttachments = &color_attachment_info,
 		};
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
+		const VkImageMemoryBarrier image_memory_barrier_begin{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.image = texture->vkImage,
+			.subresourceRange = {
+			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			  .baseMipLevel = 0,
+			  .levelCount = 1,
+			  .baseArrayLayer = 0,
+			  .layerCount = 1,
+			}
+		};
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1, // imageMemoryBarrierCount
+			&image_memory_barrier_begin // pImageMemoryBarriers
+		);
+
+		vkCmdBeginRendering(commandBuffer, &render_info);
 
 		// drawing commands
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
@@ -81,7 +108,38 @@ namespace RGL {
 		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 		vkCmdDraw(commandBuffer, config.numVertices, 1, 0, 0);
-		vkCmdEndRenderPass(commandBuffer);
+		vkCmdEndRendering(commandBuffer);
+
+		// the swapchain image is not in the correct format for presentation now
+		// so it needs to be transitioned 
+		const VkImageMemoryBarrier image_memory_barrier_end{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			.image = texture->vkImage,
+			.subresourceRange = {
+			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			  .baseMipLevel = 0,
+			  .levelCount = 1,
+			  .baseArrayLayer = 0,
+			  .layerCount = 1,
+			}
+		};
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1, // imageMemoryBarrierCount
+			&image_memory_barrier_end // pImageMemoryBarriers
+		);
+
 	}
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{

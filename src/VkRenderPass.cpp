@@ -4,7 +4,7 @@
 
 namespace RGL{
 
-    VkFormat RGLFormat2VK(RGL::TextureFormat format) {
+    VkFormat RGLFormat2VK_old(RGL::TextureFormat format) {
         switch (format) {
         case TextureFormat::BGRA8_Unorm:
             return VK_FORMAT_B8G8R8A8_SRGB;
@@ -48,7 +48,7 @@ namespace RGL{
         attachmentFormats.reserve(config.attachments.size());
         {
             for (const auto& attachment : config.attachments) {
-                auto format = RGLFormat2VK(attachment.format);
+                auto format = RGLFormat2VK_old(attachment.format);
                 colorAttachments.push_back(VkAttachmentDescription{
                         .format = format,
                         .samples = RGLMSA2VK(attachment.sampleCount),

@@ -18,7 +18,8 @@ namespace RGL {
     constexpr static const char* const deviceExtensions[] = {
            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
            VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME,
-           VK_KHR_MAINTENANCE1_EXTENSION_NAME
+           VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+           VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
@@ -100,7 +101,7 @@ namespace RGL {
 
             // right now we don't care so pick any gpu
             // in the future implement a scoring system to pick the best device
-            return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && queueFamilyData.isComplete() && checkDeviceExtensionSupport(device);
+            return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && queueFamilyData.isComplete() && extensionsSupported;
         };
         for (const auto& device : devices) {
             if (isDeviceSuitable(device)) {
@@ -135,8 +136,13 @@ namespace RGL {
             
         };      // we don't yet need anything
 
+        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingfeature{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+            .pNext = nullptr
+        };
         VkPhysicalDeviceImagelessFramebufferFeatures imagelessFramebuffer{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES,
+            .pNext = &dynamicRenderingfeature
         };
         VkPhysicalDeviceFeatures2 deviceFeatures2{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
@@ -145,6 +151,9 @@ namespace RGL {
         vkGetPhysicalDeviceFeatures2(physicalDevice, &deviceFeatures2);
         if (imagelessFramebuffer.imagelessFramebuffer == VK_FALSE) {
             FatalError("Cannot init - imageless framebuffer is not supported");
+        }
+        if (dynamicRenderingfeature.dynamicRendering == VK_FALSE) {
+            FatalError("Cannot init - dynamic rendering is not supported");
         }
 
         VkDeviceCreateInfo deviceCreateInfo{

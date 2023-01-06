@@ -183,7 +183,7 @@ namespace RGL {
 			} logicalOperation = LogicalOperation::Copy;
 			bool logicalOpEnabled : 1 = false;
 			struct ColorAttachmentConfig {
-
+				TextureFormat format;
 				enum class BlendFactor : uint8_t {
 					Zero =0, 
 					One = 1, 
@@ -229,7 +229,6 @@ namespace RGL {
 		} colorBlendConfig;
 		// list of what states are dynamic (TODO)
 		std::shared_ptr<IPipelineLayout> pipelineLayout;
-		std::shared_ptr<IRenderPass> renderpass;
 		uint32_t subpassIndex = 0;				// what subpass in the renderpass will be used (index)
 	};
 

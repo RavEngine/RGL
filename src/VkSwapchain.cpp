@@ -127,7 +127,7 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
             }
         };
         VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &swapChainImageViews[i]));
-        RGLTextureResources.emplace_back(swapChainImageViews[i], Dimension{ width,height });
+        RGLTextureResources.emplace_back(swapChainImageViews[i], swapChainImages[i], Dimension{ width,height });
     }
 }
 

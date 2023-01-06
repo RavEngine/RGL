@@ -21,7 +21,6 @@ namespace RGL {
 
 	struct RenderPipelineVk : public IRenderPipeline {
 		const std::shared_ptr<DeviceVk> owningDevice;
-		const std::shared_ptr<RenderPassVk> renderPass;
 		const std::shared_ptr<PipelineLayoutVk> pipelineLayout;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 

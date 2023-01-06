@@ -15,6 +15,15 @@ namespace RGL {
         }
     }
 
+    VkFormat RGLFormat2VK(RGL::TextureFormat format) {
+        switch (format) {
+        case TextureFormat::BGRA8_Unorm:
+            return VK_FORMAT_B8G8R8A8_SRGB;
+        default:
+            FatalError("Cannot convert texture format");
+        }
+    }
+
     VkPrimitiveTopology RGL2VkTopology(PrimitiveTopology top) {
         switch (top) {
             case decltype(top)::PointList: return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
@@ -39,7 +48,7 @@ namespace RGL {
         }
     }
 
-	RenderPipelineVk::RenderPipelineVk(decltype(owningDevice) device, const RenderPipelineDescriptor& desc) : owningDevice(device), renderPass(std::static_pointer_cast<RenderPassVk>(desc.renderpass)), pipelineLayout(std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout))
+	RenderPipelineVk::RenderPipelineVk(decltype(owningDevice) device, const RenderPipelineDescriptor& desc) : owningDevice(device), pipelineLayout(std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout))
 	{
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         shaderStages.reserve(desc.stages.size());
@@ -171,9 +180,25 @@ namespace RGL {
             .blendConstants = {desc.colorBlendConfig.blendconstants[0],desc.colorBlendConfig.blendconstants[1],desc.colorBlendConfig.blendconstants[2],desc.colorBlendConfig.blendconstants[3]},        // optional
         };
 
+        const uint32_t nattachments = desc.colorBlendConfig.attachments.size();
+        stackarray(attachmentFormats, VkFormat, nattachments);
+        for (int i = 0; i < nattachments; i++) {
+            attachmentFormats[i] = RGLFormat2VK(desc.colorBlendConfig.attachments[i].format);
+        }
+
+        VkPipelineRenderingCreateInfoKHR renderingCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+            .pNext = VK_NULL_HANDLE,
+            .colorAttachmentCount = nattachments,
+            .pColorAttachmentFormats = attachmentFormats,
+            //TODO: support depth and stencil attachments
+            
+        };
+
         // create the pipeline object
         VkGraphicsPipelineCreateInfo pipelineInfo{
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .pNext = &renderingCreateInfo,
             .stageCount = static_cast<uint32_t>(shaderStages.size()),
             .pStages = shaderStages.data(),
             .pVertexInputState = &vertexInputInfo,
@@ -185,10 +210,11 @@ namespace RGL {
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout->layout,
-            .renderPass = renderPass->renderPass,
+            .renderPass = VK_NULL_HANDLE,       // VK_KHR_dynamic_rendering
             .subpass = desc.subpassIndex,
             .basePipelineHandle = VK_NULL_HANDLE, // optional
-            .basePipelineIndex = -1 // optional
+            .basePipelineIndex = -1, // optional
+            
         };
         VK_CHECK(vkCreateGraphicsPipelines(owningDevice->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline));
 	}

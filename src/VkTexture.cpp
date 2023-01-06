@@ -2,7 +2,7 @@
 #include "VkTexture.hpp"
 
 namespace RGL {
-	TextureVk::TextureVk(decltype(vkImageView) image, const Dimension& size) : vkImageView(image), ITexture(size)
+	TextureVk::TextureVk(decltype(vkImageView) imageView, decltype(vkImage) image, const Dimension& size) : vkImageView(imageView), vkImage(image), ITexture(size)
 	{
 	}
 	Dimension TextureVk::GetSize() const
