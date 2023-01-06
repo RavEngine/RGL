@@ -22,15 +22,54 @@ namespace RGL {
 	}
 	void CommandBufferVk::End()
 	{
+		// the swapchain image is not in the correct format for presentation now
+		// so it needs to be transitioned 
+		const VkImageMemoryBarrier image_memory_barrier_end{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			.image = swapchainImage,
+			.subresourceRange = {
+			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			  .baseMipLevel = 0,
+			  .levelCount = 1,
+			  .baseArrayLayer = 0,
+			  .layerCount = 1,
+			}
+		};
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1, // imageMemoryBarrierCount
+			&image_memory_barrier_end // pImageMemoryBarriers
+		);
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
+		swapchainImage = VK_NULL_HANDLE;
 	}
-	void CommandBufferVk::BindPipeline(std::shared_ptr<IRenderPipeline> generic_pipeline, const BindPipelineConfig& config)
+	void CommandBufferVk::BindPipeline(std::shared_ptr<IRenderPipeline> generic_pipeline)
 	{
 		auto pipeline = std::static_pointer_cast<RenderPipelineVk>(generic_pipeline);
+		
+
+		// drawing commands
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout->layout, 0, 1, &pipeline->pipelineLayout->descriptorSet, 0, nullptr);
+
+	}
+	void CommandBufferVk::BeginRendering(const BeginRenderingConfig& config)
+	{
+		VkClearValue clearColor = { {{config.clearColor[0], config.clearColor[1], config.clearColor[2], config.clearColor[3]}} };
 		auto texture = static_cast<TextureVk*>(config.targetFramebuffer);
 		auto texSize = texture->GetSize();
-
-		VkClearValue clearColor = { {{config.clearColor[0], config.clearColor[1], config.clearColor[2], config.clearColor[3]}}};
 
 		const VkRenderingAttachmentInfoKHR color_attachment_info{
 			.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
@@ -52,13 +91,15 @@ namespace RGL {
 			.pColorAttachments = &color_attachment_info,
 		};
 
+		swapchainImage = texture->vkImage;
+
 		// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
 		const VkImageMemoryBarrier image_memory_barrier_begin{
 			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			.image = texture->vkImage,
+			.image = swapchainImage,
 			.subresourceRange = {
 			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 			  .baseMipLevel = 0,
@@ -82,51 +123,20 @@ namespace RGL {
 		);
 
 		vkCmdBeginRendering(commandBuffer, &render_info);
-
-		// drawing commands
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout->layout, 0, 1, &pipeline->pipelineLayout->descriptorSet, 0, nullptr);
-
-		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(config.buffers.vertexBuffer)->buffer };
-		VkDeviceSize offsets[] = { config.buffers.offset };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		
-
-	
-		vkCmdDraw(commandBuffer, config.numVertices, 1, 0, 0);
+	}
+	void CommandBufferVk::EndRendering()
+	{
 		vkCmdEndRendering(commandBuffer);
-
-		// the swapchain image is not in the correct format for presentation now
-		// so it needs to be transitioned 
-		const VkImageMemoryBarrier image_memory_barrier_end{
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-			.image = texture->vkImage,
-			.subresourceRange = {
-			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			  .baseMipLevel = 0,
-			  .levelCount = 1,
-			  .baseArrayLayer = 0,
-			  .layerCount = 1,
-			}
-		};
-
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1, // imageMemoryBarrierCount
-			&image_memory_barrier_end // pImageMemoryBarriers
-		);
-
+	}
+	void CommandBufferVk::BindBuffer(const BindBuffersConfig& config)
+	{
+		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(config.vertexBuffer)->buffer };
+		VkDeviceSize offsets[] = { config.offset };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+	}
+	void CommandBufferVk::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
+	{
+		vkCmdDraw(commandBuffer, nVertices, nInstances, startVertex, firstInstance);
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{

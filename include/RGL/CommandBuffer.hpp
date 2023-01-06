@@ -27,12 +27,9 @@ namespace RGL {
 		std::array<uint32_t, 2> extent{ 0,0, };
 	};
 
-	struct BindPipelineConfig {
+	struct BeginRenderingConfig {
 		std::array<float, 4> clearColor{ 0,0,0, 1 };
 		ITexture* targetFramebuffer = nullptr;
-
-		BindBuffersConfig buffers;
-		uint32_t numVertices = 0;
 	};
 
 	struct CommitConfig {
@@ -50,7 +47,14 @@ namespace RGL {
 		// signal that all commands ahve been encoded
 		virtual void End() = 0;
 
-		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>, const BindPipelineConfig&) = 0;
+		virtual void BeginRendering(const BeginRenderingConfig&) = 0;
+		virtual void EndRendering() = 0;
+
+		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>) = 0;
+
+		virtual void BindBuffer(const BindBuffersConfig&) = 0;
+
+		virtual void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) = 0;
 
 		virtual void SetViewport(const Viewport&) = 0;
 		virtual void SetScissor(const Scissor&) = 0;
