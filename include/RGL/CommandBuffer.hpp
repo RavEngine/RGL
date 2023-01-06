@@ -8,10 +8,6 @@
 namespace RGL {
 	struct IRenderPipeline;
 
-	struct BindBuffersConfig {
-		std::shared_ptr<IBuffer> vertexBuffer;
-		uint32_t offset = 0;
-	};
 
 	struct Viewport {
 		float 
@@ -52,7 +48,7 @@ namespace RGL {
 
 		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>) = 0;
 
-		virtual void BindBuffer(const BindBuffersConfig&) = 0;
+		virtual void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) = 0;
 
 		virtual void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) = 0;
 

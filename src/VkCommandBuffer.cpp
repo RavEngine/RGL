@@ -128,10 +128,10 @@ namespace RGL {
 	{
 		vkCmdEndRendering(commandBuffer);
 	}
-	void CommandBufferVk::BindBuffer(const BindBuffersConfig& config)
+	void CommandBufferVk::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
 	{
-		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(config.vertexBuffer)->buffer };
-		VkDeviceSize offsets[] = { config.offset };
+		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
+		VkDeviceSize offsets[] = {offset };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
