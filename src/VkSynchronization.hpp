@@ -12,6 +12,7 @@ namespace RGL {
 		FenceVk(decltype(owningDevice) device, bool preSignaled);
 		void Wait() final;
 		void Reset() final;
+		void Signal() final;
 		virtual ~FenceVk();
 	};
 

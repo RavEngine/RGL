@@ -20,6 +20,10 @@ namespace RGL {
 	{
 		vkResetFences(owningDevice->device, 1, &fence);
 	}
+	void FenceVk::Signal()
+	{
+		// no way to manually signal fences in vulkan?
+	}
 	FenceVk::~FenceVk()
 	{
 		vkDestroyFence(owningDevice->device, fence, nullptr);

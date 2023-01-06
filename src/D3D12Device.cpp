@@ -189,13 +189,12 @@ namespace RGL {
 
     std::shared_ptr<ISemaphore> RGL::DeviceD3D12::CreateSemaphore()
     {
-        FatalError("CreateSemaphore(): Not implemented");
-        return std::shared_ptr<ISemaphore>();
+        return std::make_shared<SemaphoreD3D12>();
     }
 
     void RGL::DeviceD3D12::BlockUntilIdle()
     {
-        FatalError("BlockUntilIdle(): Not implemented");
+        Flush();
     }
 
     void DeviceD3D12::Flush() {
