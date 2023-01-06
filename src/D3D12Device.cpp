@@ -5,6 +5,7 @@
 #include "D3D12Swapchain.hpp"
 #include "D3D12Surface.hpp"
 #include "D3D12CommandQueue.hpp"
+#include "D3D12Synchronization.hpp"
 #include <codecvt>
 
 using namespace Microsoft::WRL;
@@ -183,8 +184,7 @@ namespace RGL {
 
     std::shared_ptr<IFence> RGL::DeviceD3D12::CreateFence(bool preSignaled)
     {
-        FatalError("CreateFence(): Not implemented");
-        return std::shared_ptr<IFence>();
+        return std::make_shared<FenceD3D12>(shared_from_this());
     }
 
     std::shared_ptr<ISemaphore> RGL::DeviceD3D12::CreateSemaphore()
@@ -199,7 +199,7 @@ namespace RGL {
     }
 
     void DeviceD3D12::Flush() {
-        FatalError("Flush(): Not Implemented");
+        internalQueue->Flush();
     }
 }
 
