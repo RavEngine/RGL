@@ -21,6 +21,10 @@ namespace RGL {
 		void Begin() final;
 		void End() final;
 		void BindPipeline(std::shared_ptr<IRenderPipeline>, const BindPipelineConfig&) final;
+
+		void SetViewport(const Viewport&) final;
+		void SetScissor(const Scissor&) final;
+
 		void Commit(const CommitConfig&) final;
 	};
 }

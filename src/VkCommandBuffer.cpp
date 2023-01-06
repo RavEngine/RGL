@@ -91,22 +91,9 @@ namespace RGL {
 		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(config.buffers.vertexBuffer)->buffer };
 		VkDeviceSize offsets[] = { config.buffers.offset };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		auto& viewport = config.viewport;
-		VkViewport vp{
-			.x = viewport.x,
-			.y = viewport.y,
-			.width = viewport.width,
-			.height = viewport.height, // make Vulkan a Y-up system
-			.minDepth = viewport.minDepth,
-			.maxDepth = viewport.maxDepth
-		};
+		
 
-		VkRect2D scissor{
-			.offset = {config.scissor.offset[0], config.scissor.offset[1]},
-			.extent = {config.scissor.extent[0],config.scissor.extent[1]},
-		};
-		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+	
 		vkCmdDraw(commandBuffer, config.numVertices, 1, 0, 0);
 		vkCmdEndRendering(commandBuffer);
 
@@ -140,6 +127,26 @@ namespace RGL {
 			&image_memory_barrier_end // pImageMemoryBarriers
 		);
 
+	}
+	void CommandBufferVk::SetViewport(const Viewport& viewport)
+	{
+		VkViewport vp{
+			.x = viewport.x,
+			.y = viewport.y,
+			.width = viewport.width,
+			.height = viewport.height, // make Vulkan a Y-up system
+			.minDepth = viewport.minDepth,
+			.maxDepth = viewport.maxDepth
+		};
+		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
+	}
+	void CommandBufferVk::SetScissor(const Scissor& scissorin)
+	{
+		VkRect2D scissor{
+		.offset = {scissorin.offset[0], scissorin.offset[1]},
+		.extent = {scissorin.extent[0], scissorin.extent[1]},
+		};
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{

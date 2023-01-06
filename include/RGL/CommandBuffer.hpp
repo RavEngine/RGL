@@ -33,8 +33,6 @@ namespace RGL {
 
 		BindBuffersConfig buffers;
 		uint32_t numVertices = 0;
-		Viewport viewport;
-		Scissor scissor;
 	};
 
 	struct CommitConfig {
@@ -53,6 +51,9 @@ namespace RGL {
 		virtual void End() = 0;
 
 		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>, const BindPipelineConfig&) = 0;
+
+		virtual void SetViewport(const Viewport&) = 0;
+		virtual void SetScissor(const Scissor&) = 0;
 
 		// submit onto the queue that created this command buffer
 		virtual void Commit(const CommitConfig&) = 0;
