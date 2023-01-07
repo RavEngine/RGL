@@ -6,6 +6,7 @@
 #include "D3D12Surface.hpp"
 #include "D3D12CommandQueue.hpp"
 #include "D3D12Synchronization.hpp"
+#include "D3D12ShaderLibrary.hpp"
 #include <codecvt>
 
 using namespace Microsoft::WRL;
@@ -151,23 +152,19 @@ namespace RGL {
     }
     std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateDefaultShaderLibrary()
     {
-        FatalError("CreateDefaultShaderLibrary: Not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return std::make_shared<ShaderLibraryD3D12>();
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromBytes(const std::span<uint8_t>)
+    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromBytes(const std::span<uint8_t> bytes)
     {
-        FatalError("CreateShaderLibraryFromBytes(): Not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return std::make_shared<ShaderLibraryD3D12>(bytes);
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view)
+    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view sourcecode)
     {
-        FatalError("CreateShaderLibrarySourceCode(): Not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return std::make_shared<ShaderLibraryD3D12>(sourcecode);
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path&)
+    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path& file)
     {
-        FatalError("CreateShaderLibraryFromPath(): Not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return std::make_shared<ShaderLibraryD3D12>(file);
     }
 
     std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig&)
