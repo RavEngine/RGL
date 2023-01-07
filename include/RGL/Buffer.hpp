@@ -4,7 +4,8 @@
 namespace RGL {
 
 	struct BufferConfig {
-		uint32_t size = 0;
+		uint32_t size_bytes = 0;
+		uint32_t stride = 0;
 		enum class Type : uint16_t {
 			UniformBuffer = 0x00000010,
 			StorageBuffer = 0x00000020,
@@ -12,13 +13,13 @@ namespace RGL {
 			VertexBuffer = 0x00000080,
 			IndirectBuffer = 0x00000100
 		} type;
-		BufferConfig(decltype(size) size, decltype(type) type) : size(size), type(type) {}
+		BufferConfig(decltype(size_bytes) size, decltype(type) type, decltype(stride) stride) : size_bytes(size), type(type), stride(stride) {}
 
 		template<typename T>
-		BufferConfig(decltype(type) type) : size(sizeof(T)), type(type) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride) : size_bytes(sizeof(T)), type(type), stride(stride) {}
 
 		template<typename T>
-		BufferConfig(decltype(type) type, const T& t) : size(sizeof(T)), type(type) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t) : size_bytes(sizeof(T)), type(type), stride(stride) {}
 	};
 
 	struct MutableSpan {

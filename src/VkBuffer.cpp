@@ -26,7 +26,7 @@ namespace RGL {
         auto device = owningDevice->device;
         VkBufferCreateInfo bufferInfo{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = config.size,
+            .size = config.size_bytes,
             .usage = static_cast<VkBufferUsageFlags>(config.type),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE
         };
@@ -48,7 +48,7 @@ namespace RGL {
 
         vkBindBufferMemory(device, buffer, bufferMemory, 0);
 
-        mappedMemory.size = config.size;
+        mappedMemory.size = config.size_bytes;
 	}
 
     BufferVk::~BufferVk() {

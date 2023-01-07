@@ -7,6 +7,7 @@
 #include "D3D12CommandQueue.hpp"
 #include "D3D12Synchronization.hpp"
 #include "D3D12ShaderLibrary.hpp"
+#include "D3D12Buffer.hpp"
 #include <codecvt>
 
 using namespace Microsoft::WRL;
@@ -167,10 +168,9 @@ namespace RGL {
         return std::make_shared<ShaderLibraryD3D12>(file);
     }
 
-    std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig&)
+    std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig& config)
     {
-        FatalError("CreateBuffer(): Not implemented");
-        return std::shared_ptr<IBuffer>();
+        return std::make_shared<BufferD3D12>(shared_from_this(), config);
     }
 
     std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)

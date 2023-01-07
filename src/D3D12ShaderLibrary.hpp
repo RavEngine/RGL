@@ -16,5 +16,7 @@ namespace RGL {
 		ShaderLibraryD3D12(const std::span<uint8_t, std::dynamic_extent>);
 		ShaderLibraryD3D12(const std::string_view);
 		ShaderLibraryD3D12(const std::filesystem::path& path);
+
+		~ShaderLibraryD3D12() {}
 	};
 }
