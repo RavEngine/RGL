@@ -120,6 +120,7 @@ namespace RGL {
 
 			struct VertexAttributeDesc {
 				uint32_t location, binding, offset;
+				const char* semantic_name = nullptr;
 				enum class Format {
 					Undefined,
 					R32G32_SignedFloat = 103,

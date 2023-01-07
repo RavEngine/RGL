@@ -146,10 +146,9 @@ namespace RGL {
     {
         return std::make_shared<PipelineLayoutD3D12>(shared_from_this(),desc);
     }
-    std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor&)
+    std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor& desc)
     {
-        FatalError("CreateRenderPipeline: Not implemented");
-        return std::shared_ptr<IRenderPipeline>();
+        return std::make_shared<RenderPipelineD3D12>(shared_from_this(), desc);
     }
     std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateDefaultShaderLibrary()
     {

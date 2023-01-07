@@ -15,6 +15,9 @@ namespace RGL {
 	};
 
 	struct RenderPipelineD3D12 : public IRenderPipeline {
+		const std::shared_ptr<DeviceD3D12> owningDevice;
+		ComPtr<ID3D12PipelineState> pipelineState;
 
+		RenderPipelineD3D12(decltype(owningDevice), const RenderPipelineDescriptor&);
 	};
 }
