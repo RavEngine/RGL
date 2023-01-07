@@ -8,6 +8,7 @@
 #include "D3D12Synchronization.hpp"
 #include "D3D12ShaderLibrary.hpp"
 #include "D3D12Buffer.hpp"
+#include "D3D12RenderPipeline.hpp"
 #include <codecvt>
 
 using namespace Microsoft::WRL;
@@ -141,10 +142,9 @@ namespace RGL {
         FatalError("CreateRenderPass: Not implemented");
         return std::shared_ptr<IRenderPass>();
     }
-    std::shared_ptr<IPipelineLayout> RGL::DeviceD3D12::CreatePipelineLayout(const PipelineLayoutDescriptor&)
+    std::shared_ptr<IPipelineLayout> RGL::DeviceD3D12::CreatePipelineLayout(const PipelineLayoutDescriptor& desc)
     {
-        FatalError("CreatePipelineLayout: Not implemented");
-        return std::shared_ptr<IPipelineLayout>();
+        return std::make_shared<PipelineLayoutD3D12>(shared_from_this(),desc);
     }
     std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor&)
     {
