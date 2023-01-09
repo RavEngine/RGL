@@ -6,6 +6,7 @@
 #include "RGLCommon.hpp"
 #include "MTLSynchronization.hpp"
 #include "MTLShaderLibrary.hpp"
+#include "MTLBuffer.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
@@ -62,8 +63,8 @@ std::shared_ptr<IShaderLibrary> DeviceMTL::CreateShaderLibraryFromPath(const std
     FatalError("ShaderLibraryMTL");
 }
 
-std::shared_ptr<IBuffer> DeviceMTL::CreateBuffer(const BufferConfig&) {
-    FatalError("CreateBuffer not implemented");
+std::shared_ptr<IBuffer> DeviceMTL::CreateBuffer(const BufferConfig& config) {
+    return std::make_shared<BufferMTL>(shared_from_this(), config);
 }
 
 std::shared_ptr<ICommandQueue> DeviceMTL::CreateCommandQueue(QueueType type) {
