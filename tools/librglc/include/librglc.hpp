@@ -23,6 +23,7 @@ namespace librglc {
 		std::vector<std::filesystem::path> include_paths;
 		bool outputBinary = false;
 		bool enableDebug = false;
+        std::string entrypointOutputName = "main";
 	};
 
 	std::string CompileString(const std::string_view source, API toAPI, ShaderStage input_stage, const Config& config);

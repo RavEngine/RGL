@@ -22,6 +22,8 @@ int main(int argc, const char** argv) {
 		("v,version", "Print version information")
 		("f,file", "Input file path", cxxopts::value<filesystem::path>())
 		("o,output", "Ouptut file path", cxxopts::value<filesystem::path>())
+        ("b,binary", "Create a binary shader")
+        ("e,entrypoint", "Set the name of the generated entrypoint, defaults to \"main\"", cxxopts::value<std::string>())
 		("a,api", "Target API", cxxopts::value<string>())
 		("s,stage", "Shader stage", cxxopts::value<std::string>())
 		("i,include", "Include paths", cxxopts::value<std::vector<filesystem::path>>())
@@ -42,6 +44,12 @@ int main(int argc, const char** argv) {
 		debug = args["debug"].as<decltype(debug)>();
 	}
 	catch (exception& e) {}
+    
+    std::string entrypoint = "main";
+    try{
+        entrypoint = args["entrypoint"].as<decltype(entrypoint)>();
+    }
+    catch(exception& e){}
 
 
 	// check for input and output file
@@ -114,12 +122,22 @@ int main(int argc, const char** argv) {
 	catch (exception& e) {
 		FATAL("target API not provided")
 	}
+    
+    // targets that only allow binary output ignore the binary flag
+    bool binary = (api == librglc::API::Vulkan);
+    if (!binary){
+        try{
+            binary = args["binary"].as<decltype(binary)>();
+        }
+        catch(exception& e){}
+    }
+   
 
 #if CATCH_ERRORS
 	try 
 #endif
 	{
-		auto result = librglc::CompileFile(inputFile, api, inputStage, { .outputBinary = true, .enableDebug = debug });
+		auto result = librglc::CompileFile(inputFile, api, inputStage, { .outputBinary = binary, .enableDebug = debug, .entrypointOutputName = entrypoint });
 		std::filesystem::create_directories(outputFile.parent_path());		// make all the folders necessary
 		ofstream out(outputFile, ios::out | ios::binary);
 		out.write(result.data(), result.size() * sizeof(decltype(result)::value_type));

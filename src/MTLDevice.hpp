@@ -3,13 +3,15 @@
 #if RGL_MTL_AVAILABLE
 #include "Device.hpp"
 #import <Metal/Metal.h>
+#include <memory>
 
 namespace RGL{
 
-	class DeviceMTL : public IDevice{
+	struct DeviceMTL : public IDevice, public std::enable_shared_from_this<DeviceMTL>{
 		id<MTLDevice> device = nullptr;
-	public:
-		DeviceMTL(decltype(device) device) : device(device){}
+        id<MTLLibrary> defaultLibrary = nullptr;
+	
+        DeviceMTL(decltype(device) device);
 		std::string GetBrandString() final;
 		
 		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int, int) final;
@@ -18,6 +20,7 @@ namespace RGL{
         std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
         std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) final;
 
+        std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromName(const std::string_view& name) final;
         std::shared_ptr<IShaderLibrary> CreateDefaultShaderLibrary() final;
         std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromBytes(const std::span<uint8_t>) final;
         std::shared_ptr<IShaderLibrary> CreateShaderLibrarySourceCode(const std::string_view) final;

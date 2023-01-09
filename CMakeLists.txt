@@ -35,7 +35,10 @@ add_executable(rglc ${RGLC_SOURCES})
 target_compile_features(rglc PRIVATE cxx_std_20)
 target_link_libraries(rglc PRIVATE librglc)
 target_include_directories(rglc PRIVATE "deps/cxxopts/include")
-set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc.exe" CACHE INTERNAL "rglc compiler path")
+if(MSVC)
+	set(rglc_ext ".exe")
+endif()
+set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc${rglc_ext}" CACHE INTERNAL "rglc compiler path")
 
 
 if(APPLE)

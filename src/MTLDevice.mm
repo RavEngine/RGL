@@ -5,11 +5,16 @@
 #include "MTLSwapchain.hpp"
 #include "RGLCommon.hpp"
 #include "MTLSynchronization.hpp"
+#include "MTLShaderLibrary.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
     auto device = MTLCreateSystemDefaultDevice();
     return std::make_shared<DeviceMTL>(device);
+}
+
+DeviceMTL::DeviceMTL(decltype(device) device)  : device(device){
+    defaultLibrary = [device newDefaultLibrary];
 }
 
 std::string DeviceMTL::GetBrandString() {
@@ -25,40 +30,44 @@ std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(std::shared_ptr<ISur
 }
 
 std::shared_ptr<IRenderPass> DeviceMTL::CreateRenderPass(const RenderPassConfig&) {
-    FatalError("");
+    FatalError("CreateRenderPass not implemented");
 }
 
 std::shared_ptr<IPipelineLayout> DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor&) {
-    FatalError("");
+    FatalError("CreatePipelineLayout not implemented");
 }
 
 std::shared_ptr<IRenderPipeline> DeviceMTL::CreateRenderPipeline(const RenderPipelineDescriptor&) {
-    FatalError("");
+    FatalError("CreateRenderPipeline not implemented");
 }
 
 
 std::shared_ptr<IShaderLibrary> DeviceMTL::CreateDefaultShaderLibrary() {
-    FatalError("");
+    FatalError("CreateDefaultShaderLibrary not implemented");
+}
+
+std::shared_ptr<IShaderLibrary> DeviceMTL::CreateShaderLibraryFromName(const std::string_view& name){
+    return std::make_shared<ShaderLibraryMTL>(shared_from_this(), name);
 }
 
 std::shared_ptr<IShaderLibrary> DeviceMTL::CreateShaderLibraryFromBytes(const std::span<uint8_t>) {
-    FatalError("");
+    FatalError("Not Implemented");
 }
 
 std::shared_ptr<IShaderLibrary> DeviceMTL::CreateShaderLibrarySourceCode(const std::string_view) {
-    FatalError("");
+    FatalError("ShaderLibraryMTL");
 }
 
 std::shared_ptr<IShaderLibrary> DeviceMTL::CreateShaderLibraryFromPath(const std::filesystem::path&) {
-    FatalError("");
+    FatalError("ShaderLibraryMTL");
 }
 
 std::shared_ptr<IBuffer> DeviceMTL::CreateBuffer(const BufferConfig&) {
-    FatalError("");
+    FatalError("CreateBuffer not implemented");
 }
 
 std::shared_ptr<ICommandQueue> DeviceMTL::CreateCommandQueue(QueueType type) {
-    FatalError("");
+    FatalError("CreateCommandqueue not implemented");
 }
 
 std::shared_ptr<IFence> DeviceMTL::CreateFence(bool preSignaled) {
