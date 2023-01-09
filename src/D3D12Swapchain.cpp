@@ -1,4 +1,4 @@
-#ifdef RGL_DX12_AVAILABLE
+#if RGL_DX12_AVAILABLE
 #include "D3D12Swapchain.hpp"
 #include "D3D12Surface.hpp"
 #include <dxgi1_5.h>

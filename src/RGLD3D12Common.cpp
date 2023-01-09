@@ -1,3 +1,4 @@
+#if RGL_DX12_AVAILABLE
 #include "RGLD3D12.hpp"
 #include "RGLCommon.hpp"
 #include <d3d12sdklayers.h>
@@ -29,4 +30,4 @@ void RGL::DeintD3D12()
 {
 	// as of now, do nothing
 }
-
+#endif

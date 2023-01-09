@@ -7,6 +7,9 @@ namespace RGL{
 		std::shared_ptr<SurfaceMTL> surface;
 		SwapchainMTL(decltype(surface) surface) : surface(surface){}
 		virtual ~SwapchainMTL() {}
-		virtual void Resize(int width, int height) final;
+		void Resize(uint32_t width, uint32_t height) final;
+        void GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) final;
+        ITexture* ImageAtIndex(uint32_t index) final;
+        void Present(const SwapchainPresentConfig&) final;
 	};
 }
