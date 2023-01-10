@@ -150,6 +150,11 @@ namespace RGL {
     {
         return std::make_shared<RenderPipelineD3D12>(shared_from_this(), desc);
     }
+    std::shared_ptr<IShaderLibrary> DeviceD3D12::CreateShaderLibraryFromName(const std::string_view& name)
+    {
+        FatalError("CreateShaderLibraryFromName not implemented");
+        return std::shared_ptr<IShaderLibrary>();
+    }
     std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateDefaultShaderLibrary()
     {
         return std::make_shared<ShaderLibraryD3D12>();
