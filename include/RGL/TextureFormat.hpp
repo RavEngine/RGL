@@ -11,13 +11,14 @@ namespace RGL {
 	};
 
 	enum class MSASampleCount : uint8_t {
+            C0 = 0,
 			C1 = 1,
-			C2,
-			C4,
-			C8,
-			C16,
-			C32,
-			C64
+			C2 = 2,
+			C4 = 4,
+			C8 = 8,
+			C16 = 16,
+			C32 = 32,
+            C64 = 64,
 	};
 
 	enum class LoadAccessOperation : uint8_t {

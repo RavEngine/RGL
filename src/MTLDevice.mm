@@ -7,6 +7,7 @@
 #include "MTLSynchronization.hpp"
 #include "MTLShaderLibrary.hpp"
 #include "MTLBuffer.hpp"
+#include "MTLPipeline.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
@@ -34,12 +35,12 @@ std::shared_ptr<IRenderPass> DeviceMTL::CreateRenderPass(const RenderPassConfig&
     FatalError("CreateRenderPass not implemented");
 }
 
-std::shared_ptr<IPipelineLayout> DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor&) {
-    FatalError("CreatePipelineLayout not implemented");
+std::shared_ptr<IPipelineLayout> DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor& desc) {
+    return std::make_shared<PipelineLayoutMTL>(desc);
 }
 
-std::shared_ptr<IRenderPipeline> DeviceMTL::CreateRenderPipeline(const RenderPipelineDescriptor&) {
-    FatalError("CreateRenderPipeline not implemented");
+std::shared_ptr<IRenderPipeline> DeviceMTL::CreateRenderPipeline(const RenderPipelineDescriptor& desc) {
+    return std::make_shared<RenderPipelineMTL>(shared_from_this(), desc);
 }
 
 
