@@ -2,6 +2,7 @@
 #include "D3D12CommandQueue.hpp"
 #include "RGLD3D12.hpp"
 #include "D3D12Device.hpp"
+#include "D3D12CommandBuffer.hpp"
 
 namespace RGL {
     D3D12_COMMAND_LIST_TYPE rgl2d3d12cmdlist(QueueType type) {
@@ -19,8 +20,7 @@ namespace RGL {
 
 	std::shared_ptr<ICommandBuffer> CommandQueueD3D12::CreateCommandBuffer()
 	{
-        FatalError("CreateCommandBuffer not implemented");
-		return std::shared_ptr<ICommandBuffer>();
+		return std::make_shared<CommandBufferD3D12>(shared_from_this());
 	}
     CommandQueueD3D12::CommandQueueD3D12(ComPtr<ID3D12Device2> device, QueueType type)
         : m_FenceValue(0),
@@ -56,7 +56,7 @@ namespace RGL {
         return commandList;
     }
 
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CommandQueueD3D12::GetCommandList()
+    RGL::CommandQueueD3D12::ListAndAllocator CommandQueueD3D12::GetCommandList()
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
@@ -94,7 +94,7 @@ namespace RGL {
 
         // It should be noted that when assigning a COM object to the private data of a ID3D12Object object using the ID3D12Object::SetPrivateDataInterface method, the internal reference counter of the assigned COM object is incremented. The ref counter of the assigned COM object is only decremented if either the owning ID3D12Object object is destroyed or the instance of the COM object with the same interface is replaced with another COM object of the same interface or a NULL pointer. 
 
-        return commandList;
+        return { commandList, commandAllocator };
     }
 
     uint64_t CommandQueueD3D12::ExecuteCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList)

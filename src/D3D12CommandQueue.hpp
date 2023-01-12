@@ -10,14 +10,19 @@
 namespace RGL {
     struct DeviceD3D12;
     
-	struct CommandQueueD3D12 : public ICommandQueue {
+	struct CommandQueueD3D12 : public ICommandQueue, public std::enable_shared_from_this<CommandQueueD3D12>{
 		std::shared_ptr<ICommandBuffer> CreateCommandBuffer() final;
 
         CommandQueueD3D12(Microsoft::WRL::ComPtr<ID3D12Device2> device, QueueType type);
         virtual ~CommandQueueD3D12() {}
 
         // Get an available command list from the command queue.
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> GetCommandList();
+        struct ListAndAllocator {
+            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> list;
+            Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
+        };
+
+        ListAndAllocator GetCommandList();
 
         // Execute a command list.
         // Returns the fence value to wait for for this command list.
@@ -32,12 +37,11 @@ namespace RGL {
             return m_d3d12CommandQueue;
         }
 
-    protected:
-
+        // internal API only. 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CreateCommandAllocator();
+        // internal API only. use GetCommandList to get a command list from this queue. 
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator);
 
-    private:
         // Keep track of command allocators that are "in-flight"
         struct CommandAllocatorEntry
         {

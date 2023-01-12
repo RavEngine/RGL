@@ -55,7 +55,8 @@ namespace RGL {
 	void BufferD3D12::UpdateBufferData(untyped_span newData)
 	{
 		ComPtr<ID3D12Resource> intermediateVertexBuffer;
-        auto commandList = owningDevice->internalQueue->GetCommandList();
+        auto listpair = owningDevice->internalQueue->GetCommandList();
+        auto commandList = listpair.list;
 		UpdateBufferResource(commandList.Get(), &buffer, &intermediateVertexBuffer, newData.size(), newData.data(), owningDevice->device);
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
 

@@ -87,9 +87,9 @@ namespace RGL {
 
         // create the vertex attribute layout
         stackarray(inputLayout, D3D12_INPUT_ELEMENT_DESC, nattributes);
-        for (int i = 0; i < nattributes; i++) {
+        for (UINT i = 0; i < nattributes; i++) {
             auto& attr = desc.vertexConfig.attributeDescs[i];
-            inputLayout[i] = { attr.semantic_name, 0, rgl2dxgiformat(attr.format), 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA , 0};
+            inputLayout[i] = { attr.semantic_name, i, rgl2dxgiformat(attr.format), 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA , 0};
         }
 
         // setup the shaders

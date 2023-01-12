@@ -217,6 +217,12 @@ namespace RGL {
             config);
     }
 
+    std::shared_ptr<IShaderLibrary> DeviceVk::CreateShaderLibraryFromName(const std::string_view& name)
+    {
+        FatalError("LibraryFromName not implemented");
+        return std::shared_ptr<IShaderLibrary>();
+    }
+
     std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateDefaultShaderLibrary()
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this());

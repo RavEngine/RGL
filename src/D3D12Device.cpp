@@ -179,8 +179,7 @@ namespace RGL {
 
     std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
     {
-        FatalError("CreateCommandQueue(): Not implemented");
-        return std::shared_ptr<ICommandQueue>();
+        return std::make_shared<CommandQueueD3D12>(device, type);
     }
 
     std::shared_ptr<IFence> RGL::DeviceD3D12::CreateFence(bool preSignaled)
