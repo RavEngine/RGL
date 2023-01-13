@@ -7,6 +7,7 @@
 namespace RGL {
 	struct DeviceD3D12;
 	struct SurfaceD3D12;
+	struct TextureD3D12;
 	
 	struct SwapchainD3D12 : public ISwapchain {
 		constexpr static uint8_t g_NumFrames = 3;
@@ -15,6 +16,7 @@ namespace RGL {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 		ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
 		ComPtr<ID3D12Resource> backbuffers[g_NumFrames];
+		std::vector<TextureD3D12> backbufferTextures;
 
 		SwapchainD3D12(decltype(owningDevice), std::shared_ptr<SurfaceD3D12>, int width, int height);
 		void UpdateRenderTargetViews(ComPtr<ID3D12Device2> device,

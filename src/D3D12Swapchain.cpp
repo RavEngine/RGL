@@ -6,6 +6,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12CommandQueue.hpp"
 #include <directx/d3dx12.h>
+#include "D3D12Texture.hpp"
 
 #undef min
 #undef max
@@ -102,6 +103,7 @@ namespace RGL {
 
     SwapchainD3D12::SwapchainD3D12(decltype(owningDevice) device, std::shared_ptr<SurfaceD3D12> surface, int width, int height) : owningDevice(device)
     {
+        backbufferTextures.reserve(g_NumFrames);
         swapchain = CreateSwapChain(surface->windowHandle, device->internalQueue->GetD3D12CommandQueue(), width, height, g_NumFrames);
         m_RTVDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, g_NumFrames);
         UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
@@ -113,6 +115,10 @@ namespace RGL {
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
+        DXGI_SWAP_CHAIN_DESC1 desc;
+        swapChain->GetDesc1(&desc);
+        backbufferTextures.clear();
+
         for (int i = 0; i < g_NumFrames; ++i)
         {
             ComPtr<ID3D12Resource> backBuffer;
@@ -121,6 +127,7 @@ namespace RGL {
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
 
             backbuffers[i] = backBuffer;
+            backbufferTextures.emplace_back(backBuffer,Dimension{desc.Width,desc.Height});
 
             rtvHandle.Offset(rtvDescriptorSize);
         }
@@ -143,6 +150,7 @@ namespace RGL {
             // Any references to the back buffers must be released
             // before the swap chain can be resized.
             backbuffers[i].Reset();
+            backbufferTextures[i].size = Dimension{ width,height };
             
             //g_FrameFenceValues[i] = g_FrameFenceValues[currentidx];
         }
@@ -160,7 +168,7 @@ namespace RGL {
 	}
 	ITexture* SwapchainD3D12::ImageAtIndex(uint32_t index)
 	{
-		return nullptr;
+        return &backbufferTextures[index];
 	}
 	void SwapchainD3D12::Present(const SwapchainPresentConfig&)
 	{
