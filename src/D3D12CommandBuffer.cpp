@@ -54,6 +54,9 @@ namespace RGL {
 			tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
 		commandList->ClearRenderTargetView(rtv, config.clearColor.data(), 0, nullptr);
 
+		//TODO: allow passing a depth stencil
+		commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+
 		//commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
 	}
 	void CommandBufferD3D12::EndRendering()

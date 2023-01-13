@@ -124,7 +124,7 @@ namespace RGL {
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateStream.VS = vertFunc->shaderBytecode;
         pipelineStateStream.PS = fragFunc->shaderBytecode;
-        pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        pipelineStateStream.DSVFormat = /*DXGI_FORMAT_D32_FLOAT*/ DXGI_FORMAT_UNKNOWN;  // use Unknown to specify that there is no depth stencil view
         pipelineStateStream.RTVFormats = rtvFormats;
 
         // create the PSO

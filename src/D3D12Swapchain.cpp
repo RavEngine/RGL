@@ -107,6 +107,7 @@ namespace RGL {
         swapchain = CreateSwapChain(surface->windowHandle, device->internalQueue->GetD3D12CommandQueue(), width, height, g_NumFrames);
         m_RTVDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, g_NumFrames);
         UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
+        tearingSupported = CheckTearingSupport();
     }
 
     void SwapchainD3D12::UpdateRenderTargetViews(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapChain, ComPtr<ID3D12DescriptorHeap> descriptorHeap)
@@ -170,8 +171,11 @@ namespace RGL {
 	{
         return &backbufferTextures[index];
 	}
-	void SwapchainD3D12::Present(const SwapchainPresentConfig&)
+	void SwapchainD3D12::Present(const SwapchainPresentConfig& config)
 	{
+        UINT syncInterval = vsync ? 1 : 0;
+        UINT presentFlags = tearingSupported && !vsync ? DXGI_PRESENT_ALLOW_TEARING : 0;
+        swapchain->Present(syncInterval, presentFlags);
 	}
     SwapchainD3D12::~SwapchainD3D12()
     {

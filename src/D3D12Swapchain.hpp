@@ -18,6 +18,9 @@ namespace RGL {
 		ComPtr<ID3D12Resource> backbuffers[g_NumFrames];
 		std::vector<TextureD3D12> backbufferTextures;
 
+		bool tearingSupported = false;
+		bool vsync = true;
+
 		SwapchainD3D12(decltype(owningDevice), std::shared_ptr<SurfaceD3D12>, int width, int height);
 		void UpdateRenderTargetViews(ComPtr<ID3D12Device2> device,
 			ComPtr<IDXGISwapChain4> swapChain, ComPtr<ID3D12DescriptorHeap> descriptorHeap);
