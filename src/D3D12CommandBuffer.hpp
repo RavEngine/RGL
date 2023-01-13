@@ -9,7 +9,6 @@ namespace RGL {
 
 	struct CommandBufferD3D12 : public ICommandBuffer {
 		ComPtr<ID3D12GraphicsCommandList2> commandList;
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 		const std::shared_ptr<CommandQueueD3D12> owningQueue;
 
 		CommandBufferD3D12(decltype(owningQueue));

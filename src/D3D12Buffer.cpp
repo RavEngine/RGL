@@ -54,13 +54,13 @@ namespace RGL {
 	}
 	void BufferD3D12::UpdateBufferData(untyped_span newData)
 	{
+        //TODO: don't do this every time
 		ComPtr<ID3D12Resource> intermediateVertexBuffer;
-        auto listpair = owningDevice->internalQueue->GetCommandList();
-        auto commandList = listpair.list;
+        auto commandList = owningDevice->internalQueue->CreateCommandList();
 		UpdateBufferResource(commandList.Get(), &buffer, &intermediateVertexBuffer, newData.size(), newData.data(), owningDevice->device);
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
 
-        //TODO: don't do this every time
+        commandList->Close();
         auto fenceValue = owningDevice->internalQueue->ExecuteCommandList(commandList);
         owningDevice->internalQueue->WaitForFenceValue(fenceValue);
 	}

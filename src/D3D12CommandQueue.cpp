@@ -40,67 +40,25 @@ namespace RGL {
         assert(m_FenceEvent && "Failed to create fence event handle.");
     }
 
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandQueueD3D12::CreateCommandAllocator()
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CommandQueueD3D12::CreateCommandList()
     {
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-        DX_CHECK(m_d3d12Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator)));
-
-        return commandAllocator;
-    }
-
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CommandQueueD3D12::CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator)
-    {
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
+        DX_CHECK(m_d3d12Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&allocator)));
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
         DX_CHECK(m_d3d12Device->CreateCommandList(0, m_CommandListType, allocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
+
+        // Associate the command allocator with the command list so that it can be
+        // retrieved when the command list is executed.
+        DX_CHECK(commandList->SetPrivateDataInterface(__uuidof(ID3D12CommandAllocator), allocator.Get()));
+
+        // It should be noted that when assigning a COM object to the private data of a ID3D12Object object using the ID3D12Object::SetPrivateDataInterface method, the internal reference counter of the assigned COM object is incremented. The ref counter of the assigned COM object is only decremented if either the owning ID3D12Object object is destroyed or the instance of the COM object with the same interface is replaced with another COM object of the same interface or a NULL pointer. 
 
         return commandList;
     }
 
-    RGL::CommandQueueD3D12::ListAndAllocator CommandQueueD3D12::GetCommandList()
-    {
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
-
-        // before the commandlist can be reset, an unused allocator is required
-        // it can be reused as long as it is not currently in-flight
-        if (!m_CommandAllocatorQueue.empty() && IsFenceComplete(m_CommandAllocatorQueue.front().fenceValue))
-        {
-            commandAllocator = m_CommandAllocatorQueue.front().commandAllocator;
-            m_CommandAllocatorQueue.pop();
-
-            DX_CHECK(commandAllocator->Reset());
-        }
-        else
-        {
-            commandAllocator = CreateCommandAllocator();
-        }
-
-        // with a valid command allocator, create a commandlist
-        if (!m_CommandListQueue.empty())
-        {
-            commandList = m_CommandListQueue.front();
-            m_CommandListQueue.pop();
-
-            DX_CHECK(commandList->Reset(commandAllocator.Get(), nullptr));
-        }
-        else
-        {
-            commandList = CreateCommandList(commandAllocator);
-        }
-
-        // Associate the command allocator with the command list so that it can be
-        // retrieved when the command list is executed.
-        DX_CHECK(commandList->SetPrivateDataInterface(__uuidof(ID3D12CommandAllocator), commandAllocator.Get()));
-
-        // It should be noted that when assigning a COM object to the private data of a ID3D12Object object using the ID3D12Object::SetPrivateDataInterface method, the internal reference counter of the assigned COM object is incremented. The ref counter of the assigned COM object is only decremented if either the owning ID3D12Object object is destroyed or the instance of the COM object with the same interface is replaced with another COM object of the same interface or a NULL pointer. 
-
-        return { commandList, commandAllocator };
-    }
 
     uint64_t CommandQueueD3D12::ExecuteCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList)
     {
-        // before it can be executed, it must be closed
-        commandList->Close();
 
         ID3D12CommandAllocator* commandAllocator;
         UINT dataSize = sizeof(commandAllocator);
@@ -114,8 +72,6 @@ namespace RGL {
         m_d3d12CommandQueue->ExecuteCommandLists(1, ppCommandLists);
         uint64_t fenceValue = Signal();
 
-        m_CommandAllocatorQueue.emplace(CommandAllocatorEntry{ fenceValue, commandAllocator });
-        m_CommandListQueue.push(commandList);
 
         // The ownership of the command allocator has been transferred to the ComPtr
         // in the command allocator queue. It is safe to release the reference 

@@ -15,6 +15,7 @@ namespace RGL {
 		Microsoft::WRL::ComPtr<ID3D12Device2> device;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter;
 		std::shared_ptr<CommandQueueD3D12> internalQueue;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> internalCommandList;
 
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();

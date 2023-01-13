@@ -4,10 +4,13 @@
 #include "D3D12CommandQueue.hpp"
 
 namespace RGL {
-	FenceD3D12::FenceD3D12(decltype(owningDevice) device) : owningDevice(device)
+	FenceD3D12::FenceD3D12(decltype(owningDevice) device, bool preSignaled) : owningDevice(device)
 	{
 		DX_CHECK(owningDevice->device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
 		fenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+		if (preSignaled) {
+			fence->Signal(1);
+		}
 	}
 	void FenceD3D12::Wait()
 	{

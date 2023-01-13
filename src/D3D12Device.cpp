@@ -116,6 +116,7 @@ namespace RGL {
     }
 
     DeviceD3D12::DeviceD3D12(decltype(adapter) adapter) : adapter(adapter), device(CreateDevice(adapter)), internalQueue(std::make_shared<CommandQueueD3D12>(device,QueueType::AllCommands)) {
+        internalCommandList = internalQueue->CreateCommandList();
     }
 
     DeviceD3D12::~DeviceD3D12() {
@@ -184,7 +185,7 @@ namespace RGL {
 
     std::shared_ptr<IFence> RGL::DeviceD3D12::CreateFence(bool preSignaled)
     {
-        return std::make_shared<FenceD3D12>(shared_from_this());
+        return std::make_shared<FenceD3D12>(shared_from_this(), preSignaled);
     }
 
     std::shared_ptr<ISemaphore> RGL::DeviceD3D12::CreateSemaphore()

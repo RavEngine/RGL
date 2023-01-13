@@ -1,23 +1,28 @@
 #if RGL_DX12_AVAILABLE
 #include "D3D12CommandBuffer.hpp"
 #include "D3D12CommandQueue.hpp"
+#include "D3D12Synchronization.hpp"
 
 namespace RGL {
 	CommandBufferD3D12::CommandBufferD3D12(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
-		auto pair = owningQueue->GetCommandList();
-		commandList = pair.list;
-		commandAllocator = pair.commandAllocator;
+		commandList = owningQueue->CreateCommandList();
 	}
 	void CommandBufferD3D12::Reset()
 	{
-		commandList->Reset(commandAllocator.Get(),nullptr);
+		commandList->Close();
+		ID3D12CommandAllocator* commandAllocator;
+		UINT dataSize = sizeof(commandAllocator);
+		DX_CHECK(commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator));
+		commandList->Reset(commandAllocator, nullptr);
 	}
 	void CommandBufferD3D12::Begin()
 	{
+
 	}
 	void CommandBufferD3D12::End()
 	{
+		commandList->Close();
 	}
 	void CommandBufferD3D12::BeginRendering(const BeginRenderingConfig&)
 	{
@@ -39,10 +44,13 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetScissor(const Scissor& scissor)
 	{
+		
 	}
 	void CommandBufferD3D12::Commit(const CommitConfig& config)
 	{
-
+		owningQueue->ExecuteCommandList(commandList);
+		auto d3d12fence = std::static_pointer_cast<FenceD3D12>(config.signalFence);
+		owningQueue->m_d3d12CommandQueue->Signal(d3d12fence->fence.Get(),1);	// 1 because we emulate binary vulkan fences
 	}
 }
 

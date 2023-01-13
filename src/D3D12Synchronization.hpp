@@ -11,7 +11,7 @@ namespace RGL {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 		HANDLE fenceEvent;
 
-		FenceD3D12(decltype(owningDevice));
+		FenceD3D12(decltype(owningDevice), bool preSignaled);
 
 		ComPtr<ID3D12Fence> fence;
 
