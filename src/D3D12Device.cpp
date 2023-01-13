@@ -117,6 +117,7 @@ namespace RGL {
 
     DeviceD3D12::DeviceD3D12(decltype(adapter) adapter) : adapter(adapter), device(CreateDevice(adapter)), internalQueue(std::make_shared<CommandQueueD3D12>(device,QueueType::AllCommands)) {
         internalCommandList = internalQueue->CreateCommandList();
+        g_RTVDescriptorHeapSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     }
 
     DeviceD3D12::~DeviceD3D12() {

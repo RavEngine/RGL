@@ -6,6 +6,7 @@
 #include "D3D12Texture.hpp"
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Buffer.hpp"
+#include "D3D12Device.hpp"
 
 namespace RGL {
 	void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
@@ -46,10 +47,12 @@ namespace RGL {
 		auto tx = static_cast<TextureD3D12*>(config.targetFramebuffer);
 		currentBackbuffer = tx;
 		
-		TransitionResource(commandList, tx,
+		TransitionResource(commandList, tx->texture,
 			D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		//commandList->ClearRenderTargetView(rtv, config.clearColor.data(), 0, nullptr);
+		auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+			tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
+		commandList->ClearRenderTargetView(rtv, config.clearColor.data(), 0, nullptr);
 
 		//commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
 	}
@@ -64,7 +67,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
 	{
-
+		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->bufferView);
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
 	{

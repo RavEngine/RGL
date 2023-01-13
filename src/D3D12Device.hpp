@@ -16,6 +16,7 @@ namespace RGL {
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter;
 		std::shared_ptr<CommandQueueD3D12> internalQueue;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> internalCommandList;
+		UINT g_RTVDescriptorHeapSize = 0;
 
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();
