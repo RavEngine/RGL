@@ -6,10 +6,13 @@
 
 namespace RGL {
 	struct CommandQueueD3D12;
+	struct TextureD3D12;
 
 	struct CommandBufferD3D12 : public ICommandBuffer {
 		ComPtr<ID3D12GraphicsCommandList2> commandList;
 		const std::shared_ptr<CommandQueueD3D12> owningQueue;
+
+		TextureD3D12* currentBackbuffer;
 
 		CommandBufferD3D12(decltype(owningQueue));
 
