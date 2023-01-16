@@ -13,6 +13,7 @@ namespace RGL {
 		const std::shared_ptr<CommandQueueD3D12> owningQueue;
 
 		TextureD3D12* currentBackbuffer;
+		bool ended = false;
 
 		CommandBufferD3D12(decltype(owningQueue));
 
