@@ -29,7 +29,7 @@ namespace RGL {
 
 		virtual std::string GetBrandString() = 0;
 		
-		virtual std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int width, int height) = 0;
+		virtual std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, std::shared_ptr<ICommandQueue> presentQueue, int width, int height) = 0;
 		virtual std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) = 0;
 
 		virtual std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;

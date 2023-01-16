@@ -26,7 +26,7 @@ namespace RGL {
 
 		// IDevice
 		std::string GetBrandString() final;
-		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, int width, int height) final;
+		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, std::shared_ptr<ICommandQueue>, int width, int height) final;
 		std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) final;
 		std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
 		std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) final;

@@ -135,9 +135,9 @@ namespace RGL {
         std::wstring_convert<convert_type, wchar_t> converter;
         return converter.to_bytes(wstr);
     }
-    std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, int width, int height)
+    std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, std::shared_ptr<ICommandQueue> presentQueue, int width, int height)
     {
-        return std::make_shared<SwapchainD3D12>(shared_from_this(), std::static_pointer_cast<SurfaceD3D12>(surface), width, height);
+        return std::make_shared<SwapchainD3D12>(shared_from_this(), std::static_pointer_cast<SurfaceD3D12>(surface), width, height, std::static_pointer_cast<CommandQueueD3D12>(presentQueue));
     }
     std::shared_ptr<IRenderPass> RGL::DeviceD3D12::CreateRenderPass(const RenderPassConfig&)
     {

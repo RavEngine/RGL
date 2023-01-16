@@ -25,11 +25,10 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::Reset()
 	{
-		commandList->Close();
 		ID3D12CommandAllocator* commandAllocator;
 		UINT dataSize = sizeof(commandAllocator);
 		DX_CHECK(commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator));
-		commandList->Reset(commandAllocator, nullptr);
+		DX_CHECK(commandList->Reset(commandAllocator, nullptr));
 	}
 	void CommandBufferD3D12::Begin()
 	{
@@ -40,7 +39,7 @@ namespace RGL {
 	{
 		TransitionResource(commandList, currentBackbuffer->texture,
 			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		commandList->Close();
+		DX_CHECK(commandList->Close());
 	}
 	void CommandBufferD3D12::BeginRendering(const BeginRenderingConfig& config)
 	{

@@ -8,6 +8,7 @@ namespace RGL {
 	struct DeviceD3D12;
 	struct SurfaceD3D12;
 	struct TextureD3D12;
+	struct CommandQueueD3D12;
 	
 	struct SwapchainD3D12 : public ISwapchain {
 		constexpr static uint8_t g_NumFrames = 3;
@@ -21,7 +22,7 @@ namespace RGL {
 		bool tearingSupported = false;
 		bool vsync = true;
 
-		SwapchainD3D12(decltype(owningDevice), std::shared_ptr<SurfaceD3D12>, int width, int height);
+		SwapchainD3D12(decltype(owningDevice), std::shared_ptr<SurfaceD3D12>, int width, int height, std::shared_ptr<CommandQueueD3D12> presentQueue);
 		void UpdateRenderTargetViews(ComPtr<ID3D12Device2> device,
 			ComPtr<IDXGISwapChain4> swapChain, ComPtr<ID3D12DescriptorHeap> descriptorHeap);
 

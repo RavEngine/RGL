@@ -4,7 +4,8 @@
 #include <cassert>
 #include <comdef.h>
 #include <wrl.h>
-#define DX_CHECK(hr) {auto dx_check_hr = hr; Assert(!FAILED(hr), _com_error(hr).ErrorMessage());}
+#include <format>
+#define DX_CHECK(hr) {auto dx_check_hr = hr; Assert(!FAILED(dx_check_hr), std::format("{} - {}", #hr, _com_error(dx_check_hr).ErrorMessage()));}
 
 using namespace Microsoft::WRL;
 

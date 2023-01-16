@@ -101,10 +101,11 @@ namespace RGL {
 
 
 
-    SwapchainD3D12::SwapchainD3D12(decltype(owningDevice) device, std::shared_ptr<SurfaceD3D12> surface, int width, int height) : owningDevice(device)
+    SwapchainD3D12::SwapchainD3D12(decltype(owningDevice) device, std::shared_ptr<SurfaceD3D12> surface, int width, int height, std::shared_ptr<CommandQueueD3D12> presentQueue) : owningDevice(device)
     {
         backbufferTextures.reserve(g_NumFrames);
-        swapchain = CreateSwapChain(surface->windowHandle, device->internalQueue->GetD3D12CommandQueue(), width, height, g_NumFrames);
+        swapchain = CreateSwapChain(surface->windowHandle, presentQueue->GetD3D12CommandQueue(), width, height, g_NumFrames);
+        device->internalQueue->Flush();
         m_RTVDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, g_NumFrames);
         UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
         tearingSupported = CheckTearingSupport();
