@@ -20,6 +20,8 @@ namespace RGL {
 		
 		// ICommandQueue
 		std::shared_ptr<ICommandBuffer> CreateCommandBuffer() final;
+
+		void WaitUntilCompleted() final;
 	};
 
 }

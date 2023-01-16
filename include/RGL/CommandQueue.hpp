@@ -11,6 +11,6 @@ namespace RGL {
 
 	struct ICommandQueue {
 		virtual std::shared_ptr<ICommandBuffer> CreateCommandBuffer() = 0;
-
+		virtual void WaitUntilCompleted() = 0;
 	};
 }

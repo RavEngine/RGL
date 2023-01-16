@@ -145,16 +145,15 @@ namespace RGL {
         // are not being referenced by an in-flight command list.
 
         owningDevice->Flush();
+        backbufferTextures.clear(); // need to release all existing references to the textures before can resize
+
         auto currentidx = swapchain->GetCurrentBackBufferIndex();
 
         for (int i = 0; i < g_NumFrames; ++i)
         {
             // Any references to the back buffers must be released
             // before the swap chain can be resized.
-            backbuffers[i].Reset();
-            backbufferTextures[i].size = Dimension{ width,height };
-            
-            //g_FrameFenceValues[i] = g_FrameFenceValues[currentidx];
+            backbuffers[i].Reset();            
         }
         DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
         DX_CHECK(swapchain->GetDesc(&swapChainDesc));
@@ -162,6 +161,9 @@ namespace RGL {
             swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
 
         UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
+        for (auto& buffer : backbufferTextures) {
+            buffer.size = Dimension{ width,height };
+        }
 	}
 	void SwapchainD3D12::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore)
 	{

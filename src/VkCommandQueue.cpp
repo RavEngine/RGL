@@ -42,6 +42,10 @@ namespace RGL {
 	{
 		return std::make_shared<CommandBufferVk>(shared_from_this());
 	}
+    void CommandQueueVk::WaitUntilCompleted()
+    {
+        vkQueueWaitIdle(queue);
+    }
 }
 
 #endif

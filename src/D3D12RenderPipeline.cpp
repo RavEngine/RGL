@@ -127,6 +127,8 @@ namespace RGL {
         rasterizerDesc.FrontCounterClockwise = desc.rasterizerConfig.windingOrder == decltype(desc.rasterizerConfig.windingOrder)::Counterclockwise;
 
         CD3DX12_DEPTH_STENCIL_DESC depthStencilDesc{ D3D12_DEFAULT };
+        depthStencilDesc.DepthEnable = false;
+        depthStencilDesc.StencilEnable = false;
 
         // describe the pipeline state object
         pipelineStateDesc.pRootSignature = std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout)->rootSignature.Get();

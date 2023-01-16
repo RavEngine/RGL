@@ -38,6 +38,10 @@ namespace RGL {
 
         HANDLE  m_FenceEvent;
         uint64_t m_FenceValue;
+
+        void WaitUntilCompleted() final {
+            Flush();
+        }
 	};
 
 }
