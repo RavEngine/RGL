@@ -133,8 +133,8 @@ namespace RGL {
 
         //setup converter
         std::string result;
-        result.resize(wstr.size());
-        wcstombs_s(nullptr,result.data(), result.size(), wstr.data(), result.size());
+        result.resize(wstr.size()+1);
+        wcstombs_s(nullptr,result.data(), result.size(), wstr.data(), _TRUNCATE);
         return result;
     }
     std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, std::shared_ptr<ICommandQueue> presentQueue, int width, int height)

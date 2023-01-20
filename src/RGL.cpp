@@ -187,7 +187,7 @@ void RGL::FatalError(const std::wstring& wstr) {
     std::string result;
     result.resize(wstr.size());
 #if _UWP
-    wcstombs_s(nullptr, result.data(), result.size(), wstr.data(), result.size());
+    wcstombs_s(nullptr, result.data(), result.size(), wstr.data(), _TRUNCATE);
 #else
     std::wcstombs(result.data(), wstr.data(), result.size());
 #endif

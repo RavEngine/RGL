@@ -31,6 +31,7 @@ namespace RGL {
 		if (!ended) {
 			DX_CHECK(commandList->Close());
 		}
+		DX_CHECK(commandAllocator->Reset());	// gotta reset this too, otherwise we leak
 		DX_CHECK(commandList->Reset(commandAllocator, nullptr));
 		ended = false;
 	}
