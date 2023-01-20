@@ -44,10 +44,10 @@ static callback_t callbackFn = [](MessageSeverity severity, const std::string& m
         }
     };
 
-    std::cout << "RGL [" << severityToStr(severity) << "] - " << message << "\n";
-#ifdef _WIN32
+    std::cout << "RGL [" << severityToStr(severity) << "] - " << message << "\n";    
+#if _WIN32
     std::string str = std::format("RGL [{}] - {}\n", severityToStr(severity), message);
-    OutputDebugString(str.c_str());
+    OutputDebugStringA(str.c_str());
 #endif
 }; 
 
@@ -181,4 +181,17 @@ void RGL::LogMessage(MessageSeverity severity, const std::string& str) {
 }
 void RGL::FatalError(const std::string& str) {
     LogMessage(MessageSeverity::Fatal, str);
+}
+
+void RGL::FatalError(const std::wstring& wstr) {
+    std::string result;
+    result.resize(wstr.size());
+#if _UWP
+    wcstombs_s(nullptr, result.data(), result.size(), wstr.data(), result.size());
+#else
+    std::wcstombs(result.data(), wstr.data(), result.size());
+#endif
+
+
+    LogMessage(MessageSeverity::Fatal, result);
 }

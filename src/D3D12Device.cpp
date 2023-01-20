@@ -9,7 +9,8 @@
 #include "D3D12ShaderLibrary.hpp"
 #include "D3D12Buffer.hpp"
 #include "D3D12RenderPipeline.hpp"
-#include <codecvt>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -131,9 +132,10 @@ namespace RGL {
         std::wstring wstr(desc.Description);
 
         //setup converter
-        using convert_type = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_type, wchar_t> converter;
-        return converter.to_bytes(wstr);
+        std::string result;
+        result.resize(wstr.size());
+        wcstombs_s(nullptr,result.data(), result.size(), wstr.data(), result.size());
+        return result;
     }
     std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, std::shared_ptr<ICommandQueue> presentQueue, int width, int height)
     {

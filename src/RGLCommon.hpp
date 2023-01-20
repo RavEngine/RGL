@@ -1,6 +1,12 @@
 #pragma once
 #include "RGL.hpp"
 
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+#define _UWP 1   
+#else
+#define _UWP 0
+#endif
+
 #define STATIC(a) decltype(a) a
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
@@ -9,7 +15,10 @@ namespace RGL {
 
 	void LogMessage(MessageSeverity, const std::string&);
 	void FatalError(const std::string&);
-	static void Assert(bool cond, const std::string& errormsg) {
+	void FatalError(const std::wstring&);
+
+	template<typename T>
+	static void Assert(bool cond, const T& errormsg) {
 		if (!cond) {
 			FatalError(errormsg);
 		}
