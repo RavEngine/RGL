@@ -77,6 +77,14 @@ namespace RGL {
 	{
 		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->bufferView);
 	}
+	void CommandBufferD3D12::SetVertexBytes(const untyped_span data, uint32_t offset)
+	{
+		commandList->SetGraphicsRoot32BitConstants(offset, data.size() / 4, data.data(), 0);
+	}
+	void CommandBufferD3D12::SetFragmentBytes(const untyped_span data, uint32_t offset)
+	{
+
+	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
 	{
 		commandList->DrawInstanced(nVertices, nInstances, startVertex, firstInstance);

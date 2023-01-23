@@ -249,12 +249,23 @@ namespace RGL {
         // create the descriptor set layout
         VK_CHECK(vkCreateDescriptorSetLayout(owningDevice->device, &layoutInfo, nullptr, &descriptorSetLayout));
 
+        // setup push constants
+        const auto nconstants = desc.constants.size();
+        stackarray(pushconstants, VkPushConstantRange, nconstants);
+
+        for (int i = 0; i < nconstants; i++) {
+            pushconstants[i].offset = desc.constants[i].n_register;
+            pushconstants[i].size = desc.constants[i].size_bytes;
+            pushconstants[i].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;  //TODO: make configurable
+        }
+
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,    // the rest are optional
             .pSetLayouts = &descriptorSetLayout,
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr
+            .pushConstantRangeCount = static_cast<uint32_t>(nconstants),
+            .pPushConstantRanges = pushconstants
         };
         VK_CHECK(vkCreatePipelineLayout(owningDevice->device, &pipelineLayoutInfo, nullptr, &layout));
 

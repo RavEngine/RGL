@@ -69,6 +69,21 @@ namespace RGL {
 			//TODO: support image samplers
 		};
 		std::vector<LayoutBindingDesc> bindings;
+
+		struct ConstantConfig {
+			size_t size_bytes;
+			uint8_t n_register = 0;
+
+			ConstantConfig(decltype(size_bytes) sb, decltype(n_register) nr) : size_bytes(sb), n_register(nr) {}
+
+			template<typename T>
+			ConstantConfig(const T& value, decltype(n_register) nr) : ConstantConfig(sizeof(T), (nr)) {}
+
+			template<typename T>
+			ConstantConfig(decltype(n_register) nr) : ConstantConfig(sizeof(T), (nr)) {}
+
+		};
+		std::vector<ConstantConfig> constants;
 	};
 
 	//TODO: support non-uniformbuffers (see VkDescriptorType)
@@ -76,16 +91,6 @@ namespace RGL {
 		std::shared_ptr<IBuffer> buffer;
 		uint32_t offset = 0;
 		uint32_t size = 0;
-		struct ConstantConfig {
-			size_t size_bytes;
-			uint8_t n_register = 0;
-		};
-		std::vector<ConstantConfig> constants;
-
-		LayoutConfig(decltype(buffer) buffer, decltype(offset) offset, decltype(size) size, const decltype(constants)& constants = {}) : buffer(buffer), offset(offset), size(size), constants(constants) {}
-
-		template<typename T>
-		LayoutConfig(decltype(buffer) buffer, decltype(offset) offset, const T& item, const decltype(constants)& constants = {}) : buffer(buffer), offset(offset), size(sizeof(T)), constants(constants) {}
 	};
 
 	struct IPipelineLayout {

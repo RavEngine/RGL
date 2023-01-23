@@ -6,12 +6,14 @@
 namespace RGL {
 	struct DeviceVk;
 	struct CommandQueueVk;
+	struct RenderPipelineVk;
 
 	struct CommandBufferVk : public ICommandBuffer {
 		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;	// does not need to be destroyed
 		VkImage swapchainImage = VK_NULL_HANDLE; // not set in constructor, does not need to be destroyed
 		
 		const std::shared_ptr<CommandQueueVk> owningQueue;
+		std::shared_ptr<RenderPipelineVk> currentRenderPipeline = nullptr;
 
 		CommandBufferVk(decltype(owningQueue) owningQueue);
 
@@ -27,6 +29,9 @@ namespace RGL {
 		void EndRendering() final;
 
 		void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
+
+		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
+		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
 
 		void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) final;
 

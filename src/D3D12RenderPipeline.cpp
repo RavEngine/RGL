@@ -39,10 +39,6 @@ namespace RGL {
 
 	PipelineLayoutD3D12::PipelineLayoutD3D12(decltype(owningDevice) owningDevice, const PipelineLayoutDescriptor& desc) : owningDevice(owningDevice)
 	{
-        
-	}
-    void PipelineLayoutD3D12::SetLayout(const LayoutConfig& config)
-    {
         auto device = owningDevice->device;
 
         // Create a root signature.
@@ -62,11 +58,11 @@ namespace RGL {
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
-        // A single 32-bit constant root parameter that is used by the vertex shader.
-        const auto nconstants = config.constants.size();
+        // create the constants data
+        const auto nconstants = desc.constants.size();
         stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, nconstants);
         for (int i = 0; i < nconstants; i++) {
-            rootParameters[i].InitAsConstants(config.constants[i].size_bytes / sizeof(int), config.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
+            rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -79,6 +75,10 @@ namespace RGL {
         DX_CHECK(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription, featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
         // Create the root signature.
         DX_CHECK(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+	}
+    void PipelineLayoutD3D12::SetLayout(const LayoutConfig& config)
+    {
+        // currently does nothing...
     }
 
 

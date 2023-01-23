@@ -33,6 +33,9 @@ namespace RGL {
 
 		void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
 
+		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
+		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
+
 		void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) final;
 
 		void SetViewport(const Viewport&) final;

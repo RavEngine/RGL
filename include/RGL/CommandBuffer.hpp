@@ -57,5 +57,9 @@ namespace RGL {
 
 		// submit onto the queue that created this command buffer
 		virtual void Commit(const CommitConfig&) = 0;
+
+		virtual void SetVertexBytes(const untyped_span data, uint32_t offset) = 0;
+		virtual void SetFragmentBytes(const untyped_span data, uint32_t offset) = 0;
+
 	};
 }

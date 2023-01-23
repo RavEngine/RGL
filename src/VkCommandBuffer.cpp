@@ -64,6 +64,8 @@ namespace RGL {
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout->layout, 0, 1, &pipeline->pipelineLayout->descriptorSet, 0, nullptr);
 
+		currentRenderPipeline = pipeline;
+
 	}
 	void CommandBufferVk::BeginRendering(const BeginRenderingConfig& config)
 	{
@@ -127,12 +129,24 @@ namespace RGL {
 	void CommandBufferVk::EndRendering()
 	{
 		vkCmdEndRendering(commandBuffer);
+		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
 	}
 	void CommandBufferVk::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
 	{
 		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
 		VkDeviceSize offsets[] = {offset };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+	}
+	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
+	{
+		// size must be a multiple of 4
+		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 4 : 0);
+		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, VK_SHADER_STAGE_VERTEX_BIT, offset, size, data.data());
+	}
+	void CommandBufferVk::SetFragmentBytes(const untyped_span data, uint32_t offset)
+	{
+		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 4 : 0);
+		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, VK_SHADER_STAGE_FRAGMENT_BIT, offset, size, data.data());
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
 	{
