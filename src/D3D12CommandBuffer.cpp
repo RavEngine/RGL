@@ -79,7 +79,8 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexBytes(const untyped_span data, uint32_t offset)
 	{
-		commandList->SetGraphicsRoot32BitConstants(offset, data.size() / 4, data.data(), 0);
+		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 1 : 0);
+		commandList->SetGraphicsRoot32BitConstants(offset, size, data.data(), 0);
 	}
 	void CommandBufferD3D12::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
