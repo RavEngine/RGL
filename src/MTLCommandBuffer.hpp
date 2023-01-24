@@ -6,6 +6,8 @@ namespace RGL{
 struct CommandQueueMTL;
 struct IBuffer;
     struct CommandBufferMTL : public ICommandBuffer{
+        id<MTLCommandBuffer> currentCommandBuffer = nullptr;
+        id<MTLRenderCommandEncoder> currentCommandEncoder = nullptr;
         const std::shared_ptr<CommandQueueMTL> owningQueue;
         CommandBufferMTL(decltype(owningQueue));
         

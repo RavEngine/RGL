@@ -1,60 +1,86 @@
 #if RGL_MTL_AVAILABLE
 #include "MTLCommandBuffer.hpp"
+#include "MTLCommandQueue.hpp"
+#include "MTLPipeline.hpp"
+#include "MTLTexture.hpp"
+#include "MTLBuffer.hpp"
+
 namespace RGL{
 CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQueue(owningQueue){
     
 }
 
 void CommandBufferMTL::Reset(){
-    
+    currentCommandEncoder = nullptr;
+    currentCommandBuffer = nullptr;
 }
 
 void CommandBufferMTL::Begin(){
-    
+    currentCommandBuffer = [owningQueue->commandQueue commandBuffer];
 }
 
 void CommandBufferMTL::End(){
     
 }
 
-void CommandBufferMTL::BindPipeline(std::shared_ptr<IRenderPipeline> pipeline){
-    
+void CommandBufferMTL::BindPipeline(std::shared_ptr<IRenderPipeline> pipelineIn){
+    auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
+    currentCommandEncoder = [currentCommandBuffer renderCommandEncoderWithDescriptor:pipeline->rpd];
+    [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
 }
 
 void CommandBufferMTL::BeginRendering(const BeginRenderingConfig & config){
-    
+    [currentCommandBuffer presentDrawable:static_cast<TextureMTL*>(config.targetFramebuffer)->texture];
 }
 
 void CommandBufferMTL::EndRendering(){
-    
+    [currentCommandEncoder endEncoding];
 }
 
 void CommandBufferMTL::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset){
-    
+    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offset atIndex:0];    //TODO: don't hardcode to vertex stage
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
-    
+    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset];
 }
 
 void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset){
-    
+    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset];
+
 }
 
 void CommandBufferMTL::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance){
-    
+    [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:startVertex vertexCount:nVertices instanceCount:nInstances baseInstance:firstInstance];
 }
 
 void CommandBufferMTL::SetViewport(const Viewport & viewport){
+    MTLViewport vp{
+        .originX = viewport.x,
+        .originY = viewport.y,
+        .width = viewport.width,
+        .height = viewport.height,
+        .znear = viewport.minDepth,
+        .zfar = viewport.maxDepth
+    };
     
+    [currentCommandEncoder setViewport:vp];
 }
 
 void CommandBufferMTL::SetScissor(const Scissor & scissor){
+    MTLScissorRect sr{
+        .x = static_cast<NSUInteger>(scissor.offset[0]),
+        .y = static_cast<NSUInteger>(scissor.offset[1]),
+        .width = scissor.extent[0],
+        .height = scissor.extent[1]
+    };
     
+    [currentCommandEncoder setScissorRect:sr];
 }
 
 void CommandBufferMTL::Commit(const CommitConfig & config){
-    
+    [currentCommandBuffer commit];
+    [currentCommandBuffer waitUntilCompleted]; // TODO: delete this
 }
 
 }
