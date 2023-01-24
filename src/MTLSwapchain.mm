@@ -8,15 +8,21 @@ void SwapchainMTL::Resize(uint32_t width, uint32_t height){
     
 }
 void SwapchainMTL::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) {
+    auto next = [surface->layer nextDrawable];
+    
+    activeTextures[idx] = TextureMTL(next, {static_cast<uint32_t>([[next texture] width]), static_cast<uint32_t>([[next texture] height])});
+    
+    *index = this->idx;
+    idx = (idx + 1) % activeTextures.size();
     
 }
 
 ITexture* SwapchainMTL::ImageAtIndex(uint32_t index) {
-    
+    return &activeTextures[idx];
 }
 
 void SwapchainMTL::Present(const SwapchainPresentConfig&) {
-    
+    [activeTextures[idx].texture present];
 }
 
 }

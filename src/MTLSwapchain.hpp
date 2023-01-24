@@ -1,6 +1,8 @@
 #pragma once
 #include "Swapchain.hpp"
 #include "MTLSurface.hpp"
+#include "MTLTexture.hpp"
+#include <array>
 
 namespace RGL{
 	struct SwapchainMTL : public ISwapchain{
@@ -11,5 +13,8 @@ namespace RGL{
         void GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) final;
         ITexture* ImageAtIndex(uint32_t index) final;
         void Present(const SwapchainPresentConfig&) final;
+        
+        std::array<TextureMTL,3> activeTextures;
+        uint32_t idx = 0;
 	};
 }
