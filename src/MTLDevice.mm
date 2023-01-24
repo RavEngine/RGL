@@ -8,6 +8,7 @@
 #include "MTLShaderLibrary.hpp"
 #include "MTLBuffer.hpp"
 #include "MTLPipeline.hpp"
+#include "MTLCommandQueue.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
@@ -69,7 +70,7 @@ std::shared_ptr<IBuffer> DeviceMTL::CreateBuffer(const BufferConfig& config) {
 }
 
 std::shared_ptr<ICommandQueue> DeviceMTL::CreateCommandQueue(QueueType type) {
-    FatalError("CreateCommandqueue not implemented");
+    return std::make_shared<CommandQueueMTL>(shared_from_this());
 }
 
 std::shared_ptr<IFence> DeviceMTL::CreateFence(bool preSignaled) {

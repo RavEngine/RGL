@@ -65,6 +65,7 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
     [pipelineDesc setVertexFunction:vertFunc];
     [pipelineDesc setFragmentFunction:fragFunc];
     
+    // create a single interleaved buffer descriptor
     {
         uint32_t i = 0;
         uint32_t totalStride = 0;
@@ -73,8 +74,8 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
             auto vertexAttribute = [MTLVertexAttributeDescriptor new];
             auto formatpair = rgl2mtlvx(attribute.format);
             [vertexAttribute setFormat:formatpair.first];
-            [vertexAttribute setOffset:attribute.offset];
-            [vertexAttribute setBufferIndex:attribute.location];
+            [vertexAttribute setOffset:attribute.offset + totalStride];
+            [vertexAttribute setBufferIndex: 0];
             totalStride += formatpair.second;
             
             vertexDescriptor.attributes[i] = vertexAttribute;
