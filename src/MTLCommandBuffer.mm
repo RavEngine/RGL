@@ -13,6 +13,7 @@ CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQu
 void CommandBufferMTL::Reset(){
     currentCommandEncoder = nullptr;
     currentCommandBuffer = nullptr;
+    targetFB = nullptr;
 }
 
 void CommandBufferMTL::Begin(){
@@ -25,12 +26,14 @@ void CommandBufferMTL::End(){
 
 void CommandBufferMTL::BindPipeline(std::shared_ptr<IRenderPipeline> pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
+    [pipeline->rpd.colorAttachments[0] setTexture:[targetFB->texture texture]];
     currentCommandEncoder = [currentCommandBuffer renderCommandEncoderWithDescriptor:pipeline->rpd];
     [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
 }
 
 void CommandBufferMTL::BeginRendering(const BeginRenderingConfig & config){
-    [currentCommandBuffer presentDrawable:static_cast<TextureMTL*>(config.targetFramebuffer)->texture];
+    targetFB = static_cast<TextureMTL*>(config.targetFramebuffer);
+    [currentCommandBuffer presentDrawable:targetFB->texture];
 }
 
 void CommandBufferMTL::EndRendering(){

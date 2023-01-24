@@ -18,11 +18,11 @@ void SwapchainMTL::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> sem
 }
 
 ITexture* SwapchainMTL::ImageAtIndex(uint32_t index) {
-    return &activeTextures[idx];
+    return &activeTextures[index];
 }
 
 void SwapchainMTL::Present(const SwapchainPresentConfig&) {
-    [activeTextures[idx].texture present];
+    //[activeTextures[idx].texture present];
 }
 
 }

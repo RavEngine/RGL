@@ -34,7 +34,7 @@ namespace RGL {
 		untyped_span(decltype(ptr) ptr, decltype(size_bytes) size_bytes) : ptr(ptr), size_bytes(size_bytes) {}
 
 		template<typename T> 
-		untyped_span(const T&& ptr) : ptr(&ptr), size_bytes(sizeof(T)) {}
+		untyped_span(const T& ptr) : ptr(&ptr), size_bytes(sizeof(T)) {}
 
 		constexpr auto data() const { return ptr; }
 		constexpr auto size() const { return size_bytes; }

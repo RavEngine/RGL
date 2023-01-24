@@ -4,10 +4,12 @@
 
 namespace RGL{
 struct CommandQueueMTL;
+struct TextureMTL;
 struct IBuffer;
     struct CommandBufferMTL : public ICommandBuffer{
         id<MTLCommandBuffer> currentCommandBuffer = nullptr;
         id<MTLRenderCommandEncoder> currentCommandEncoder = nullptr;
+        TextureMTL* targetFB = nullptr;
         const std::shared_ptr<CommandQueueMTL> owningQueue;
         CommandBufferMTL(decltype(owningQueue));
         
