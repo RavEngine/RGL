@@ -74,7 +74,7 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
             auto vertexAttribute = [MTLVertexAttributeDescriptor new];
             auto formatpair = rgl2mtlvx(attribute.format);
             [vertexAttribute setFormat:formatpair.first];
-            [vertexAttribute setOffset:attribute.offset + totalStride];
+            [vertexAttribute setOffset:attribute.offset];
             [vertexAttribute setBufferIndex: 0];
             totalStride += formatpair.second;
             

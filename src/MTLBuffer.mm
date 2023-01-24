@@ -29,7 +29,7 @@ void BufferMTL::SetBufferData(untyped_span data){
 void BufferMTL::UpdateBufferData(untyped_span newData){
     Assert(data.data != nullptr, "Must call MapMemory before updating a buffer");
     Assert(newData.size() <= data.size, "Data is too big!");
-    std::memcpy(data.data, newData.data(), data.size);
+    std::memcpy(data.data, newData.data(), newData.size());
 }
 
 }
