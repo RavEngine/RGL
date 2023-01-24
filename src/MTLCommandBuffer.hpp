@@ -1,6 +1,7 @@
 #pragma once
 #include "CommandBuffer.hpp"
 #import <Metal/Metal.h>
+#include <array>
 
 namespace RGL{
 struct CommandQueueMTL;
@@ -10,6 +11,8 @@ struct IBuffer;
         id<MTLCommandBuffer> currentCommandBuffer = nullptr;
         id<MTLRenderCommandEncoder> currentCommandEncoder = nullptr;
         TextureMTL* targetFB = nullptr;
+        std::array<float, 4> clearColor{0,0,0,0};
+        
         const std::shared_ptr<CommandQueueMTL> owningQueue;
         CommandBufferMTL(decltype(owningQueue));
         
