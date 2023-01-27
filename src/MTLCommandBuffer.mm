@@ -47,11 +47,11 @@ void CommandBufferMTL::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offs
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset];
+    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset+1];
 }
 
 void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset];
+    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset+1];
 
 }
 
