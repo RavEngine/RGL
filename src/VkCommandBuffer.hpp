@@ -30,6 +30,8 @@ namespace RGL {
 
 		void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
 
+		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages);
+
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
 
