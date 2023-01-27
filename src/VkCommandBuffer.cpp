@@ -137,16 +137,26 @@ namespace RGL {
 		VkDeviceSize offsets[] = {offset };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 	}
-	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
+
+	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages)
 	{
 		// size must be a multiple of 4
-		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 4 : 0);
-		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, VK_SHADER_STAGE_VERTEX_BIT, offset, size, data.data());
+		// need to get a little extra space for safety
+		auto size = data.size() + (data.size() % 4 != 0 ? 4 : 0);
+		stackarray(localdata, std::byte, size);
+		std::memset(localdata, 0, size);
+		std::memcpy(localdata, data.data(), data.size());
+
+		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, stages, offset, size, localdata);
+	}
+
+	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
+	{
+		setPushConstantData(data, offset, VK_SHADER_STAGE_VERTEX_BIT);
 	}
 	void CommandBufferVk::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
-		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 4 : 0);
-		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, VK_SHADER_STAGE_FRAGMENT_BIT, offset, size, data.data());
+		setPushConstantData(data, offset, VK_SHADER_STAGE_FRAGMENT_BIT);
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
 	{
