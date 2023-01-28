@@ -26,10 +26,10 @@ std::string DeviceMTL::GetBrandString() {
     return std::string([name UTF8String]);
 }
 
-std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(std::shared_ptr<ISurface> isurface, std::shared_ptr<ICommandQueue> presentQueue, int, int){
+std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(std::shared_ptr<ISurface> isurface, std::shared_ptr<ICommandQueue> presentQueue, int width, int height){
     auto surface = std::static_pointer_cast<RGL::SurfaceMTL>(isurface);
     [surface->layer setDevice:device];
-    return std::make_shared<SwapchainMTL>(surface);
+    return std::make_shared<SwapchainMTL>(surface, width, height);
 }
 
 std::shared_ptr<IRenderPass> DeviceMTL::CreateRenderPass(const RenderPassConfig&) {
