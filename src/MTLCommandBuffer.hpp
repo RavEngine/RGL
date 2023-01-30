@@ -7,11 +7,15 @@ namespace RGL{
 struct CommandQueueMTL;
 struct TextureMTL;
 struct IBuffer;
+struct BufferMTL;
+
     struct CommandBufferMTL : public ICommandBuffer{
         id<MTLCommandBuffer> currentCommandBuffer = nullptr;
         id<MTLRenderCommandEncoder> currentCommandEncoder = nullptr;
         TextureMTL* targetFB = nullptr;
         std::array<float, 4> clearColor{0,0,0,0};
+        
+        std::shared_ptr<BufferMTL> indexBuffer;
         
         const std::shared_ptr<CommandQueueMTL> owningQueue;
         CommandBufferMTL(decltype(owningQueue));
@@ -26,11 +30,14 @@ struct IBuffer;
         void EndRendering() final;
 
         void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
+        
+        void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) final;
 
         void SetVertexBytes(const untyped_span data, uint32_t offset) final;
         void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
 
         void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) final;
+        void DrawIndexed(uint32_t nIndices, uint32_t nInstances = 1, uint32_t firstIndex = 0, uint32_t startVertex = 0, uint32_t firstInstance = 0) final;
 
         void SetViewport(const Viewport&) final;
         void SetScissor(const Scissor&) final;

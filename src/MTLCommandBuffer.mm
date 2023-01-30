@@ -24,6 +24,10 @@ void CommandBufferMTL::End(){
     
 }
 
+void CommandBufferMTL::SetIndexBuffer(std::shared_ptr<IBuffer> buffer) {
+    indexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
+}
+
 void CommandBufferMTL::BindPipeline(std::shared_ptr<IRenderPipeline> pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
     [pipeline->rpd.colorAttachments[0] setTexture:[targetFB->texture texture]];
@@ -57,6 +61,13 @@ void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset
 
 void CommandBufferMTL::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance){
     [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:startVertex vertexCount:nVertices instanceCount:nInstances baseInstance:firstInstance];
+}
+
+void CommandBufferMTL::DrawIndexed(uint32_t nIndices, uint32_t nInstances, uint32_t firstIndex, uint32_t startVertex, uint32_t firstInstance){
+    assert(indexBuffer != nil); // did you forget to call SetIndexBuffer?
+    //TODO: support 16-bit indices
+    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:MTLIndexTypeUInt32 indexBuffer:indexBuffer->buffer indexBufferOffset:firstIndex instanceCount:nInstances baseVertex:startVertex baseInstance:firstInstance];
+    
 }
 
 void CommandBufferMTL::SetViewport(const Viewport & viewport){
