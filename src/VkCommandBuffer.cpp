@@ -158,9 +158,18 @@ namespace RGL {
 	{
 		setPushConstantData(data, offset, VK_SHADER_STAGE_FRAGMENT_BIT);
 	}
-	void CommandBufferVk::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
+	void CommandBufferVk::SetIndexBuffer(std::shared_ptr<IBuffer> buffer)
 	{
-		vkCmdDraw(commandBuffer, nVertices, nInstances, startVertex, firstInstance);
+		//TODO: support 16 bit index buffer
+		vkCmdBindIndexBuffer(commandBuffer, std::static_pointer_cast<BufferVk>(buffer)->buffer, 0, VK_INDEX_TYPE_UINT32);
+	}
+	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
+	{
+		vkCmdDraw(commandBuffer, nVertices, config.nInstances, config.startVertex, config.firstInstance);
+	}
+	void CommandBufferVk::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config)
+	{
+		vkCmdDrawIndexed(commandBuffer, nIndices, config.nInstances, config.firstIndex, config.startVertex, config.firstInstance);
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{

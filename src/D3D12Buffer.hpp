@@ -10,7 +10,10 @@ namespace RGL {
 
 	struct BufferD3D12 : public IBuffer {
 		ComPtr<ID3D12Resource> buffer;
-		D3D12_VERTEX_BUFFER_VIEW bufferView;
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+		D3D12_INDEX_BUFFER_VIEW indexBufferView{};	// TODO: Union or something to optimize this
+		BufferConfig::Type myType;
+
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 
 		BufferD3D12(decltype(owningDevice), const BufferConfig&);

@@ -40,10 +40,21 @@ namespace RGL {
         }
     }
 
-	BufferD3D12::BufferD3D12(decltype(owningDevice) device, const BufferConfig& config) : owningDevice(device)
+	BufferD3D12::BufferD3D12(decltype(owningDevice) device, const BufferConfig& config) : owningDevice(device), myType(config.type)
 	{
-		bufferView.SizeInBytes = config.size_bytes;
-		bufferView.StrideInBytes = config.stride;
+        switch (config.type) {
+        case decltype(config.type)::VertexBuffer:
+            vertexBufferView.SizeInBytes = config.size_bytes;
+            vertexBufferView.StrideInBytes = config.stride;
+            break;
+        case decltype(config.type)::IndexBuffer:
+            indexBufferView.SizeInBytes = config.size_bytes;
+            indexBufferView.Format = decltype(indexBufferView.Format)::DXGI_FORMAT_R32_UINT;   //TODO: support 16-bit index buffer
+            break;
+        default:
+            FatalError("current buffer type is not supported");
+        };
+		
 	}
 	void BufferD3D12::MapMemory()
 	{
@@ -58,7 +69,8 @@ namespace RGL {
 		ComPtr<ID3D12Resource> intermediateVertexBuffer;
         auto commandList = owningDevice->internalQueue->CreateCommandList();
 		UpdateBufferResource(commandList.Get(), &buffer, &intermediateVertexBuffer, newData.size(), newData.data(), owningDevice->device);
-        bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
+        vertexBufferView.BufferLocation = buffer->GetGPUVirtualAddress();
+        indexBufferView.BufferLocation = vertexBufferView.BufferLocation;   //NOTE: if this is made a union, check this
 
         commandList->Close();
         auto fenceValue = owningDevice->internalQueue->ExecuteCommandList(commandList);

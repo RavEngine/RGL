@@ -35,7 +35,10 @@ namespace RGL {
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
 
-		void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) final;
+		void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) final;
+
+		void Draw(uint32_t nVertices, const DrawInstancedConfig & = {}) final;
+		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;
 
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Scissor&) final;

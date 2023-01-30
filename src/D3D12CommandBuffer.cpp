@@ -75,7 +75,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
 	{
-		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->bufferView);
+		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView);
 	}
 	void CommandBufferD3D12::SetVertexBytes(const untyped_span data, uint32_t offset)
 	{
@@ -86,9 +86,17 @@ namespace RGL {
 	{
 
 	}
-	void CommandBufferD3D12::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance)
+	void CommandBufferD3D12::SetIndexBuffer(std::shared_ptr<IBuffer> buffer)
 	{
-		commandList->DrawInstanced(nVertices, nInstances, startVertex, firstInstance);
+		commandList->IASetIndexBuffer(&(std::static_pointer_cast<BufferD3D12>(buffer)->indexBufferView));
+	}
+	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
+	{
+		commandList->DrawInstanced(nVertices, config.nInstances, config.startVertex, config.firstInstance);
+	}
+	void CommandBufferD3D12::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config)
+	{
+		commandList->DrawIndexedInstanced(nIndices, config.nInstances, config.firstIndex, config.startVertex, config.firstInstance);
 	}
 	void CommandBufferD3D12::SetViewport(const Viewport& viewport)
 	{
