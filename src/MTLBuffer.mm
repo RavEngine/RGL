@@ -6,8 +6,15 @@
 namespace RGL{
 
 BufferMTL::BufferMTL(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice){
-    //TODO: make access configurable
-    MTL_CHECK(buffer = [owningDevice->device newBufferWithLength:config.size_bytes options: MTLResourceStorageModeManaged]);
+    //TODO: make access configurable and options
+    constexpr auto mode =
+#if TARGET_OS_IPHONE
+    MTLResourceStorageModeShared;
+#else
+    MTLResourceStorageModeManaged;
+#endif
+    
+    MTL_CHECK(buffer = [owningDevice->device newBufferWithLength:config.size_bytes options: mode]);
     data.size = config.size_bytes;
 }
 
@@ -17,7 +24,9 @@ void BufferMTL::MapMemory(){
 
 void BufferMTL::UnmapMemory(){
     data.data = nullptr;
+#if !TARGET_OS_IPHONE
     [buffer didModifyRange:NSMakeRange(0, data.size)];
+#endif
 }
 
 void BufferMTL::SetBufferData(untyped_span data){

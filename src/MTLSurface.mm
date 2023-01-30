@@ -5,7 +5,7 @@
 #if TARGET_OS_OSX
 #include <Cocoa/Cocoa.h>
 #elif TARGET_OS_IPHONE
-#include <UIKit/UIKit.hpp>
+#include <UIKit/UIKit.h>
 #else
 #endif
 
@@ -23,19 +23,18 @@ std::shared_ptr<RGL::ISurface> RGL::CreateMTLSurfaceFromPlatformHandle(void* poi
 		CAMetalLayer *res = [CAMetalLayer layer];
 		[contentView setLayer:res];
 		[res setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-		pointer = res;
-#elif
-		UIWindow* window = (UIWindow*)wnd;
+        return CreateMTLSurfaceFromLayer(res);
+#elif TARGET_OS_IPHONE
+        UIWindow* window = (__bridge UIWindow*)pointer;
 		UIView* contentView = [[window subviews] lastObject];
 		
 		CAMetalLayer *res = [CAMetalLayer layer];
 		res.frame = window.bounds;
 		[contentView.layer addSublayer:res];
 		res.needsDisplayOnBoundsChange = true;
-		pointer = res;
+        return CreateMTLSurfaceFromLayer(res);
 #endif
 	}
 	
-	return CreateMTLSurfaceFromLayer((CAMetalLayer*)pointer);
 }
 #endif
