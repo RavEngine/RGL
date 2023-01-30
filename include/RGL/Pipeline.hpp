@@ -109,7 +109,6 @@ namespace RGL {
 				Vertex, Fragment, Compute
 			} type;
 			std::shared_ptr<IShaderLibrary> shaderModule;
-			std::string entryPoint;
 		};
 		std::vector<ShaderStageDesc> stages;
 
@@ -125,7 +124,6 @@ namespace RGL {
 
 			struct VertexAttributeDesc {
 				uint32_t location, binding, offset;
-				const char* semantic_name = nullptr;
 				enum class Format {
 					Undefined,
 					R32G32_SignedFloat = 103,

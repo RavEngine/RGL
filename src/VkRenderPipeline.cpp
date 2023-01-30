@@ -58,7 +58,7 @@ namespace RGL {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = RGL2VKshader(stage.type),
                 .module = std::static_pointer_cast<ShaderLibraryVk>(stage.shaderModule)->shaderModule,
-                .pName = stage.entryPoint.c_str()
+                .pName = "main"
             });
         }
 
@@ -110,9 +110,9 @@ namespace RGL {
         // the viewport
         VkViewport viewport{
             .x = desc.viewport.x,
-            .y = desc.viewport.height - desc.viewport.y,    // this is reversed for the same reason as the comment below
+            .y = desc.viewport.y,    // this is reversed for the same reason as the comment below
             .width = desc.viewport.width,
-            .height = -desc.viewport.height,            // this is negative to convert Vulkan to use a Y-up coordinate system like the other APIs
+            .height = desc.viewport.height,            // this is negative to convert Vulkan to use a Y-up coordinate system like the other APIs
             .minDepth = desc.viewport.minDepth,
             .maxDepth = desc.viewport.maxDepth       
         };
