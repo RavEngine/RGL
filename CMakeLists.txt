@@ -10,6 +10,8 @@ endif()
 
 project(RGL)
 
+option(RGL_ENABLE_RGLC "Enable the separate compiler executable" ON)
+
 #setup main library
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" "src/*.mm")
 add_library(${PROJECT_NAME} ${SOURCES})
@@ -30,15 +32,18 @@ target_include_directories(librglc
 )
 
 # setup command line compiler utility
-file(GLOB RGLC_SOURCES "tools/rglc/*.cpp" "tools/rglc/*.hpp")
-add_executable(rglc ${RGLC_SOURCES})
-target_compile_features(rglc PRIVATE cxx_std_20)
-target_link_libraries(rglc PRIVATE librglc)
-target_include_directories(rglc PRIVATE "deps/cxxopts/include")
-if(MSVC)
-	set(rglc_ext ".exe")
+if (RGL_ENABLE_RGLC)
+	file(GLOB RGLC_SOURCES "tools/rglc/*.cpp" "tools/rglc/*.hpp")
+	add_executable(rglc ${RGLC_SOURCES})
+	target_compile_features(rglc PRIVATE cxx_std_20)
+	target_link_libraries(rglc PRIVATE librglc)
+	target_include_directories(rglc PRIVATE "deps/cxxopts/include")
+	if(MSVC)
+		set(rglc_ext ".exe")
+	endif()
+	set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc${rglc_ext}" CACHE INTERNAL "rglc compiler path")
+	set(rglc_exe "rglc")
 endif()
-set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc${rglc_ext}" CACHE INTERNAL "rglc compiler path")
 
 
 if(APPLE)
@@ -99,7 +104,7 @@ target_include_directories(${PROJECT_NAME}
 		"include"
 )
 
-set_target_properties("RGL" "rglc" "librglc" PROPERTIES 
+set_target_properties("RGL" ${rglc_exe} "librglc" PROPERTIES 
 	FOLDER "RGL"
 	XCODE_GENERATE_SCHEME ON
 )
