@@ -100,8 +100,12 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
     [rpd.colorAttachments[0] setLoadAction:MTLLoadActionClear];
     [rpd.colorAttachments[0] setStoreAction:MTLStoreActionStore];
     
+#if TARGET_OS_IPHONE
+    [rpd setDefaultRasterSampleCount:0];
+#else
     [rpd setDefaultRasterSampleCount:static_cast<int>(desc.multisampleConfig.sampleCount)];
-
+#endif
+    
 }
 
 }
