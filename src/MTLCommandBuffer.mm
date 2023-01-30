@@ -59,14 +59,14 @@ void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset
 
 }
 
-void CommandBufferMTL::Draw(uint32_t nVertices, uint32_t nInstances, uint32_t startVertex, uint32_t firstInstance){
-    [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:startVertex vertexCount:nVertices instanceCount:nInstances baseInstance:firstInstance];
+void CommandBufferMTL::Draw(uint32_t nVertices, const DrawInstancedConfig& config){
+    [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:config.startVertex vertexCount:nVertices instanceCount:config.nInstances baseInstance:config.firstInstance];
 }
 
-void CommandBufferMTL::DrawIndexed(uint32_t nIndices, uint32_t nInstances, uint32_t firstIndex, uint32_t startVertex, uint32_t firstInstance){
+void CommandBufferMTL::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config){
     assert(indexBuffer != nil); // did you forget to call SetIndexBuffer?
     //TODO: support 16-bit indices
-    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:MTLIndexTypeUInt32 indexBuffer:indexBuffer->buffer indexBufferOffset:firstIndex instanceCount:nInstances baseVertex:startVertex baseInstance:firstInstance];
+    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:MTLIndexTypeUInt32 indexBuffer:indexBuffer->buffer indexBufferOffset:config.firstIndex instanceCount:config.nInstances baseVertex:config.startVertex baseInstance:config.firstInstance];
     
 }
 

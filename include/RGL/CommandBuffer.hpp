@@ -5,6 +5,21 @@
 #include "Buffer.hpp"
 #include "Synchronization.hpp"
 
+struct DrawInstancedConfig{
+    uint32_t
+    nInstances = 1,
+    startVertex = 0,
+    firstInstance = 0;
+};
+
+struct DrawIndexedInstancedConfig{
+    uint32_t
+    nInstances = 1,
+    firstIndex = 0,
+    firstInstance = 0,
+    startVertex = 0;
+};
+
 namespace RGL {
 	struct IRenderPipeline;
 
@@ -51,8 +66,9 @@ namespace RGL {
 		virtual void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) = 0;
 
         virtual void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) = 0;
-		virtual void Draw(uint32_t nVertices, uint32_t nInstances = 1, uint32_t startVertex = 0, uint32_t firstInstance = 0) = 0;
-        virtual void DrawIndexed(uint32_t nIndices, uint32_t nInstances = 1, uint32_t firstIndex = 0, uint32_t startVertex = 0, uint32_t firstInstance = 0) = 0;
+        
+        virtual void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) = 0;
+        virtual void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) = 0;
 
 		virtual void SetViewport(const Viewport&) = 0;
 		virtual void SetScissor(const Scissor&) = 0;
