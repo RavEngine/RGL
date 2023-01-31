@@ -9,6 +9,7 @@
 #include "MTLBuffer.hpp"
 #include "MTLPipeline.hpp"
 #include "MTLCommandQueue.hpp"
+#include "MTLTexture.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
@@ -79,6 +80,10 @@ std::shared_ptr<IFence> DeviceMTL::CreateFence(bool preSignaled) {
 
 std::shared_ptr<ISemaphore> DeviceMTL::CreateSemaphore() {
     return std::make_shared<SemaphoreMTL>();
+}
+
+std::shared_ptr<ITexture> DeviceMTL::CreateTextureWithData(const TextureConfig& config, untyped_span data){
+    return std::make_shared<TextureMTL>(shared_from_this(), config, data);
 }
 
 void DeviceMTL::BlockUntilIdle() {

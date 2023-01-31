@@ -2,7 +2,8 @@
 
 namespace RGL {
 	enum class TextureFormat {
-		BGRA8_Unorm
+		BGRA8_Unorm,
+        RGBA8_SFloat,
 	};
 
 	enum class TextureLayout : uint8_t {
