@@ -20,7 +20,7 @@ namespace RGL {
 	};
 
 	struct TextureConfig {
-		uint32_t width = 0, height = 0, depth = 1, mipLevels = 0, arrayLayers = 0;
+		uint32_t width = 0, height = 0, depth = 1, mipLevels = 1, arrayLayers = 1;
 		TextureType imageType = decltype(imageType)::T2D;
 		TextureFormat format;
 		TilingMode mode = decltype(mode)::Optimal;
