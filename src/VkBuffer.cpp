@@ -5,48 +5,10 @@
 
 namespace RGL {
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice) {
-        VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-        // find a memory type suitable for the buffer
-        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-            // needs to have the right support
-            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-                return i;
-            }
-        }
-
-        throw std::runtime_error("failed to find suitable memory type!");
-    }
-
 	BufferVk::BufferVk(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice) {
         //TODO: use vkmemoryallocator
 
-        auto device = owningDevice->device;
-        VkBufferCreateInfo bufferInfo{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = config.size_bytes,
-            .usage = static_cast<VkBufferUsageFlags>(config.type),
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-        };
-
-        VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
-
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
-            //TODO: make properties configurable
-            .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, owningDevice->physicalDevice)
-        };
-
-
-        VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory))
-
-        vkBindBufferMemory(device, buffer, bufferMemory, 0);
+        createBuffer(owningDevice->device, owningDevice->physicalDevice, config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer, bufferMemory);
 
         mappedMemory.size = config.size_bytes;
 	}

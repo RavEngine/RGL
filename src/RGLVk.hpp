@@ -34,4 +34,13 @@ namespace RGL {
 
 	enum class MSASampleCount : uint8_t;
 	VkSampleCountFlagBits RGLMSA2VK(const RGL::MSASampleCount& samplecount);
+
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice);
+
+	void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+	VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool);
+	void endSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device, VkCommandPool commandPool);
+
+
 }

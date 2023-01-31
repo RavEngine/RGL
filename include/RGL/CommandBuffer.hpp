@@ -4,6 +4,7 @@
 #include "Texture.hpp"
 #include "Buffer.hpp"
 #include "Synchronization.hpp"
+#include <span>
 
 struct DrawInstancedConfig{
     uint32_t

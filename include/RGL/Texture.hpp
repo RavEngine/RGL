@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "TextureFormat.hpp"
 
 namespace RGL {
 
@@ -7,6 +8,24 @@ namespace RGL {
 		uint32_t width = 0, height = 0;
 	};
 	
+	enum class TextureType : uint8_t {
+		T1D,
+		T2D,
+		T3D,
+	};
+
+	enum class TilingMode : uint8_t {
+		Optimal,
+		Linear
+	};
+
+	struct TextureConfig {
+		uint32_t width = 0, height = 0, depth = 1, mipLevels = 0, arrayLayers = 0;
+		TextureType imageType = decltype(imageType)::T2D;
+		TextureFormat format;
+		TilingMode mode = decltype(mode)::Optimal;
+	};
+
 	class ITexture {
 	protected:
 		Dimension size;

@@ -8,6 +8,7 @@
 #include "VkBuffer.hpp"
 #include "VkCommandQueue.hpp"
 #include "VkSynchronization.hpp"
+#include "VkTexture.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -246,6 +247,11 @@ namespace RGL {
     std::shared_ptr<IBuffer> DeviceVk::CreateBuffer(const BufferConfig& config)
     {
         return std::make_shared<BufferVk>(shared_from_this(), config);
+    }
+
+    std::shared_ptr<ITexture> DeviceVk::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
+    {
+        return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
     }
 
     std::shared_ptr<ICommandQueue> DeviceVk::CreateCommandQueue(QueueType type)

@@ -1,5 +1,5 @@
 #pragma once
-#include <span>
+#include "Span.hpp"
 
 namespace RGL {
 
@@ -20,24 +20,6 @@ namespace RGL {
 
 		template<typename T>
 		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t) : size_bytes(sizeof(T)), type(type), stride(stride) {}
-	};
-
-	struct MutableSpan {
-		void* data = nullptr;
-		size_t size = 0;
-	};
-
-	class untyped_span {
-		const void* ptr = nullptr;
-		const size_t size_bytes = 0;
-	public:
-		untyped_span(decltype(ptr) ptr, decltype(size_bytes) size_bytes) : ptr(ptr), size_bytes(size_bytes) {}
-
-		template<typename T> 
-		untyped_span(const T& ptr) : ptr(&ptr), size_bytes(sizeof(T)) {}
-
-		constexpr auto data() const { return ptr; }
-		constexpr auto size() const { return size_bytes; }
 	};
 
 	struct IBuffer {

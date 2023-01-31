@@ -1,13 +1,167 @@
 #if RGL_VK_AVAILABLE
 #include "VkTexture.hpp"
+#include "VkDevice.hpp"
+#include "RGLVk.hpp"
 
 namespace RGL {
+
+	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue) {
+		VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+		VkBufferImageCopy region{};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.layerCount = 1;
+
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent = {
+			width,
+			height,
+			1
+		};
+
+		vkCmdCopyBufferToImage(
+			commandBuffer,
+			buffer,
+			image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1,
+			&region
+		);
+
+		endSingleTimeCommands(commandBuffer, graphicsQueue, device, commandPool);
+	}
+
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue) {
+		VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		VkPipelineStageFlags sourceStage;
+		VkPipelineStageFlags destinationStage;
+
+		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else {
+			throw std::invalid_argument("unsupported layout transition!");
+		}
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			sourceStage, destinationStage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+
+		endSingleTimeCommands(commandBuffer,graphicsQueue,device,commandPool);
+	}
+
 	TextureVk::TextureVk(decltype(vkImageView) imageView, decltype(vkImage) image, const Dimension& size) : vkImageView(imageView), vkImage(image), ITexture(size)
 	{
+	}
+	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : owningDevice(owningDevice), owning(true), ITexture(Dimension{.width = config.width,.height = config.height})
+	{
+
+		// allocate a staging buffer for the texture
+		VkBuffer stagingBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+		createBuffer(owningDevice->device, owningDevice->physicalDevice, bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		auto device = owningDevice->device;
+
+		// put the data in the buffer
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bytes.size(), 0, &data);
+		memcpy(data, bytes.data(), bytes.size());
+		vkUnmapMemory(device, stagingBufferMemory);
+
+
+		//TODO: read other options from config
+		VkImageCreateInfo imageInfo{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.imageType = VK_IMAGE_TYPE_2D,
+			.format = VK_FORMAT_R8G8B8A8_SRGB,
+			.extent = {
+				.width = config.width,
+				.height = config.height,
+				.depth = config.depth,
+			},
+			.mipLevels = config.mipLevels,
+			.arrayLayers = config.arrayLayers,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.tiling = VK_IMAGE_TILING_OPTIMAL,
+			.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+		};
+		VK_CHECK(vkCreateImage(owningDevice->device, &imageInfo, nullptr, &vkImage));
+
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(device, vkImage, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+			.allocationSize = memRequirements.size,
+			.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, owningDevice->physicalDevice)
+		};
+
+		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMem));
+
+		vkBindImageMemory(device, vkImage, textureImageMem, 0);
+
+		// TODO: these probably should share the same command buffer
+		transitionImageLayout(vkImage, imageInfo.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		copyBufferToImage(stagingBuffer, vkImage, static_cast<uint32_t>(config.width), static_cast<uint32_t>(config.height), device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		transitionImageLayout(vkImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		// cleanup
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
 	}
 	Dimension TextureVk::GetSize() const
 	{
 		return this->size;
+	}
+	TextureVk::~TextureVk()
+	{
+		if (owning) {
+			vkDestroyImage(owningDevice->device, vkImage, nullptr);
+			vkFreeMemory(owningDevice->device, textureImageMem, nullptr);
+		}
 	}
 }
 

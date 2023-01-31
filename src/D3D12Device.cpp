@@ -181,6 +181,12 @@ namespace RGL {
         return std::make_shared<BufferD3D12>(shared_from_this(), config);
     }
 
+    std::shared_ptr<ITexture> DeviceD3D12::CreateTextureWithData(const TextureConfig&, untyped_span)
+    {
+        FatalError("CreateTextureWithData: not implemented");
+        return std::shared_ptr<ITexture>();
+    }
+
     std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueD3D12>(device, type);

@@ -4,6 +4,8 @@
 #include <span>
 #include <filesystem>
 #include "CommandQueue.hpp"
+#include "Span.hpp"
+
 #undef CreateSemaphore
 
 namespace RGL {
@@ -22,6 +24,8 @@ namespace RGL {
 	struct IBuffer;
 	struct IFence;
 	struct ISemaphore;
+	struct ITexture;
+	struct TextureConfig;
 
 	struct IDevice {
 		virtual ~IDevice() {}
@@ -42,6 +46,7 @@ namespace RGL {
 		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
 
 		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
+		virtual std::shared_ptr<ITexture> CreateTextureWithData(const TextureConfig&, untyped_span) = 0;
 
 		virtual std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) = 0;
 
