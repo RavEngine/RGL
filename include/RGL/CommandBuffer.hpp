@@ -23,7 +23,8 @@ struct DrawIndexedInstancedConfig{
 
 namespace RGL {
 	struct IRenderPipeline;
-
+    struct ISampler;
+    struct ITexture;
 
 	struct Viewport {
 		float 
@@ -67,6 +68,12 @@ namespace RGL {
 		virtual void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) = 0;
 
         virtual void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) = 0;
+        
+        virtual void SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) = 0;
+        virtual void SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) = 0;
+        
+        virtual void SetVertexTexture(const ITexture* texture, uint32_t index) = 0;
+        virtual void SetFragmentTexture(const ITexture* texture, uint32_t index) = 0;
         
         virtual void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) = 0;
         virtual void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) = 0;

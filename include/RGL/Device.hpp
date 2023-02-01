@@ -26,6 +26,8 @@ namespace RGL {
 	struct ISemaphore;
 	struct ITexture;
 	struct TextureConfig;
+    struct ISampler;
+    struct SamplerConfig;
 
 	struct IDevice {
 		virtual ~IDevice() {}
@@ -47,6 +49,7 @@ namespace RGL {
 
 		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
 		virtual std::shared_ptr<ITexture> CreateTextureWithData(const TextureConfig&, untyped_span) = 0;
+        virtual std::shared_ptr<ISampler> CreateSampler(const SamplerConfig&) = 0;
 
 		virtual std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) = 0;
 

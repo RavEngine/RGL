@@ -10,6 +10,7 @@
 #include "MTLPipeline.hpp"
 #include "MTLCommandQueue.hpp"
 #include "MTLTexture.hpp"
+#include "MTLSampler.hpp"
 
 namespace RGL{
 std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
@@ -84,6 +85,10 @@ std::shared_ptr<ISemaphore> DeviceMTL::CreateSemaphore() {
 
 std::shared_ptr<ITexture> DeviceMTL::CreateTextureWithData(const TextureConfig& config, untyped_span data){
     return std::make_shared<TextureMTL>(shared_from_this(), config, data);
+}
+
+std::shared_ptr<ISampler> DeviceMTL::CreateSampler(const SamplerConfig& config){
+    return std::make_shared<SamplerMTL>(shared_from_this(), config);
 }
 
 void DeviceMTL::BlockUntilIdle() {

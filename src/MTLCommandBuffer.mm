@@ -4,6 +4,7 @@
 #include "MTLPipeline.hpp"
 #include "MTLTexture.hpp"
 #include "MTLBuffer.hpp"
+#include "MTLSampler.hpp"
 
 namespace RGL{
 CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQueue(owningQueue){
@@ -97,6 +98,20 @@ void CommandBufferMTL::SetScissor(const Scissor & scissor){
 void CommandBufferMTL::Commit(const CommitConfig & config){
     [currentCommandBuffer commit];
     [currentCommandBuffer waitUntilCompleted]; // TODO: delete this
+}
+
+void CommandBufferMTL::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) {
+    [currentCommandEncoder setVertexSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
+}
+void CommandBufferMTL::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) {
+    [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
+}
+
+void CommandBufferMTL::SetVertexTexture(const ITexture* texture, uint32_t index){
+    [currentCommandEncoder setVertexTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
+}
+void CommandBufferMTL::SetFragmentTexture(const ITexture* texture, uint32_t index){
+    [currentCommandEncoder setFragmentTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
 }
 
 }

@@ -35,6 +35,12 @@ struct BufferMTL;
 
         void SetVertexBytes(const untyped_span data, uint32_t offset) final;
         void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
+        
+        void SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
+        void SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
+        
+        void SetVertexTexture(const ITexture* texture, uint32_t index) final;
+        void SetFragmentTexture(const ITexture* texture, uint32_t index) final;
 
         void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) final;
         void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) final;
