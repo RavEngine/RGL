@@ -17,7 +17,7 @@ TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const Text
     //TODO: convert format
     MTLPixelFormat format = MTLPixelFormatRGBA8Uint;
     
-    auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 0];
+    auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 1];
     desc.usage = MTLTextureUsageShaderRead;
     texture = [owningDevice->device newTextureWithDescriptor:desc];
     
