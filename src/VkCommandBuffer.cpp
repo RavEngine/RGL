@@ -165,6 +165,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
 	{
+		
 	}
 	void CommandBufferVk::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
 	{

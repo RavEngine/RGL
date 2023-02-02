@@ -7,6 +7,7 @@
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Buffer.hpp"
 #include "D3D12Device.hpp"
+#include "D3D12Sampler.hpp"
 
 namespace RGL {
 	void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
@@ -92,12 +93,15 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
 	{
+		//commandList->SetGraphicsRootDescriptorTable(index, std::static_pointer_cast<SamplerD3D12>(sampler)->descHandle);
+		// https://stackoverflow.com/questions/55628161/how-to-bind-textures-to-different-register-in-dx12
 	}
 	void CommandBufferD3D12::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
 	{
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
+
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{

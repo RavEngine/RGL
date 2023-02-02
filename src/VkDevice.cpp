@@ -9,6 +9,7 @@
 #include "VkCommandQueue.hpp"
 #include "VkSynchronization.hpp"
 #include "VkTexture.hpp"
+#include "VkSampler.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -134,8 +135,8 @@ namespace RGL {
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{
-            
-        };      // we don't yet need anything
+            .samplerAnisotropy = VK_TRUE,   // need to explicity request it
+        };
 
         VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingfeature{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
@@ -254,10 +255,9 @@ namespace RGL {
         return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
     }
 
-    std::shared_ptr<ISampler> DeviceVk::CreateSampler(const SamplerConfig&)
+    std::shared_ptr<ISampler> DeviceVk::CreateSampler(const SamplerConfig& config)
     {
-        FatalError("Not implemented");
-        return std::shared_ptr<ISampler>();
+        return std::make_shared<SamplerVk>(shared_from_this(), config);
     }
 
     std::shared_ptr<ICommandQueue> DeviceVk::CreateCommandQueue(QueueType type)

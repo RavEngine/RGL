@@ -10,6 +10,7 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Texture.hpp"
+#include "D3D12Sampler.hpp"
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -202,10 +203,9 @@ namespace RGL {
         return std::make_shared<TextureD3D12>(shared_from_this(), config, bytes);
     }
 
-    std::shared_ptr<ISampler> DeviceD3D12::CreateSampler(const SamplerConfig&)
+    std::shared_ptr<ISampler> DeviceD3D12::CreateSampler(const SamplerConfig& config)
     {
-        FatalError("Not implemented");
-        return std::shared_ptr<ISampler>();
+        return std::make_shared<SamplerD3D12>(shared_from_this(),config);
     }
 
     std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
