@@ -91,8 +91,8 @@ namespace RGL {
 		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,1);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE descHandle = {
-				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr +
-				owningDevice->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) };
+				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
+		};
 		owningDevice->device->CreateShaderResourceView(resource, &srvDesc, descHandle);
 
 		commandList->Close();

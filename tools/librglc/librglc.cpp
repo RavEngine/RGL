@@ -48,7 +48,7 @@ namespace librglc {
 			opt.version = 15;
 		}
 		else if (toAPI == API::Direct3D12) {
-			opt.version = 60;
+			opt.version = 67;
 		}
 		else if (toAPI == API::Metal) {
 			opt.version = 30;
