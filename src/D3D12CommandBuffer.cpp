@@ -90,6 +90,18 @@ namespace RGL {
 	{
 		commandList->IASetIndexBuffer(&(std::static_pointer_cast<BufferD3D12>(buffer)->indexBufferView));
 	}
+	void CommandBufferD3D12::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	{
+	}
+	void CommandBufferD3D12::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	{
+	}
+	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
+	{
+	}
+	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
+	{
+	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		commandList->DrawInstanced(nVertices, config.nInstances, config.startVertex, config.firstInstance);

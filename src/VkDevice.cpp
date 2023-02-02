@@ -254,6 +254,12 @@ namespace RGL {
         return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
     }
 
+    std::shared_ptr<ISampler> DeviceVk::CreateSampler(const SamplerConfig&)
+    {
+        FatalError("Not implemented");
+        return std::shared_ptr<ISampler>();
+    }
+
     std::shared_ptr<ICommandQueue> DeviceVk::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueVk>(shared_from_this());    // vulkan does not use the queue type

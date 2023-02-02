@@ -63,13 +63,14 @@ endif()
 
 if(MSVC)
 	add_subdirectory(deps/DirectX-Headers EXCLUDE_FROM_ALL)
-	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib")
+	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib" "D3D12MemoryAllocator")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=1)
 
 	set_target_properties("DirectX-Guids" PROPERTIES 
 		FOLDER "RGL/Libraries"
 	)
 	set(RGL_DX12_AVAILABLE ON CACHE INTERNAL "RGL DX12")
+	add_subdirectory("deps/D3D12MemoryAllocator")
 else()
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=0)
 	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")

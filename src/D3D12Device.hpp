@@ -4,6 +4,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
+#include <D3D12MemAlloc.h>
 
 #undef CreateSemaphore
 
@@ -16,6 +17,7 @@ namespace RGL {
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter;
 		std::shared_ptr<CommandQueueD3D12> internalQueue;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> internalCommandList;
+		Microsoft::WRL::ComPtr<D3D12MA::Allocator> allocator;
 		UINT g_RTVDescriptorHeapSize = 0;
 
 		DeviceD3D12(decltype(adapter) adapter);
@@ -38,6 +40,8 @@ namespace RGL {
 
 		std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) final;
 		std::shared_ptr<ITexture> CreateTextureWithData(const TextureConfig&, untyped_span) final;
+
+		std::shared_ptr<ISampler> CreateSampler(const SamplerConfig&) final;
 
 		std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) final;
 		std::shared_ptr<IFence> CreateFence(bool preSignaled) final;

@@ -2,6 +2,7 @@
 #include "Texture.hpp"
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
+#include "Span.hpp"
 
 namespace RGL {
 	struct DeviceD3D12;
@@ -14,6 +15,7 @@ namespace RGL {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 
 		TextureD3D12(decltype(texture) image, const Dimension& size, decltype(owningDescriptorHeap), decltype(descriptorHeapOffset), decltype(owningDevice));
+		TextureD3D12(decltype(owningDevice), const TextureConfig&, untyped_span bytes);
 
 		Dimension GetSize() const final;
 		virtual ~TextureD3D12() {};

@@ -163,6 +163,18 @@ namespace RGL {
 		//TODO: support 16 bit index buffer
 		vkCmdBindIndexBuffer(commandBuffer, std::static_pointer_cast<BufferVk>(buffer)->buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
+	void CommandBufferVk::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	{
+	}
+	void CommandBufferVk::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	{
+	}
+	void CommandBufferVk::SetVertexTexture(const ITexture* texture, uint32_t index)
+	{
+	}
+	void CommandBufferVk::SetFragmentTexture(const ITexture* texture, uint32_t index)
+	{
+	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		vkCmdDraw(commandBuffer, nVertices, config.nInstances, config.startVertex, config.firstInstance);

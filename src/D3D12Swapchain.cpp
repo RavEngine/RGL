@@ -85,20 +85,6 @@ namespace RGL {
         return dxgiSwapChain4;
     }
 
-    ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(ComPtr<ID3D12Device2> device,
-        D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors)
-    {
-        ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.NumDescriptors = numDescriptors;
-        desc.Type = type;
-
-        DX_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
-
-        return descriptorHeap;
-    }
-
 
 
     SwapchainD3D12::SwapchainD3D12(decltype(owningDevice) device, std::shared_ptr<SurfaceD3D12> surface, int width, int height, std::shared_ptr<CommandQueueD3D12> presentQueue) : owningDevice(device)

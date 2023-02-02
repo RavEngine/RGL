@@ -9,6 +9,7 @@
 #include "D3D12ShaderLibrary.hpp"
 #include "D3D12Buffer.hpp"
 #include "D3D12RenderPipeline.hpp"
+#include "D3D12Texture.hpp"
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -119,6 +120,21 @@ namespace RGL {
     DeviceD3D12::DeviceD3D12(decltype(adapter) adapter) : adapter(adapter), device(CreateDevice(adapter)), internalQueue(std::make_shared<CommandQueueD3D12>(device,QueueType::AllCommands)) {
         internalCommandList = internalQueue->CreateCommandList();
         g_RTVDescriptorHeapSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+        D3D12MA::ALLOCATOR_DESC desc = {};
+        desc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+        desc.pDevice = device.Get();
+        desc.pAdapter = adapter.Get();
+
+        /*if (ENABLE_CPU_ALLOCATION_CALLBACKS)
+        {
+            g_AllocationCallbacks.pAllocate = &CustomAllocate;
+            g_AllocationCallbacks.pFree = &CustomFree;
+            g_AllocationCallbacks.pPrivateData = CUSTOM_ALLOCATION_PRIVATE_DATA;
+            desc.pAllocationCallbacks = &g_AllocationCallbacks;
+        }*/
+
+        DX_CHECK(D3D12MA::CreateAllocator(&desc, &allocator));
     }
 
     DeviceD3D12::~DeviceD3D12() {
@@ -181,10 +197,15 @@ namespace RGL {
         return std::make_shared<BufferD3D12>(shared_from_this(), config);
     }
 
-    std::shared_ptr<ITexture> DeviceD3D12::CreateTextureWithData(const TextureConfig&, untyped_span)
+    std::shared_ptr<ITexture> DeviceD3D12::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
     {
-        FatalError("CreateTextureWithData: not implemented");
-        return std::shared_ptr<ITexture>();
+        return std::make_shared<TextureD3D12>(shared_from_this(), config, bytes);
+    }
+
+    std::shared_ptr<ISampler> DeviceD3D12::CreateSampler(const SamplerConfig&)
+    {
+        FatalError("Not implemented");
+        return std::shared_ptr<ISampler>();
     }
 
     std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)

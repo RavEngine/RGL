@@ -40,6 +40,8 @@ namespace RGL {
 		std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) final;
 		std::shared_ptr<ITexture> CreateTextureWithData(const TextureConfig&, untyped_span) final;
 
+		std::shared_ptr<ISampler> CreateSampler(const SamplerConfig&) final;
+
 		std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) final;
 		std::shared_ptr<IFence> CreateFence(bool preSignaled) final;
 		std::shared_ptr<ISemaphore> CreateSemaphore() final;
