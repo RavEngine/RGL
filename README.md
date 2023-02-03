@@ -5,7 +5,9 @@ RavEngine Graphics Library - a thin RHI for Vulkan, DirectX12, and Metal
 - Write shaders in Vanilla GLSL - no macro hacks or custom DSL
 - Transpiled shaders retain information in debug, for easier shader source debugging
 - Easy-to-understand Metal-like API that maintains the conventions of modern graphics APIs
-- Low overhead - most calls map directly to their platform-specific counterparts
+- Low overhead
+  - most calls map directly to their platform-specific counterparts
+  - If only one backend is enabled (default for Apple platforms), all virtual function calls dissapear
 - Runtime shader compilation via compiler library
 
 ### What it is not
