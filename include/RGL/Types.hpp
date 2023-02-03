@@ -25,6 +25,9 @@ namespace RGL {
 	struct ISampler;
 	struct SamplerConfig;
 	struct IDevice;
+	struct ICommandBuffer;
+	struct ICommandQueue;
+	struct ISwapchain;
 }
 
 #if RGL_SINGLE_BACKEND
@@ -115,7 +118,8 @@ using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 	using RGLTexturePtr = std::shared_ptr<RGL::ITexture>;
 	using RGLSamplerPtr = std::shared_ptr<RGL::ISampler>;
 	using RGLCommandQueuePtr = std::shared_ptr<RGL::ICommandQueue>;
-
+	using CommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
+	using RGLSwapchainPtr = std::shared_ptr<RGL::ISwapchain>;
 #endif
 
 namespace RGL {
