@@ -29,15 +29,15 @@ struct BufferMTL;
         void BeginRendering(const BeginRenderingConfig&) final;
         void EndRendering() final;
 
-        void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
+        void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
         
-        void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) final;
+        void SetIndexBuffer(RGLBufferPtr buffer) final;
 
         void SetVertexBytes(const untyped_span data, uint32_t offset) final;
         void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
         
-        void SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
-        void SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
+        void SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) final;
+        void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) final;
         
         void SetVertexTexture(const ITexture* texture, uint32_t index) final;
         void SetFragmentTexture(const ITexture* texture, uint32_t index) final;

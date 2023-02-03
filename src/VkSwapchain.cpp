@@ -131,7 +131,7 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
     }
 }
 
-void RGL::SwapchainVK::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> isemaphore)
+void RGL::SwapchainVK::GetNextImage(uint32_t* index, RGLSemaphorePtr isemaphore)
 {
     auto semaphore = std::static_pointer_cast<SemaphoreVk>(isemaphore);
     vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, semaphore->semaphore, VK_NULL_HANDLE, index);

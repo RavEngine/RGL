@@ -1,5 +1,6 @@
 #pragma once
-#include "Synchronization.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Synchronization.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
 

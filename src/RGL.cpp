@@ -51,7 +51,7 @@ static callback_t callbackFn = [](MessageSeverity severity, const std::string& m
 #endif
 }; 
 
-std::shared_ptr<IDevice> RGL::IDevice::CreateSystemDefaultDevice()
+RGLDevicePtr RGL::IDevice::CreateSystemDefaultDevice()
 {
     switch (RGL::currentAPI) {
     case API::Uninitialized:
@@ -73,7 +73,7 @@ std::shared_ptr<IDevice> RGL::IDevice::CreateSystemDefaultDevice()
 		FatalError("Invalid API");
 			
     }
-    return std::shared_ptr<IDevice>();
+    return RGLDevicePtr();
 }
 
 

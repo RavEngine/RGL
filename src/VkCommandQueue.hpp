@@ -1,5 +1,6 @@
 #pragma once
-#include "CommandQueue.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/CommandQueue.hpp>
 #include "VkSynchronization.hpp"
 #include <vulkan/vulkan.h>
 #include <span>
@@ -19,7 +20,7 @@ namespace RGL {
 		void Submit(CommandBufferVk*, const CommitConfig&);
 		
 		// ICommandQueue
-		std::shared_ptr<ICommandBuffer> CreateCommandBuffer() final;
+		CommandBufferPtr CreateCommandBuffer() final;
 
 		void WaitUntilCompleted() final;
 	};

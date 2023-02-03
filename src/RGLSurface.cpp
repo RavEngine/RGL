@@ -16,7 +16,7 @@
 
 using namespace RGL;
 
-std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject)
+RGLSurfacePtr RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject)
 {
     switch (CurrentAPI()) {
 #if RGL_MTL_AVAILABLE
@@ -35,5 +35,5 @@ std::shared_ptr<ISurface> RGL::CreateSurfaceFromPlatformHandle(void* pointer, bo
         FatalError("Invalid API");
     }
 
-    return std::shared_ptr<ISurface>();
+    return RGLSurfacePtr{};
 }

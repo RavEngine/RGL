@@ -5,11 +5,9 @@
 #include <string>
 #include "TextureFormat.hpp"
 #include "ShaderLibrary.hpp"
+#include <RGL/Types.hpp>
 
 namespace RGL {
-	struct IBuffer;
-	struct ITexture;
-	struct ISampler;
 
 	struct RenderPassConfig {
 		struct AttachmentDesc {
@@ -72,7 +70,7 @@ namespace RGL {
 		};
 		std::vector<LayoutBindingDesc> bindings;
 
-		std::vector<std::shared_ptr<ISampler>> boundSamplers;
+		std::vector<RGLSamplerPtr> boundSamplers;
 
 		struct ConstantConfig {
 			size_t size_bytes;
@@ -93,15 +91,15 @@ namespace RGL {
 	//TODO: support non-uniformbuffers (see VkDescriptorType)
 	struct LayoutConfig {
 		struct BufferConfig {
-			std::shared_ptr<IBuffer> buffer;
+			RGLBufferPtr buffer;
 			uint32_t offset = 0;
 			uint32_t size = 0;
 		};
 		std::vector<BufferConfig> boundBuffers;
 		
 		struct TextureAndSampler {
-			std::shared_ptr<ITexture> texture;
-			std::shared_ptr<ISampler> sampler;
+			RGLTexturePtr texture;
+			RGLSamplerPtr sampler;
 		};
 		std::vector<TextureAndSampler> boundTextures;
 	};
@@ -121,7 +119,7 @@ namespace RGL {
 			enum class Type : uint8_t {
 				Vertex, Fragment, Compute
 			} type;
-			std::shared_ptr<IShaderLibrary> shaderModule;
+			RGLShaderLibraryPtr shaderModule;
 		};
 		std::vector<ShaderStageDesc> stages;
 
@@ -251,7 +249,7 @@ namespace RGL {
 			float blendconstants[4] = { 0,0,0,0 };
 		} colorBlendConfig;
 		// list of what states are dynamic (TODO)
-		std::shared_ptr<IPipelineLayout> pipelineLayout;
+		RGLPipelineLayoutPtr pipelineLayout;
 		uint32_t subpassIndex = 0;				// what subpass in the renderpass will be used (index)
 	};
 

@@ -151,7 +151,7 @@ namespace RGL {
             buffer.size = Dimension{ width,height };
         }
 	}
-	void SwapchainD3D12::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore)
+	void SwapchainD3D12::GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore)
 	{
         //TODO: wait for semaphore
         *index = swapchain->GetCurrentBackBufferIndex();

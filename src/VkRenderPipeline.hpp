@@ -1,5 +1,6 @@
 #pragma once
-#include "Pipeline.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Pipeline.hpp>
 #include "VkDevice.hpp"
 #include "VkRenderPass.hpp"
 

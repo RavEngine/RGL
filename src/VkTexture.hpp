@@ -1,6 +1,7 @@
 #pragma once
-#include "Texture.hpp"
-#include "Span.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Texture.hpp>
+#include <RGL/Span.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
 

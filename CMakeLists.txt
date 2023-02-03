@@ -53,20 +53,20 @@ if(APPLE)
 endif()
 
 find_package(Vulkan)
-if (Vulkan_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
+if (Vulkan_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "WindowsStore" AND NOT RGL_DISABLE_VK)
 	set(VK_LIBS ${Vulkan_LIBRARIES})
 	set(VK_INCLUDE ${Vulkan_INCLUDE_DIRS})
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_VK_AVAILABLE=1)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=1)
 	set(RGL_VK_AVAILABLE ON CACHE INTERNAL "RGL Vulkan")
 else()
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_VK_AVAILABLE=0)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=0)
 	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
 endif()
 
 if(MSVC AND NOT RGL_DISABLE_DX)
 	add_subdirectory(deps/DirectX-Headers EXCLUDE_FROM_ALL)
 	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib" "D3D12MemoryAllocator")
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=1)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=1)
 
 	set_target_properties("DirectX-Guids" PROPERTIES 
 		FOLDER "RGL/Libraries"
@@ -74,19 +74,19 @@ if(MSVC AND NOT RGL_DISABLE_DX)
 	set(RGL_DX12_AVAILABLE ON CACHE INTERNAL "RGL DX12")
 	add_subdirectory("deps/D3D12MemoryAllocator")
 else()
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=0)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=0)
 	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")
 endif()
 
 if(APPLE)
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_MTL_AVAILABLE=1)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_MTL_AVAILABLE=1)
 	set(MTL_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/deps/metal-cpp" "${CMAKE_CURRENT_LIST_DIR}/deps/metal-cpp-extensions")
 	find_library(FOUNDATION_LIB Cocoa REQUIRED)
     find_library(METAL_LIB Metal REQUIRED)
     find_library(QZC_LIB QuartzCore REQUIRED)
 	set(RGL_MTL_AVAILABLE ON CACHE INTERNAL "RGL Metal")
 else()
-	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_MTL_AVAILABLE=0)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_MTL_AVAILABLE=0)
 	set(RGL_MTL_AVAILABLE OFF CACHE INTERNAL "RGL Metal")
 endif()
 
@@ -100,10 +100,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 target_include_directories(${PROJECT_NAME} 
 	PRIVATE
-		${VK_INCLUDE}
+		
 		${MTL_INCLUDE}
 		"include/RGL"
 	PUBLIC
+		${VK_INCLUDE}
 		"include"
 )
 

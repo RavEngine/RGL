@@ -1,5 +1,6 @@
 #pragma once
-#include "Pipeline.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Pipeline.hpp>
 #include <vulkan/vulkan.h>
 #include "VkDevice.hpp"
 

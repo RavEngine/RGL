@@ -1,5 +1,6 @@
 #pragma once
-#include "Buffer.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Buffer.hpp>
 #include <memory>
 #include <span>
 #include <vulkan/vulkan.h>

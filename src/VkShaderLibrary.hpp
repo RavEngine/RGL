@@ -1,4 +1,6 @@
-#include "ShaderLibrary.hpp"
+#pragma once
+#include <RGL/Types.hpp>
+#include <RGL/ShaderLibrary.hpp>
 #include "VkDevice.hpp"
 #include <vulkan/vulkan.h>
 #include <span>

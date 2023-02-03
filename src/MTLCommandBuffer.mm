@@ -25,7 +25,7 @@ void CommandBufferMTL::End(){
     
 }
 
-void CommandBufferMTL::SetIndexBuffer(std::shared_ptr<IBuffer> buffer) {
+void CommandBufferMTL::SetIndexBuffer(RGLBufferPtr buffer) {
     indexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
 }
 
@@ -47,7 +47,7 @@ void CommandBufferMTL::EndRendering(){
     [currentCommandEncoder endEncoding];
 }
 
-void CommandBufferMTL::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset){
+void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t offset){
     [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offset atIndex:0];    //TODO: don't hardcode to vertex stage
 }
 
@@ -100,10 +100,10 @@ void CommandBufferMTL::Commit(const CommitConfig & config){
     [currentCommandBuffer waitUntilCompleted]; // TODO: delete this
 }
 
-void CommandBufferMTL::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) {
+void CommandBufferMTL::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) {
     [currentCommandEncoder setVertexSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
-void CommandBufferMTL::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) {
+void CommandBufferMTL::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) {
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
 

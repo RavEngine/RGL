@@ -1,5 +1,6 @@
 #pragma once
-#include "Sampler.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Sampler.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
 namespace RGL {

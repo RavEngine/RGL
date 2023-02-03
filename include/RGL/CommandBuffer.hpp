@@ -46,8 +46,8 @@ namespace RGL {
 	};
 
 	struct CommitConfig {
-		std::shared_ptr<IFence> signalFence;
-		std::span<std::shared_ptr<ISemaphore>> waitSemaphores, signalSemaphores;
+		RGLFencePtr signalFence;
+		std::span<RGLSemaphorePtr> waitSemaphores, signalSemaphores;
 	};
 
 	struct ICommandBuffer {
@@ -65,12 +65,12 @@ namespace RGL {
 
 		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>) = 0;
 
-		virtual void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) = 0;
+		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t offset) = 0;
 
-        virtual void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) = 0;
+        virtual void SetIndexBuffer(RGLBufferPtr buffer) = 0;
         
-        virtual void SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) = 0;
-        virtual void SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) = 0;
+        virtual void SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) = 0;
+        virtual void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) = 0;
         
         virtual void SetVertexTexture(const ITexture* texture, uint32_t index) = 0;
         virtual void SetFragmentTexture(const ITexture* texture, uint32_t index) = 0;

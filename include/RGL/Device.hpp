@@ -5,56 +5,38 @@
 #include <filesystem>
 #include "CommandQueue.hpp"
 #include "Span.hpp"
+#include <RGL/Types.hpp>
 
 #undef CreateSemaphore
 
 namespace RGL {
-	struct ISwapchain;
-	struct IRenderPass;
-	struct ISurface;
-	struct IPipelineLayout;
-	struct IRenderPipeline;
-
-	struct RenderPassConfig;
-	struct RenderPipelineDescriptor;
-	struct PipelineLayoutDescriptor;
-	struct IShaderLibrary;
-
-	struct BufferConfig;
-	struct IBuffer;
-	struct IFence;
-	struct ISemaphore;
-	struct ITexture;
-	struct TextureConfig;
-    struct ISampler;
-    struct SamplerConfig;
 
 	struct IDevice {
 		virtual ~IDevice() {}
-		static std::shared_ptr<IDevice> CreateSystemDefaultDevice();
+		static RGLDevicePtr CreateSystemDefaultDevice();
 
 		virtual std::string GetBrandString() = 0;
 		
-		virtual std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, std::shared_ptr<ICommandQueue> presentQueue, int width, int height) = 0;
-		virtual std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) = 0;
+		virtual RGLSwapchainPtr CreateSwapchain(std::shared_ptr<ISurface>, RGLCommandQueuePtr presentQueue, int width, int height) = 0;
+		virtual RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) = 0;
 
-		virtual std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;
-		virtual std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) = 0;
+		virtual RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;
+		virtual RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) = 0;
 
-        virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromName(const std::string_view& name) = 0;
-		virtual std::shared_ptr<IShaderLibrary> CreateDefaultShaderLibrary() = 0;
-		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromBytes(const std::span<uint8_t>) = 0;
-		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibrarySourceCode(const std::string_view) = 0;
-		virtual std::shared_ptr<IShaderLibrary> CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
+        virtual RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) = 0;
+		virtual RGLShaderLibraryPtr CreateDefaultShaderLibrary() = 0;
+		virtual RGLShaderLibraryPtr CreateShaderLibraryFromBytes(const std::span<uint8_t>) = 0;
+		virtual RGLShaderLibraryPtr CreateShaderLibrarySourceCode(const std::string_view) = 0;
+		virtual RGLShaderLibraryPtr CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
 
-		virtual std::shared_ptr<IBuffer> CreateBuffer(const BufferConfig&) = 0;
-		virtual std::shared_ptr<ITexture> CreateTextureWithData(const TextureConfig&, untyped_span) = 0;
-        virtual std::shared_ptr<ISampler> CreateSampler(const SamplerConfig&) = 0;
+		virtual RGLBufferPtr CreateBuffer(const BufferConfig&) = 0;
+		virtual RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) = 0;
+        virtual RGLSamplerPtr CreateSampler(const SamplerConfig&) = 0;
 
-		virtual std::shared_ptr<ICommandQueue> CreateCommandQueue(QueueType type) = 0;
+		virtual RGLCommandQueuePtr CreateCommandQueue(QueueType type) = 0;
 
-		virtual std::shared_ptr<IFence> CreateFence(bool preSignaled) = 0;
-		virtual std::shared_ptr<ISemaphore> CreateSemaphore() = 0;
+		virtual RGLFencePtr CreateFence(bool preSignaled) = 0;
+		virtual RGLSemaphorePtr CreateSemaphore() = 0;
 		virtual void BlockUntilIdle() = 0;
 	};
 }

@@ -131,7 +131,7 @@ namespace RGL {
 		vkCmdEndRendering(commandBuffer);
 		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
 	}
-	void CommandBufferVk::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
+	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
 	{
 		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
 		VkDeviceSize offsets[] = {offset };
@@ -158,16 +158,16 @@ namespace RGL {
 	{
 		setPushConstantData(data, offset, VK_SHADER_STAGE_FRAGMENT_BIT);
 	}
-	void CommandBufferVk::SetIndexBuffer(std::shared_ptr<IBuffer> buffer)
+	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
 		//TODO: support 16 bit index buffer
 		vkCmdBindIndexBuffer(commandBuffer, std::static_pointer_cast<BufferVk>(buffer)->buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
-	void CommandBufferVk::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	void CommandBufferVk::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
 		
 	}
-	void CommandBufferVk::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	void CommandBufferVk::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
 	}
 	void CommandBufferVk::SetVertexTexture(const ITexture* texture, uint32_t index)

@@ -1,0 +1,92 @@
+#pragma once
+#include <memory>
+
+#define RGL_NBACKENDS (RGL_MTL_AVAILABLE + RGL_VK_AVAILABLE + RGL_DX12_AVAILABLE)
+#define RGL_SINGLE_BACKEND RGL_NBACKENDS == 1
+
+namespace RGL {
+	struct ISwapchain;
+	struct IRenderPass;
+	struct ISurface;
+	struct IPipelineLayout;
+	struct IRenderPipeline;
+
+	struct RenderPassConfig;
+	struct RenderPipelineDescriptor;
+	struct PipelineLayoutDescriptor;
+	struct IShaderLibrary;
+
+	struct BufferConfig;
+	struct IBuffer;
+	struct IFence;
+	struct ISemaphore;
+	struct ITexture;
+	struct TextureConfig;
+	struct ISampler;
+	struct SamplerConfig;
+	struct IDevice;
+}
+
+#if RGL_SINGLE_BACKEND
+#if RGL_MTL_AVAILABLE
+	
+#elif RGL_VK_AVAILABLE
+namespace RGL {
+	struct SwapchainVK;
+	struct RenderPassVk;
+	struct SurfaceVk;
+	struct PipelineLayoutVk;
+	struct RenderPipelineVk;
+
+	struct ShaderLibraryVk;
+
+	struct BufferVk;
+	struct FenceVk;
+	struct SemaphoreVk;
+	struct TextureVk;
+	struct SamplerVk;
+	struct DeviceVk;
+	struct CommandQueueVk;
+	struct CommandBufferVk;
+}
+
+using RGLDevicePtr = std::shared_ptr<RGL::DeviceVk>;
+using RGLSwapchainPtr = std::shared_ptr<RGL::SwapchainVK>;
+using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassVk>;
+using RGLSurfacePtr = std::shared_ptr<RGL::SurfaceVk>;
+using RGLPipelineLayoutPtr = std::shared_ptr<RGL::PipelineLayoutVk>;
+using RGLRenderPipelinePtr = std::shared_ptr<RGL::RenderPipelineVk>;
+using RGLShaderLibraryPtr = std::shared_ptr<RGL::ShaderLibraryVk>;
+using RGLBufferPtr = std::shared_ptr<RGL::BufferVk>;
+using RGLFencePtr = std::shared_ptr<RGL::FenceVk>;
+using RGLSemaphorePtr = std::shared_ptr<RGL::SemaphoreVk>;
+using RGLTexturePtr = std::shared_ptr<RGL::TextureVk>;
+using RGLSamplerPtr = std::shared_ptr<RGL::SamplerVk>;
+using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueVk>;
+using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferVk>;
+
+#elif RGL_DX12_AVAILABLE
+
+#else
+#endif
+
+#else
+	using RGLDevicePtr = std::shared_ptr<RGL::IDevice>;
+	using RGLRenderPassPtr = std::shared_ptr<RGL::IRenderPass>;
+	using RGLSurfacePtr = std::shared_ptr<RGL::ISurface>;
+	using RGLPipelineLayoutPtr = std::shared_ptr<RGL::IPipelineLayout>;
+	using RGLRenderPipelinePtr = std::shared_ptr<RGL::IRenderPipeline>;
+	using RGLShaderLibraryPtr = std::shared_ptr<RGL::IShaderLibrary>;
+	using RGLBufferPtr = std::shared_ptr<RGL::IBuffer>;
+	using RGLFencePtr = std::shared_ptr<RGL::IFence>;
+	using RGLSemaphorePtr = std::shared_ptr<RGL::ISemaphore>;
+	using RGLTexturePtr = std::shared_ptr<RGL::ITexture>;
+	using RGLSamplerPtr = std::shared_ptr<RGL::ISampler>;
+	using RGLCommandQueuePtr = std::shared_ptr<RGL::ICommandQueue>;
+
+#endif
+
+namespace RGL {
+	
+}
+

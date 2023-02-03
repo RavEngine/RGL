@@ -74,7 +74,7 @@ namespace RGL {
 		commandList->SetPipelineState(pipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(pipeline->pipelineLayout->rootSignature.Get());
 	}
-	void CommandBufferD3D12::BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset)
+	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
 	{
 		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView);
 	}
@@ -87,16 +87,16 @@ namespace RGL {
 	{
 
 	}
-	void CommandBufferD3D12::SetIndexBuffer(std::shared_ptr<IBuffer> buffer)
+	void CommandBufferD3D12::SetIndexBuffer(RGLBufferPtr buffer)
 	{
 		commandList->IASetIndexBuffer(&(std::static_pointer_cast<BufferD3D12>(buffer)->indexBufferView));
 	}
-	void CommandBufferD3D12::SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	void CommandBufferD3D12::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
 		//commandList->SetGraphicsRootDescriptorTable(index, std::static_pointer_cast<SamplerD3D12>(sampler)->descHandle);
 		// https://stackoverflow.com/questions/55628161/how-to-bind-textures-to-different-register-in-dx12
 	}
-	void CommandBufferD3D12::SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index)
+	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)

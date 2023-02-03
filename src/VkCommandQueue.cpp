@@ -38,7 +38,7 @@ namespace RGL {
         auto fence = std::static_pointer_cast<FenceVk>(config.signalFence);
         VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence->fence));
 	}
-	std::shared_ptr<ICommandBuffer> CommandQueueVk::CreateCommandBuffer()
+    CommandBufferPtr CommandQueueVk::CreateCommandBuffer()
 	{
 		return std::make_shared<CommandBufferVk>(shared_from_this());
 	}

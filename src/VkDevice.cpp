@@ -70,7 +70,7 @@ namespace RGL {
     };
 
 
-    std::shared_ptr<IDevice> RGL::CreateDefaultDeviceVk() {
+    RGLDevicePtr RGL::CreateDefaultDeviceVk() {
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
         // now select and configure a device
@@ -196,79 +196,79 @@ namespace RGL {
         return props.deviceName;
     }
 
-    std::shared_ptr<ISwapchain> RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurface> surface, std::shared_ptr<ICommandQueue>, int width, int height)
+    RGLSwapchainPtr RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurface> surface, RGLCommandQueuePtr, int width, int height)
     {
 
         return std::make_shared<SwapchainVK>(std::static_pointer_cast<RGL::SurfaceVk>(surface), shared_from_this(), width, height);
     }
 
-    std::shared_ptr<IRenderPass> RGL::DeviceVk::CreateRenderPass(const RenderPassConfig& config)
+    RGLRenderPassPtr RGL::DeviceVk::CreateRenderPass(const RenderPassConfig& config)
     {
         return std::make_shared<RenderPassVk>(shared_from_this(), config);
     }
 
-    std::shared_ptr<IPipelineLayout> RGL::DeviceVk::CreatePipelineLayout(const PipelineLayoutDescriptor& pld)
+    RGLPipelineLayoutPtr RGL::DeviceVk::CreatePipelineLayout(const PipelineLayoutDescriptor& pld)
     {
         return std::make_shared<PipelineLayoutVk>(shared_from_this(), pld);
     }
 
-    std::shared_ptr<IRenderPipeline> RGL::DeviceVk::CreateRenderPipeline(const RenderPipelineDescriptor& config)
+    RGLRenderPipelinePtr RGL::DeviceVk::CreateRenderPipeline(const RenderPipelineDescriptor& config)
     {
         return std::make_shared<RenderPipelineVk>(
             shared_from_this(),
             config);
     }
 
-    std::shared_ptr<IShaderLibrary> DeviceVk::CreateShaderLibraryFromName(const std::string_view& name)
+    RGLShaderLibraryPtr DeviceVk::CreateShaderLibraryFromName(const std::string_view& name)
     {
         FatalError("LibraryFromName not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return RGLShaderLibraryPtr();
     }
 
-    std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateDefaultShaderLibrary()
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateDefaultShaderLibrary()
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this());
     }
 
-    std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibraryFromBytes(const std::span<uint8_t> data)
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibraryFromBytes(const std::span<uint8_t> data)
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this(), data);
     }
 
-    std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibrarySourceCode(const std::string_view source)
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibrarySourceCode(const std::string_view source)
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this(), source);
     }
 
-    std::shared_ptr<IShaderLibrary> RGL::DeviceVk::CreateShaderLibraryFromPath(const std::filesystem::path& path)
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibraryFromPath(const std::filesystem::path& path)
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this(), path);
     }
 
-    std::shared_ptr<IBuffer> DeviceVk::CreateBuffer(const BufferConfig& config)
+    RGLBufferPtr DeviceVk::CreateBuffer(const BufferConfig& config)
     {
         return std::make_shared<BufferVk>(shared_from_this(), config);
     }
 
-    std::shared_ptr<ITexture> DeviceVk::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
+    RGLTexturePtr DeviceVk::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
     {
         return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
     }
 
-    std::shared_ptr<ISampler> DeviceVk::CreateSampler(const SamplerConfig& config)
+    RGLSamplerPtr DeviceVk::CreateSampler(const SamplerConfig& config)
     {
         return std::make_shared<SamplerVk>(shared_from_this(), config);
     }
 
-    std::shared_ptr<ICommandQueue> DeviceVk::CreateCommandQueue(QueueType type)
+    RGLCommandQueuePtr DeviceVk::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueVk>(shared_from_this());    // vulkan does not use the queue type
     }
-    std::shared_ptr<IFence> DeviceVk::CreateFence(bool preSignaled)
+    RGLFencePtr DeviceVk::CreateFence(bool preSignaled)
     {
         return std::make_shared<FenceVk>(shared_from_this(),preSignaled);
     }
-    std::shared_ptr<ISemaphore> DeviceVk::CreateSemaphore()
+    RGLSemaphorePtr DeviceVk::CreateSemaphore()
     {
         return std::make_shared<SemaphoreVk>(shared_from_this());
     }

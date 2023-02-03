@@ -1,5 +1,6 @@
 #pragma once
-#include "Swapchain.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Swapchain.hpp>
 #include "VkDevice.hpp"
 #include "VkSurface.hpp"
 #include "VkTexture.hpp"
@@ -19,7 +20,7 @@ namespace RGL {
 		virtual ~SwapchainVK();
 		SwapchainVK(decltype(owningSurface), decltype(owningDevice), int width, int height);
 		void Resize(uint32_t, uint32_t) final;
-		void GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) final;
+		void GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore) final;
 		ITexture* ImageAtIndex(uint32_t index) final {
 			return &(RGLTextureResources[index]);
 		}

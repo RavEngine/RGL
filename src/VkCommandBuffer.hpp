@@ -1,5 +1,6 @@
 #pragma once
-#include "CommandBuffer.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/CommandBuffer.hpp>
 #include <vulkan/vulkan.h>
 #include "RGLVk.hpp"
 
@@ -28,17 +29,17 @@ namespace RGL {
 		void BeginRendering(const BeginRenderingConfig&) final;
 		void EndRendering() final;
 
-		void BindBuffer(std::shared_ptr<IBuffer> buffer, uint32_t offset) final;
+		void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
 
 		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages);
 
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
 
-		void SetIndexBuffer(std::shared_ptr<IBuffer> buffer) final;
+		void SetIndexBuffer(RGLBufferPtr buffer) final;
 
-		void SetVertexSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
-		void SetFragmentSampler(std::shared_ptr<ISampler> sampler, uint32_t index) final;
+		void SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) final;
+		void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) final;
 
 		void SetVertexTexture(const ITexture* texture, uint32_t index) final;
 		void SetFragmentTexture(const ITexture* texture, uint32_t index) final;

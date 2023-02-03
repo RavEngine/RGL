@@ -7,7 +7,7 @@ void SwapchainMTL::Resize(uint32_t width, uint32_t height){
     surface->layer.drawableSize = CGSizeMake(width, height);
     
 }
-void SwapchainMTL::GetNextImage(uint32_t* index, std::shared_ptr<ISemaphore> semaphore) {
+void SwapchainMTL::GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore) {
     auto next = [surface->layer nextDrawable];
     
     activeTextures[idx] = TextureMTL(next, {static_cast<uint32_t>([[next texture] width]), static_cast<uint32_t>([[next texture] height])});

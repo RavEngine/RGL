@@ -154,7 +154,7 @@ namespace RGL {
         wcstombs_s(nullptr,result.data(), result.size(), wstr.data(), _TRUNCATE);
         return result;
     }
-    std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, std::shared_ptr<ICommandQueue> presentQueue, int width, int height)
+    std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, RGLCommandQueuePtr presentQueue, int width, int height)
     {
         return std::make_shared<SwapchainD3D12>(shared_from_this(), std::static_pointer_cast<SurfaceD3D12>(surface), width, height, std::static_pointer_cast<CommandQueueD3D12>(presentQueue));
     }
@@ -171,54 +171,54 @@ namespace RGL {
     {
         return std::make_shared<RenderPipelineD3D12>(shared_from_this(), desc);
     }
-    std::shared_ptr<IShaderLibrary> DeviceD3D12::CreateShaderLibraryFromName(const std::string_view& name)
+    RGLShaderLibraryPtr DeviceD3D12::CreateShaderLibraryFromName(const std::string_view& name)
     {
         FatalError("CreateShaderLibraryFromName not implemented");
-        return std::shared_ptr<IShaderLibrary>();
+        return RGLShaderLibraryPtr();
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateDefaultShaderLibrary()
+    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateDefaultShaderLibrary()
     {
         return std::make_shared<ShaderLibraryD3D12>();
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromBytes(const std::span<uint8_t> bytes)
+    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibraryFromBytes(const std::span<uint8_t> bytes)
     {
         return std::make_shared<ShaderLibraryD3D12>(bytes);
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view sourcecode)
+    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view sourcecode)
     {
         return std::make_shared<ShaderLibraryD3D12>(sourcecode);
     }
-    std::shared_ptr<IShaderLibrary> RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path& file)
+    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path& file)
     {
         return std::make_shared<ShaderLibraryD3D12>(file);
     }
 
-    std::shared_ptr<IBuffer> RGL::DeviceD3D12::CreateBuffer(const BufferConfig& config)
+    RGLBufferPtr RGL::DeviceD3D12::CreateBuffer(const BufferConfig& config)
     {
         return std::make_shared<BufferD3D12>(shared_from_this(), config);
     }
 
-    std::shared_ptr<ITexture> DeviceD3D12::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
+    RGLTexturePtr DeviceD3D12::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
     {
         return std::make_shared<TextureD3D12>(shared_from_this(), config, bytes);
     }
 
-    std::shared_ptr<ISampler> DeviceD3D12::CreateSampler(const SamplerConfig& config)
+    RGLSamplerPtr DeviceD3D12::CreateSampler(const SamplerConfig& config)
     {
         return std::make_shared<SamplerD3D12>(shared_from_this(),config);
     }
 
-    std::shared_ptr<ICommandQueue> RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
+    RGLCommandQueuePtr RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueD3D12>(device, type);
     }
 
-    std::shared_ptr<IFence> RGL::DeviceD3D12::CreateFence(bool preSignaled)
+    RGLFencePtr RGL::DeviceD3D12::CreateFence(bool preSignaled)
     {
         return std::make_shared<FenceD3D12>(shared_from_this(), preSignaled);
     }
 
-    std::shared_ptr<ISemaphore> RGL::DeviceD3D12::CreateSemaphore()
+    RGLSemaphorePtr RGL::DeviceD3D12::CreateSemaphore()
     {
         return std::make_shared<SemaphoreD3D12>();
     }

@@ -10,7 +10,7 @@
 
 using namespace RGL;
 
-std::shared_ptr<ISurface> RGL::CreateVKSurfaceFromPlatformData(void* pointer)
+RGLSurfacePtr RGL::CreateVKSurfaceFromPlatformData(void* pointer)
 {
     VkSurfaceKHR surface;
 #ifdef _WIN32

@@ -1,6 +1,6 @@
 #pragma once
-
-#include "Surface.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Surface.hpp>
 #include <vulkan/vulkan.h>
 
 namespace RGL {
@@ -11,5 +11,5 @@ namespace RGL {
 		virtual ~SurfaceVk();
 	};
 
-	std::shared_ptr<ISurface> CreateVKSurfaceFromPlatformData(void*);
+	RGLSurfacePtr CreateVKSurfaceFromPlatformData(void*);
 }

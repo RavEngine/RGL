@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <memory>
 
 namespace RGL {
@@ -10,7 +11,7 @@ namespace RGL {
 	struct ICommandBuffer;
 
 	struct ICommandQueue {
-		virtual std::shared_ptr<ICommandBuffer> CreateCommandBuffer() = 0;
+		virtual CommandBufferPtr CreateCommandBuffer() = 0;
 		virtual void WaitUntilCompleted() = 0;
 	};
 }
