@@ -1,5 +1,7 @@
 #if RGL_MTL_AVAILABLE
+#include <QuartzCore/CAMetalLayer.h>
 #include "MTLSurface.hpp"
+#import <Metal/Metal.h>
 
 #include <TargetConditionals.h>
 #if TARGET_OS_OSX

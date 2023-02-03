@@ -1,7 +1,7 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <RGL/CommandBuffer.hpp>
-#import <Metal/Metal.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <array>
 
 namespace RGL{
@@ -11,8 +11,8 @@ struct IBuffer;
 struct BufferMTL;
 
     struct CommandBufferMTL : public ICommandBuffer{
-        id<MTLCommandBuffer> currentCommandBuffer = nullptr;
-        id<MTLRenderCommandEncoder> currentCommandEncoder = nullptr;
+        OBJC_ID(MTLCommandBuffer) currentCommandBuffer = nullptr;
+        OBJC_ID(MTLRenderCommandEncoder) currentCommandEncoder = nullptr;
         TextureMTL* targetFB = nullptr;
         std::array<float, 4> clearColor{0,0,0,0};
         

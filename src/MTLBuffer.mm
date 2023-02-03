@@ -1,4 +1,5 @@
 #if RGL_MTL_AVAILABLE
+#import <Metal/Metal.h>
 #include "MTLBuffer.hpp"
 #include "MTLDevice.hpp"
 #include "RGLMTL.hpp"

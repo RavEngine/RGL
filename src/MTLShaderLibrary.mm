@@ -1,4 +1,5 @@
 #if RGL_MTL_AVAILABLE
+#import <Metal/Metal.h>
 #include "MTLShaderLibrary.hpp"
 #include "MTLDevice.hpp"
 namespace RGL{

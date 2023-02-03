@@ -15,9 +15,17 @@ option(RGL_DISABLE_VK "Force-disable the Vulkan backend" OFF)
 option(RGL_DISABLE_DX "Force-disable the D3D12 backend" OFF)
 
 #setup main library
-file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" "src/*.mm")
-add_library(${PROJECT_NAME} ${SOURCES})
+file(GLOB_RECURSE MM_SOURCES "src/*.mm")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" )
+add_library(${PROJECT_NAME} ${SOURCES} ${MM_SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+if (APPLE)
+set_source_files_properties(${MM_SOURCES} PROPERTIES
+	COMPILE_FLAGS "-x objective-c++"
+)
+
+endif()
 
 # setup compiler
 set(ST_BUNDLED_DXC OFF CACHE INTERNAL "")
@@ -45,11 +53,6 @@ if (RGL_ENABLE_RGLC)
 	endif()
 	set(rglc_path "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/rglc${rglc_ext}" CACHE INTERNAL "rglc compiler path")
 	set(rglc_exe "rglc")
-endif()
-
-
-if(APPLE)
-	add_definitions("-x objective-c++")
 endif()
 
 find_package(Vulkan)

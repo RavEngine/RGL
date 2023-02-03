@@ -1,6 +1,6 @@
 #pragma once
 #include <RGL/Types.hpp>
-#import <Metal/Metal.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <RGL/Pipeline.hpp>
 
 
@@ -17,8 +17,8 @@ namespace RGL{
     };
 
     struct RenderPipelineMTL : public IRenderPipeline{
-        MTLRenderPassDescriptor* rpd = nullptr;
-        id<MTLRenderPipelineState> pipelineState;
+        APPLE_API_PTR(MTLRenderPassDescriptor) rpd = nullptr;
+        OBJC_ID(MTLRenderPipelineState) pipelineState;
         const std::shared_ptr<DeviceMTL> owningDevice;
         
         RenderPipelineMTL(decltype(owningDevice), const RenderPipelineDescriptor&);

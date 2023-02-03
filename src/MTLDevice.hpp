@@ -3,14 +3,14 @@
 #if RGL_MTL_AVAILABLE
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
-#import <Metal/Metal.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <memory>
 
 namespace RGL{
 
 	struct DeviceMTL : public IDevice, public std::enable_shared_from_this<DeviceMTL>{
-		id<MTLDevice> device = nullptr;
-        id<MTLLibrary> defaultLibrary = nullptr;
+		OBJC_ID(MTLDevice) device = nullptr;
+        OBJC_ID(MTLLibrary) defaultLibrary = nullptr;
 	
         DeviceMTL(decltype(device) device);
 		std::string GetBrandString() final;

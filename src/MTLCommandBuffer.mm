@@ -1,4 +1,6 @@
 #if RGL_MTL_AVAILABLE
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 #include "MTLCommandBuffer.hpp"
 #include "MTLCommandQueue.hpp"
 #include "MTLPipeline.hpp"

@@ -1,12 +1,12 @@
 #pragma once
 #if RGL_MTL_AVAILABLE
+#include "MTLObjCCompatLayer.hpp"
 #include <RGL/Types.hpp>
 #include <RGL/Surface.hpp>
-#include <QuartzCore/CAMetalLayer.h>
 
 namespace RGL {
 	struct SurfaceMTL : public ISurface{
-		CAMetalLayer* layer;
+        APPLE_API_PTR(CAMetalLayer) layer;
 		SurfaceMTL(decltype(layer) layer ): layer(layer){}
 	};
 

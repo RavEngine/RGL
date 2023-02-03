@@ -1,13 +1,13 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <RGL/Buffer.hpp>
-#include <Metal/Metal.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <memory>
 
 namespace RGL{
     struct DeviceMTL;
     struct BufferMTL : public IBuffer{
-        id<MTLBuffer> buffer = nullptr;
+        OBJC_ID(MTLBuffer) buffer = nullptr;
         const std::shared_ptr<DeviceMTL> owningDevice;
         MutableSpan data;
         

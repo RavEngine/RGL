@@ -1,8 +1,7 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <RGL/Texture.hpp>
-#import <Metal/Metal.h>
-#import <QuartzCore/CAMetalLayer.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <RGL/Span.hpp>
 #include <memory>
 
@@ -10,8 +9,8 @@ namespace RGL{
 struct DeviceMTL;
 
 struct TextureMTL : public ITexture{
-    id<CAMetalDrawable> drawable;
-    id<MTLTexture> texture;
+    OBJC_ID(CAMetalDrawable) drawable;
+    OBJC_ID(MTLTexture) texture;
     
     // default constructor, don't explicity use
     TextureMTL() : ITexture({0,0}){}

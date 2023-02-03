@@ -1,7 +1,7 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <RGL/CommandQueue.hpp>
-#import <Metal/Metal.h>
+#include "MTLObjCCompatLayer.hpp"
 #include <memory>
 
 namespace RGL{
@@ -9,7 +9,7 @@ struct DeviceMTL;
 
 struct CommandQueueMTL : public ICommandQueue, public std::enable_shared_from_this<CommandQueueMTL>{
     const std::shared_ptr<DeviceMTL> owningDevice;
-    id<MTLCommandQueue> commandQueue = nullptr;
+    OBJC_ID(MTLCommandQueue) commandQueue = nullptr;
     CommandQueueMTL(decltype(owningDevice));
     
     CommandBufferPtr CreateCommandBuffer() final;

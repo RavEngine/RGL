@@ -1,6 +1,9 @@
 #if RGL_MTL_AVAILABLE
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 #include "MTLTexture.hpp"
 #include "MTLDevice.hpp"
+
 
 namespace RGL {
 

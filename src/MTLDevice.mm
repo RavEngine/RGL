@@ -1,5 +1,6 @@
 #if RGL_MTL_AVAILABLE
-
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 #include "MTLDevice.hpp"
 #include "MTLSurface.hpp"
 #include "MTLSwapchain.hpp"
