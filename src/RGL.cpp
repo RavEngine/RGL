@@ -1,4 +1,4 @@
-#include "RGL.hpp"
+#include <RGL/RGL.hpp>
 
 #include "RGLCommon.hpp"
 #include "Device.hpp"

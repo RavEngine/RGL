@@ -14,11 +14,11 @@ namespace RGL{
         DeviceMTL(decltype(device) device);
 		std::string GetBrandString() final;
 		
-        std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, RGLCommandQueuePtr presentQueue, int, int) final;
-        std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) final;
+        RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr presentQueue, int, int) final;
+        RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) final;
 
-        std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
-        std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) final;
+        RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
+        RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) final;
 
         RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) final;
         RGLShaderLibraryPtr CreateDefaultShaderLibrary() final;

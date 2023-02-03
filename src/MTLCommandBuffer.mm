@@ -29,7 +29,7 @@ void CommandBufferMTL::SetIndexBuffer(RGLBufferPtr buffer) {
     indexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
 }
 
-void CommandBufferMTL::BindPipeline(std::shared_ptr<IRenderPipeline> pipelineIn){
+void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
     [pipeline->rpd.colorAttachments[0] setTexture:[targetFB->drawable texture]];
     [pipeline->rpd.colorAttachments[0] setClearColor:MTLClearColorMake(clearColor[0], clearColor[1], clearColor[2], clearColor[3])];

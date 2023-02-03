@@ -1,6 +1,6 @@
 #pragma once
 #include <Metal/Metal.h>
-#include "Pipeline.hpp"
+#include <RGL/Pipeline.hpp>
 
 
 namespace RGL{

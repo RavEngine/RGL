@@ -196,7 +196,7 @@ namespace RGL {
         return props.deviceName;
     }
 
-    RGLSwapchainPtr RGL::DeviceVk::CreateSwapchain(std::shared_ptr<ISurface> surface, RGLCommandQueuePtr, int width, int height)
+    RGLSwapchainPtr RGL::DeviceVk::CreateSwapchain(RGLSurfacePtr surface, RGLCommandQueuePtr, int width, int height)
     {
 
         return std::make_shared<SwapchainVK>(std::static_pointer_cast<RGL::SurfaceVk>(surface), shared_from_this(), width, height);

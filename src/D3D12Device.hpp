@@ -1,12 +1,16 @@
 #pragma once
-#include "Device.hpp"
-#include "Pipeline.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Device.hpp>
+#include <RGL/Pipeline.hpp>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
-#include <D3D12MemAlloc.h>
 
 #undef CreateSemaphore
+
+namespace D3D12MA {
+	struct Allocator;
+}
 
 namespace RGL {
 
@@ -27,10 +31,10 @@ namespace RGL {
 
 		// IDevice
 		std::string GetBrandString();
-		std::shared_ptr<ISwapchain> CreateSwapchain(std::shared_ptr<ISurface>, RGLCommandQueuePtr, int, int) final;
-		std::shared_ptr<IRenderPass> CreateRenderPass(const RenderPassConfig&) final;
-		std::shared_ptr<IPipelineLayout> CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
-		std::shared_ptr<IRenderPipeline> CreateRenderPipeline(const RenderPipelineDescriptor&) final;
+		RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr, int, int) final;
+		RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) final;
+		RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
+		RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) final;
 
 		RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) final;
 		RGLShaderLibraryPtr CreateDefaultShaderLibrary() final;
@@ -49,5 +53,5 @@ namespace RGL {
 		void BlockUntilIdle() final;
 	};
 
-	std::shared_ptr<IDevice> CreateDefaultDeviceD3D12();
+	RGLDevicePtr CreateDefaultDeviceD3D12();
 }

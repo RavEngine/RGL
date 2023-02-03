@@ -11,6 +11,8 @@
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Texture.hpp"
 #include "D3D12Sampler.hpp"
+#include <D3D12MemAlloc.h>
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -113,7 +115,7 @@ namespace RGL {
     }
 
 
-    std::shared_ptr<IDevice> RGL::CreateDefaultDeviceD3D12() {
+    RGLDevicePtr RGL::CreateDefaultDeviceD3D12() {
         ComPtr<IDXGIAdapter4> dxgiAdapter4 = GetAdapter(false); // for now, don't use WARP
         return std::make_shared<DeviceD3D12>(dxgiAdapter4);
     }
@@ -154,20 +156,20 @@ namespace RGL {
         wcstombs_s(nullptr,result.data(), result.size(), wstr.data(), _TRUNCATE);
         return result;
     }
-    std::shared_ptr<ISwapchain> RGL::DeviceD3D12::CreateSwapchain(std::shared_ptr<ISurface> surface, RGLCommandQueuePtr presentQueue, int width, int height)
+    RGLSwapchainPtr RGL::DeviceD3D12::CreateSwapchain(RGLSurfacePtr surface, RGLCommandQueuePtr presentQueue, int width, int height)
     {
         return std::make_shared<SwapchainD3D12>(shared_from_this(), std::static_pointer_cast<SurfaceD3D12>(surface), width, height, std::static_pointer_cast<CommandQueueD3D12>(presentQueue));
     }
-    std::shared_ptr<IRenderPass> RGL::DeviceD3D12::CreateRenderPass(const RenderPassConfig&)
+    RGLRenderPassPtr RGL::DeviceD3D12::CreateRenderPass(const RenderPassConfig&)
     {
         FatalError("CreateRenderPass: Not implemented");
-        return std::shared_ptr<IRenderPass>();
+        return RGLRenderPassPtr();
     }
-    std::shared_ptr<IPipelineLayout> RGL::DeviceD3D12::CreatePipelineLayout(const PipelineLayoutDescriptor& desc)
+    RGLPipelineLayoutPtr RGL::DeviceD3D12::CreatePipelineLayout(const PipelineLayoutDescriptor& desc)
     {
         return std::make_shared<PipelineLayoutD3D12>(shared_from_this(),desc);
     }
-    std::shared_ptr<IRenderPipeline> RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor& desc)
+    RGLRenderPipelinePtr RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor& desc)
     {
         return std::make_shared<RenderPipelineD3D12>(shared_from_this(), desc);
     }

@@ -1,5 +1,6 @@
 #pragma once
-#include "Synchronization.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Synchronization.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 

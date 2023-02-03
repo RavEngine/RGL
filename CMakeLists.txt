@@ -105,6 +105,7 @@ target_include_directories(${PROJECT_NAME}
 		"include/RGL"
 	PUBLIC
 		${VK_INCLUDE}
+		"${CMAKE_CURRENT_LIST_DIR}/deps/DirectX-Headers/include"
 		"include"
 )
 

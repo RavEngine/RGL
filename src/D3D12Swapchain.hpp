@@ -1,5 +1,6 @@
 #pragma once
-#include "Swapchain.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Swapchain.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <dxgi1_5.h>

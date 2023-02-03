@@ -1,5 +1,6 @@
 #pragma once
-#include "ShaderLibrary.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/ShaderLibrary.hpp>
 #include <filesystem>
 #include <span>
 #include <cstdint>

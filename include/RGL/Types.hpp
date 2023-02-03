@@ -66,7 +66,39 @@ using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueVk>;
 using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferVk>;
 
 #elif RGL_DX12_AVAILABLE
+namespace RGL {
+	struct SwapchainD3D12;
+	struct RenderPassD3D12;
+	struct SurfaceD3D12;
+	struct PipelineLayoutD3D12;
+	struct RenderPipelineD3D12;
 
+	struct ShaderLibraryD3D12;
+
+	struct BufferD3D12;
+	struct FenceD3D12;
+	struct SemaphoreD3D12;
+	struct TextureD3D12;
+	struct SamplerD3D12;
+	struct DeviceD3D12;
+	struct CommandQueueD3D12;
+	struct CommandBufferD3D12;
+}
+
+using RGLDevicePtr = std::shared_ptr<RGL::DeviceD3D12>;
+using RGLSwapchainPtr = std::shared_ptr<RGL::SwapchainD3D12>;
+using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassD3D12>;
+using RGLSurfacePtr = std::shared_ptr<RGL::SurfaceD3D12>;
+using RGLPipelineLayoutPtr = std::shared_ptr<RGL::PipelineLayoutD3D12>;
+using RGLRenderPipelinePtr = std::shared_ptr<RGL::RenderPipelineD3D12>;
+using RGLShaderLibraryPtr = std::shared_ptr<RGL::ShaderLibraryD3D12>;
+using RGLBufferPtr = std::shared_ptr<RGL::BufferD3D12>;
+using RGLFencePtr = std::shared_ptr<RGL::FenceD3D12>;
+using RGLSemaphorePtr = std::shared_ptr<RGL::SemaphoreD3D12>;
+using RGLTexturePtr = std::shared_ptr<RGL::TextureD3D12>;
+using RGLSamplerPtr = std::shared_ptr<RGL::SamplerD3D12>;
+using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueD3D12>;
+using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 #else
 #endif
 

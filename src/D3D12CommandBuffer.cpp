@@ -68,7 +68,7 @@ namespace RGL {
 	void CommandBufferD3D12::EndRendering()
 	{
 	}
-	void CommandBufferD3D12::BindPipeline(std::shared_ptr<IRenderPipeline> in_pipeline)
+	void CommandBufferD3D12::BindPipeline(RGLRenderPipelinePtr in_pipeline)
 	{
 		auto pipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
 		commandList->SetPipelineState(pipeline->pipelineState.Get());

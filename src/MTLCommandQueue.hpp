@@ -1,5 +1,5 @@
 #pragma once
-#include "CommandQueue.hpp"
+#include <RGL/CommandQueue.hpp>
 #import <Metal/Metal.h>
 #include <memory>
 
@@ -11,7 +11,7 @@ struct CommandQueueMTL : public ICommandQueue, public std::enable_shared_from_th
     id<MTLCommandQueue> commandQueue = nullptr;
     CommandQueueMTL(decltype(owningDevice));
     
-    std::shared_ptr<ICommandBuffer> CreateCommandBuffer() final;
+    CommandBufferPtr CreateCommandBuffer() final;
 
     void WaitUntilCompleted() final;
     virtual ~CommandQueueMTL(){}

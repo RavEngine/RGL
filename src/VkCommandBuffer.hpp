@@ -24,7 +24,7 @@ namespace RGL {
 		void Reset() final;
 		void Begin() final;
 		void End() final;
-		void BindPipeline(std::shared_ptr<IRenderPipeline>) final;
+		void BindPipeline(RGLRenderPipelinePtr) final;
 
 		void BeginRendering(const BeginRenderingConfig&) final;
 		void EndRendering() final;

@@ -1,9 +1,10 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <memory>
 #include <array>
-#include "Texture.hpp"
-#include "Buffer.hpp"
-#include "Synchronization.hpp"
+#include <RGL/Texture.hpp>
+#include <RGL/Buffer.hpp>
+#include <RGL/Synchronization.hpp>
 #include <span>
 
 struct DrawInstancedConfig{
@@ -63,7 +64,7 @@ namespace RGL {
 		virtual void BeginRendering(const BeginRenderingConfig&) = 0;
 		virtual void EndRendering() = 0;
 
-		virtual void BindPipeline(std::shared_ptr<IRenderPipeline>) = 0;
+		virtual void BindPipeline(RGLRenderPipelinePtr) = 0;
 
 		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t offset) = 0;
 

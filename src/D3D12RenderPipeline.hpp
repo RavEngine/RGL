@@ -1,5 +1,6 @@
 #pragma once
-#include "Pipeline.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Pipeline.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <directx/d3dx12.h>

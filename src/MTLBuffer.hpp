@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.hpp"
+#include <RGL/Buffer.hpp>
 #include <Metal/Metal.h>
 #include <memory>
 

@@ -1,8 +1,9 @@
 #pragma once
-#include "Texture.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Texture.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
-#include "Span.hpp"
+#include <RGL/Span.hpp>
 
 namespace RGL {
 	struct DeviceD3D12;

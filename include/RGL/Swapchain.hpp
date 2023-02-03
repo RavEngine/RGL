@@ -1,6 +1,6 @@
 #pragma once
-#include "Texture.hpp"
-#include "Synchronization.hpp"
+#include <RGL/Texture.hpp>
+#include <RGL/Synchronization.hpp>
 #include <span>
 #include <memory>
 

@@ -28,21 +28,21 @@ std::string DeviceMTL::GetBrandString() {
     return std::string([name UTF8String]);
 }
 
-std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(std::shared_ptr<ISurface> isurface, RGLCommandQueuePtr presentQueue, int width, int height){
+std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(RGLSurfacePtr isurface, RGLCommandQueuePtr presentQueue, int width, int height){
     auto surface = std::static_pointer_cast<RGL::SurfaceMTL>(isurface);
     [surface->layer setDevice:device];
     return std::make_shared<SwapchainMTL>(surface, width, height);
 }
 
-std::shared_ptr<IRenderPass> DeviceMTL::CreateRenderPass(const RenderPassConfig&) {
+RGLRenderPassPtr DeviceMTL::CreateRenderPass(const RenderPassConfig&) {
     FatalError("CreateRenderPass not implemented");
 }
 
-std::shared_ptr<IPipelineLayout> DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor& desc) {
+RGLPipelineLayoutPtr DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor& desc) {
     return std::make_shared<PipelineLayoutMTL>(desc);
 }
 
-std::shared_ptr<IRenderPipeline> DeviceMTL::CreateRenderPipeline(const RenderPipelineDescriptor& desc) {
+RGLRenderPipelinePtr DeviceMTL::CreateRenderPipeline(const RenderPipelineDescriptor& desc) {
     return std::make_shared<RenderPipelineMTL>(shared_from_this(), desc);
 }
 

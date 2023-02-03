@@ -1,5 +1,5 @@
 #pragma once
-#include "ShaderLibrary.hpp"
+#include <RGL/ShaderLibrary.hpp>
 #include <Metal/Metal.h>
 #include <string_view>
 #include <memory>

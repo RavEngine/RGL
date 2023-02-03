@@ -1,5 +1,6 @@
 #pragma once
-#include "Buffer.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Buffer.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <directx/d3dx12.h>

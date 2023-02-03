@@ -54,7 +54,7 @@ namespace RGL {
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
 		swapchainImage = VK_NULL_HANDLE;
 	}
-	void CommandBufferVk::BindPipeline(std::shared_ptr<IRenderPipeline> generic_pipeline)
+	void CommandBufferVk::BindPipeline(RGLRenderPipelinePtr generic_pipeline)
 	{
 		auto pipeline = std::static_pointer_cast<RenderPipelineVk>(generic_pipeline);
 		

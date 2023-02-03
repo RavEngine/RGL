@@ -3,6 +3,7 @@
 #include <directx/d3dx12.h>
 #include "D3D12Device.hpp"
 #include "D3D12CommandQueue.hpp"
+#include <D3D12MemAlloc.h>
 
 namespace RGL {
 

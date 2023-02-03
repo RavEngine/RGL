@@ -3,8 +3,8 @@
 #include <string>
 #include <span>
 #include <filesystem>
-#include "CommandQueue.hpp"
-#include "Span.hpp"
+#include <RGL/CommandQueue.hpp>
+#include <RGL/Span.hpp>
 #include <RGL/Types.hpp>
 
 #undef CreateSemaphore
@@ -17,7 +17,7 @@ namespace RGL {
 
 		virtual std::string GetBrandString() = 0;
 		
-		virtual RGLSwapchainPtr CreateSwapchain(std::shared_ptr<ISurface>, RGLCommandQueuePtr presentQueue, int width, int height) = 0;
+		virtual RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr presentQueue, int width, int height) = 0;
 		virtual RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) = 0;
 
 		virtual RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;

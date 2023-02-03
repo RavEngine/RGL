@@ -1,5 +1,5 @@
 #pragma once
-#include "RGL.hpp"
+#include <RGL/RGL.hpp>
 #include "RGLCommon.hpp"
 #include <cassert>
 #include <comdef.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Swapchain.hpp"
+#include <RGL/Swapchain.hpp>
 #include "MTLSurface.hpp"
 #include "MTLTexture.hpp"
 #include <array>

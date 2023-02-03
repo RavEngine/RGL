@@ -18,7 +18,7 @@ namespace RGL {
         }
     }
 
-	std::shared_ptr<ICommandBuffer> CommandQueueD3D12::CreateCommandBuffer()
+	CommandBufferPtr CommandQueueD3D12::CreateCommandBuffer()
 	{
 		return std::make_shared<CommandBufferD3D12>(shared_from_this());
 	}

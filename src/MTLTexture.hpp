@@ -1,8 +1,8 @@
 #pragma once
-#include "Texture.hpp"
+#include <RGL/Texture.hpp>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
-#include "Span.hpp"
+#include <RGL/Span.hpp>
 #include <memory>
 
 namespace RGL{

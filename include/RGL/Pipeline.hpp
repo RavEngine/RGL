@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 #include "TextureFormat.hpp"
-#include "ShaderLibrary.hpp"
+#include <RGL/ShaderLibrary.hpp>
 #include <RGL/Types.hpp>
 
 namespace RGL {

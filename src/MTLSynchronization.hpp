@@ -1,5 +1,5 @@
 #pragma once
-#include "Synchronization.hpp"
+#include <RGL/Synchronization.hpp>
 
 namespace RGL{
 

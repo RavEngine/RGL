@@ -1,5 +1,6 @@
 #pragma once
-#include "Surface.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Surface.hpp>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -12,5 +13,5 @@ namespace RGL {
 		~SurfaceD3D12();
 	};
 
-	std::shared_ptr<ISurface> CreateD3D12SurfaceFromPlatformData(void*);
+	RGLSurfacePtr CreateD3D12SurfaceFromPlatformData(void*);
 }

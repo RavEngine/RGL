@@ -1,5 +1,5 @@
 #pragma once
-#include "Span.hpp"
+#include <RGL/Span.hpp>
 
 namespace RGL {
 

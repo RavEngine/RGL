@@ -1,5 +1,6 @@
 #pragma once
-#include "CommandBuffer.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/CommandBuffer.hpp>
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <memory>
@@ -29,7 +30,7 @@ namespace RGL {
 		void BeginRendering(const BeginRenderingConfig&) final;
 		void EndRendering() final;
 
-		void BindPipeline(std::shared_ptr<IRenderPipeline>) final;
+		void BindPipeline(RGLRenderPipelinePtr) final;
 
 		void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
 

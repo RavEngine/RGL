@@ -1,5 +1,5 @@
 #pragma once
-#include "Sampler.hpp"
+#include <RGL/Sampler.hpp>
 #import <Metal/Metal.h>
 #include <memory>
 

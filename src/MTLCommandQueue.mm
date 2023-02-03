@@ -9,7 +9,7 @@ CommandQueueMTL::CommandQueueMTL(decltype(owningDevice) owningDevice) : owningDe
     commandQueue = [owningDevice->device newCommandQueue];
 }
 
-std::shared_ptr<ICommandBuffer> CommandQueueMTL::CreateCommandBuffer(){
+CommandBufferPtr CommandQueueMTL::CreateCommandBuffer(){
     return std::make_shared<CommandBufferMTL>(shared_from_this());
 }
 
