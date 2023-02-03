@@ -6,23 +6,34 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
+#elif __linux__
+#include <vulkan/vulkan_xlib.h>
 #endif
 
 using namespace RGL;
 
-RGLSurfacePtr RGL::CreateVKSurfaceFromPlatformData(void* pointer)
+RGLSurfacePtr RGL::CreateVKSurfaceFromPlatformData(const CreateSurfaceConfig& config)
 {
     VkSurfaceKHR surface;
 #ifdef _WIN32
-    auto hwnd = *static_cast<HWND*>(pointer);
+    auto hwnd = *static_cast<HWND*>(config.pointer);
     VkWin32SurfaceCreateInfoKHR createInfo{
         .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
          .hinstance = GetModuleHandle(nullptr),
         .hwnd = hwnd,
     };
     VK_CHECK(vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface));
+
+   
 #elif defined __linux__
-#error Surface not implemented - see vkCreateXcbSurfaceKHR for X11/xcb
+    VkXlibSurfaceCreateInfoKHR createInfo{
+           .sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+           .pNext = nullptr,
+           .flags = 0,
+           .dpy = config.pointer2,
+           .window = config.pointer,
+    };
+    VK_CHECK(vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface));
 #endif
 
     return std::make_shared<SurfaceVk>(surface);

@@ -11,5 +11,5 @@ namespace RGL {
 		virtual ~SurfaceVk();
 	};
 
-	RGLSurfacePtr CreateVKSurfaceFromPlatformData(void*);
+	RGLSurfacePtr CreateVKSurfaceFromPlatformData(const CreateSurfaceConfig& config);
 }

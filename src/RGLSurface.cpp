@@ -16,7 +16,7 @@
 
 using namespace RGL;
 
-RGLSurfacePtr RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject)
+RGLSurfacePtr RGL::CreateSurfaceFromPlatformHandle(const CreateSurfaceConfig& pointer, bool createSurfaceObject)
 {
     switch (CurrentAPI()) {
 #if RGL_MTL_AVAILABLE
@@ -29,7 +29,7 @@ RGLSurfacePtr RGL::CreateSurfaceFromPlatformHandle(void* pointer, bool createSur
 #endif
 #if RGL_DX12_AVAILABLE
     case API::Direct3D12:
-        return CreateD3D12SurfaceFromPlatformData(pointer);
+        return CreateD3D12SurfaceFromPlatformData(pointer.pointer);
 #endif
     default:
         FatalError("Invalid API");

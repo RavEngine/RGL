@@ -8,11 +8,16 @@ namespace RGL {
 
 	};
 
+	struct CreateSurfaceConfig {
+		void* pointer = nullptr;
+		void* pointer2 = nullptr;
+	};
+
 	/**
 	Create a surface from platform native data
 	@param pointer A CAMetalLayer* (Apple), HWND* (Win32),
 	@param createSurfaceObject If set to true, RGL will create the OS-specific context object, so pointer should be a NSWindow* or UIWindow*
 	*/
-	RGLSurfacePtr CreateSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject = false);
+	RGLSurfacePtr CreateSurfaceFromPlatformHandle(const CreateSurfaceConfig& pointer, bool createSurfaceObject = false);
 
 }
