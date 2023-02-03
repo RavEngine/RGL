@@ -13,7 +13,7 @@
 #include "MTLSampler.hpp"
 
 namespace RGL{
-std::shared_ptr<RGL::IDevice> CreateDefaultDeviceMTL(){
+RGLDevicePtr CreateDefaultDeviceMTL(){
     auto device = MTLCreateSystemDefaultDevice();
     return std::make_shared<DeviceMTL>(device);
 }
@@ -28,7 +28,7 @@ std::string DeviceMTL::GetBrandString() {
     return std::string([name UTF8String]);
 }
 
-std::shared_ptr<RGL::ISwapchain> DeviceMTL::CreateSwapchain(RGLSurfacePtr isurface, RGLCommandQueuePtr presentQueue, int width, int height){
+RGLSwapchainPtr DeviceMTL::CreateSwapchain(RGLSurfacePtr isurface, RGLCommandQueuePtr presentQueue, int width, int height){
     auto surface = std::static_pointer_cast<RGL::SurfaceMTL>(isurface);
     [surface->layer setDevice:device];
     return std::make_shared<SwapchainMTL>(surface, width, height);

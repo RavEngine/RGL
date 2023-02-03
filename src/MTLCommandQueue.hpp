@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/CommandQueue.hpp>
 #import <Metal/Metal.h>
 #include <memory>

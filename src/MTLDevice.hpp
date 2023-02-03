@@ -1,7 +1,8 @@
 #pragma once
 
 #if RGL_MTL_AVAILABLE
-#include "Device.hpp"
+#include <RGL/Types.hpp>
+#include <RGL/Device.hpp>
 #import <Metal/Metal.h>
 #include <memory>
 
@@ -39,7 +40,7 @@ namespace RGL{
         virtual ~DeviceMTL(){}
 	};
 
-	std::shared_ptr<IDevice> CreateDefaultDeviceMTL();
+    RGLDevicePtr CreateDefaultDeviceMTL();
 }
 
 #endif

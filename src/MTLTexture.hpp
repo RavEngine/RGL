@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/Texture.hpp>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>

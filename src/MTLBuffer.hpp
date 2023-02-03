@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/Buffer.hpp>
 #include <Metal/Metal.h>
 #include <memory>

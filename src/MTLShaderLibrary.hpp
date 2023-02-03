@@ -1,6 +1,7 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/ShaderLibrary.hpp>
-#include <Metal/Metal.h>
+#import <Metal/Metal.h>
 #include <string_view>
 #include <memory>
 

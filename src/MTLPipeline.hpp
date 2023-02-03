@@ -1,5 +1,6 @@
 #pragma once
-#include <Metal/Metal.h>
+#include <RGL/Types.hpp>
+#import <Metal/Metal.h>
 #include <RGL/Pipeline.hpp>
 
 

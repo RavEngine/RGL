@@ -32,7 +32,39 @@ namespace RGL {
 
 #if RGL_SINGLE_BACKEND
 #if RGL_MTL_AVAILABLE
-	
+namespace RGL {
+    struct SwapchainMTL;
+    struct RenderPassMTL;
+    struct SurfaceMTL;
+    struct PipelineLayoutMTL;
+    struct RenderPipelineMTL;
+
+    struct ShaderLibraryMTL;
+
+    struct BufferMTL;
+    struct FenceMTL;
+    struct SemaphoreMTL;
+    struct TextureMTL;
+    struct SamplerMTL;
+    struct DeviceMTL;
+    struct CommandQueueMTL;
+    struct CommandBufferMTL;
+}
+
+using RGLDevicePtr = std::shared_ptr<RGL::DeviceMTL>;
+using RGLSwapchainPtr = std::shared_ptr<RGL::SwapchainMTL>;
+using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassMTL>;
+using RGLSurfacePtr = std::shared_ptr<RGL::SurfaceMTL>;
+using RGLPipelineLayoutPtr = std::shared_ptr<RGL::PipelineLayoutMTL>;
+using RGLRenderPipelinePtr = std::shared_ptr<RGL::RenderPipelineMTL>;
+using RGLShaderLibraryPtr = std::shared_ptr<RGL::ShaderLibraryMTL>;
+using RGLBufferPtr = std::shared_ptr<RGL::BufferMTL>;
+using RGLFencePtr = std::shared_ptr<RGL::FenceMTL>;
+using RGLSemaphorePtr = std::shared_ptr<RGL::SemaphoreMTL>;
+using RGLTexturePtr = std::shared_ptr<RGL::TextureMTL>;
+using RGLSamplerPtr = std::shared_ptr<RGL::SamplerMTL>;
+using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueMTL>;
+using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferMTL>;
 #elif RGL_VK_AVAILABLE
 namespace RGL {
 	struct SwapchainVK;
@@ -102,7 +134,6 @@ using RGLTexturePtr = std::shared_ptr<RGL::TextureD3D12>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerD3D12>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueD3D12>;
 using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
-#else
 #endif
 
 #else
@@ -121,8 +152,4 @@ using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 	using CommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
 	using RGLSwapchainPtr = std::shared_ptr<RGL::ISwapchain>;
 #endif
-
-namespace RGL {
-	
-}
 

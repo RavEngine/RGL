@@ -1,5 +1,6 @@
 #pragma once
 #if RGL_MTL_AVAILABLE
+#include <RGL/Types.hpp>
 #include <RGL/Surface.hpp>
 #include <QuartzCore/CAMetalLayer.h>
 

@@ -10,11 +10,11 @@
 #endif
 
 
-std::shared_ptr<RGL::ISurface> CreateMTLSurfaceFromLayer(CAMetalLayer* layer){
+RGLSurfacePtr CreateMTLSurfaceFromLayer(CAMetalLayer* layer){
 	return std::make_shared<RGL::SurfaceMTL>(layer);
 }
 
-std::shared_ptr<RGL::ISurface> RGL::CreateMTLSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject){
+RGLSurfacePtr RGL::CreateMTLSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject){
 	if (createSurfaceObject){
 #if TARGET_OS_OSX
 		NSWindow* window = (NSWindow*)(pointer);

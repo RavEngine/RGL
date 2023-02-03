@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/Swapchain.hpp>
 #include "MTLSurface.hpp"
 #include "MTLTexture.hpp"
