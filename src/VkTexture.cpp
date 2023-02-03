@@ -181,6 +181,7 @@ namespace RGL {
 	{
 		if (owning) {
 			vkDestroyImage(owningDevice->device, vkImage, nullptr);
+			vkDestroyImageView(owningDevice->device, vkImageView, nullptr);
 			vkFreeMemory(owningDevice->device, textureImageMem, nullptr);
 		}
 	}
