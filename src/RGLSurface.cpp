@@ -1,5 +1,5 @@
 #include <RGL/Surface.hpp>
-#include <RGL/RGL.hpp>
+#include <RGL/Core.hpp>
 #include "RGLCommon.hpp"
 
 #if RGL_VK_AVAILABLE
