@@ -99,7 +99,7 @@ namespace RGL {
                     throw std::runtime_error(std::format("required validation layer {} not found", layerName));
                 }
             }
-            instanceCreateInfo.enabledLayerCount = ARRAYSIZE(validationLayers);
+            instanceCreateInfo.enabledLayerCount = std::size(validationLayers);
             instanceCreateInfo.ppEnabledLayerNames = validationLayers;
         }
 
@@ -108,7 +108,7 @@ namespace RGL {
             "VK_KHR_surface",
             "VK_KHR_win32_surface",      // TODO: what is the surface for Linux?
         };
-        instanceCreateInfo.enabledExtensionCount = ARRAYSIZE(minExtensions);
+        instanceCreateInfo.enabledExtensionCount = std::size(minExtensions);
         std::vector<const char*> extensions(minExtensions, minExtensions + instanceCreateInfo.enabledExtensionCount);
         if constexpr (enableValidationLayers) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

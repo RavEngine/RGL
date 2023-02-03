@@ -8,7 +8,6 @@
 #endif
 
 #define STATIC(a) decltype(a) a
-#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
 namespace RGL {
 	extern API currentAPI;

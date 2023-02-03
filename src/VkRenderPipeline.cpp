@@ -3,6 +3,8 @@
 #include "RGLVk.hpp"
 #include "VkShaderLibrary.hpp"
 #include "VkBuffer.hpp"
+#include "VkSampler.hpp"
+#include "VkTexture.hpp"
 
 namespace RGL {
     VkShaderStageFlagBits RGL2VKshader(RenderPipelineDescriptor::ShaderStageDesc::Type type) {
@@ -226,16 +228,17 @@ namespace RGL {
     PipelineLayoutVk::PipelineLayoutVk(decltype(owningDevice) device, const PipelineLayoutDescriptor& desc) : owningDevice(device)
     {
         std::vector<VkDescriptorSetLayoutBinding> layoutbindings;
-        layoutbindings.reserve(desc.bindings.size());
+        layoutbindings.reserve(desc.bindings.size());        
 
+        uint32_t lastBoundSampler = 0;
         for (const auto& binding : desc.bindings) {
             layoutbindings.push_back(
                 VkDescriptorSetLayoutBinding {
                   .binding = binding.binding,   // see vertex shader
                   .descriptorType = static_cast<VkDescriptorType>(binding.type),
                   .descriptorCount = binding.descriptorCount,
-                  .stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags), //TODO: support stageFlags
-                  .pImmutableSamplers = nullptr       // used for image samplers
+                  .stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags),
+                  .pImmutableSamplers = (binding.type == decltype(binding.type)::Sampler) ? &std::static_pointer_cast<SamplerVk>(desc.boundSamplers[lastBoundSampler++])->sampler : nullptr       // used for image samplers
                 }
             );
         }
@@ -270,15 +273,26 @@ namespace RGL {
         VK_CHECK(vkCreatePipelineLayout(owningDevice->device, &pipelineLayoutInfo, nullptr, &layout));
 
         // create descriptor pool
-        VkDescriptorPoolSize poolSize{
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
+        // TODO: set this based on what's actually in the descriptor set
+        VkDescriptorPoolSize poolSizes[] = {
+            {
+                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+            },
+            {
+                .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = 1,
+            },
+            {
+                .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+                .descriptorCount = 1,
+            }
         };
         VkDescriptorPoolCreateInfo poolInfo{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = 1,       // these 1's are replaced with the maximum number of frames in flight
-            .poolSizeCount = 1,
-            .pPoolSizes = &poolSize,
+            .maxSets = 1,       // this 1 is replaced with the maximum number of frames in flight
+            .poolSizeCount = std::size(poolSizes),
+            .pPoolSizes = poolSizes,
         };
         VK_CHECK(vkCreateDescriptorPool(owningDevice->device, &poolInfo, nullptr, &descriptorPool));
 
@@ -301,24 +315,42 @@ namespace RGL {
 
     void PipelineLayoutVk::SetLayout(const LayoutConfig& config)
     {
+       /*
         VkDescriptorBufferInfo bufferInfo{
            .buffer = std::static_pointer_cast<BufferVk>(config.buffer)->buffer,
            .offset = config.offset,
            .range = config.size
-        };
+        };*/
 
-        VkWriteDescriptorSet descriptorWrite{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,  // optional
-            .pBufferInfo = &bufferInfo,
-            .pTexelBufferView = nullptr
-        };
-        vkUpdateDescriptorSets(owningDevice->device, 1, &descriptorWrite, 0, nullptr);
+        
+        std::vector<VkWriteDescriptorSet> descriptorWrites;
+        std::vector<VkDescriptorImageInfo> imageWrites;
+        imageWrites.reserve(config.boundTextures.size());   // must start with correct size
+        for (const auto& image : config.boundTextures) {
+            auto imgcast = std::static_pointer_cast<TextureVk>(image.texture);
+            auto ptr = &imageWrites.emplace_back(
+                VkDescriptorImageInfo{
+                    .sampler = std::static_pointer_cast<SamplerVk>(image.sampler)->sampler,
+                    .imageView = imgcast->vkImageView,
+                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+
+                }
+            );
+            descriptorWrites.emplace_back(VkWriteDescriptorSet{
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSet,
+                .dstBinding = 0,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = ptr,  // optional
+                .pBufferInfo = nullptr,
+                .pTexelBufferView = nullptr
+            });
+        }
+        
+        vkUpdateDescriptorSets(owningDevice->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+        
     }
 }
 

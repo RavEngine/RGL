@@ -85,11 +85,11 @@ void RGL::Init(const InitOptions& options)
 
     if (options.api == API::PlatformDefault) {
         // need to figure out what API to use
-#ifdef _WIN32
+#if defined(_WIN32) && RGL_DX12_AVAILABLE
         InitD3D12(options);
 #elif __APPLE__
         InitMTL(options);
-#elif __linux__
+#elif __linux__ && RGL_VK_AVAILABLE
         InitVk(options);
 #else
 

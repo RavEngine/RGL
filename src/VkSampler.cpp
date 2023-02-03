@@ -18,7 +18,7 @@ namespace RGL {
 			.mipLodBias = 0.0f,
 			.anisotropyEnable = VK_TRUE,
 			.maxAnisotropy = 1,		// can use vkGetPhysicalDeviceProperties --> VkPhysicalDeviceProperties::limits.maxSamplerAnisotropy to determine max value
-			.compareEnable = VK_FALSE,
+			.compareEnable = VK_TRUE,
 			.compareOp = VK_COMPARE_OP_ALWAYS,
 			.minLod = 0.0f,
 			.maxLod = 0.0f,

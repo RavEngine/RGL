@@ -163,12 +163,12 @@ namespace RGL {
             .pNext = &deviceFeatures2,
             .queueCreateInfoCount = static_cast<decltype(VkDeviceCreateInfo::queueCreateInfoCount)>(queueCreateInfos.size()),
             .pQueueCreateInfos = queueCreateInfos.data(),      // could pass an array here if we were making more than one queue
-            .enabledExtensionCount = ARRAYSIZE(deviceExtensions),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
+            .enabledExtensionCount = std::size(deviceExtensions),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
             .ppEnabledExtensionNames = deviceExtensions,
             .pEnabledFeatures = nullptr,        // because we are using deviceFeatures2
         };
         if constexpr (enableValidationLayers) {
-            deviceCreateInfo.enabledLayerCount = ARRAYSIZE(validationLayers);
+            deviceCreateInfo.enabledLayerCount = std::size(validationLayers);
             deviceCreateInfo.ppEnabledLayerNames = validationLayers;
         }
         VK_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));

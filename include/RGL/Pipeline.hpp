@@ -8,6 +8,8 @@
 
 namespace RGL {
 	struct IBuffer;
+	struct ITexture;
+	struct ISampler;
 
 	struct RenderPassConfig {
 		struct AttachmentDesc {
@@ -70,6 +72,8 @@ namespace RGL {
 		};
 		std::vector<LayoutBindingDesc> bindings;
 
+		std::vector<std::shared_ptr<ISampler>> boundSamplers;
+
 		struct ConstantConfig {
 			size_t size_bytes;
 			uint8_t n_register = 0;
@@ -88,9 +92,18 @@ namespace RGL {
 
 	//TODO: support non-uniformbuffers (see VkDescriptorType)
 	struct LayoutConfig {
-		std::shared_ptr<IBuffer> buffer;
-		uint32_t offset = 0;
-		uint32_t size = 0;
+		struct BufferConfig {
+			std::shared_ptr<IBuffer> buffer;
+			uint32_t offset = 0;
+			uint32_t size = 0;
+		};
+		std::vector<BufferConfig> boundBuffers;
+		
+		struct TextureAndSampler {
+			std::shared_ptr<ITexture> texture;
+			std::shared_ptr<ISampler> sampler;
+		};
+		std::vector<TextureAndSampler> boundTextures;
 	};
 
 	struct IPipelineLayout {

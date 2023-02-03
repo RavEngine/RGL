@@ -11,6 +11,8 @@ endif()
 project(RGL)
 
 option(RGL_ENABLE_RGLC "Enable the separate compiler executable" ON)
+option(RGL_DISABLE_VK "Force-disable the Vulkan backend" OFF)
+option(RGL_DISABLE_DX "Force-disable the D3D12 backend" OFF)
 
 #setup main library
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" "src/*.mm")
@@ -61,7 +63,7 @@ else()
 	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
 endif()
 
-if(MSVC)
+if(MSVC AND NOT RGL_DISABLE_DX)
 	add_subdirectory(deps/DirectX-Headers EXCLUDE_FROM_ALL)
 	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib" "D3D12MemoryAllocator")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE RGL_DX12_AVAILABLE=1)
