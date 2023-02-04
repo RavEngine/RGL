@@ -21,7 +21,7 @@ RGLSurfacePtr RGL::CreateSurfaceFromPlatformHandle(const CreateSurfaceConfig& po
     switch (CurrentAPI()) {
 #if RGL_MTL_AVAILABLE
     case API::Metal:
-        return CreateMTLSurfaceFromPlatformHandle(pointer, createSurfaceObject);
+        return CreateMTLSurfaceFromPlatformHandle(pointer.pointer, createSurfaceObject);
 #endif
 #if RGL_VK_AVAILABLE
     case API::Vulkan:

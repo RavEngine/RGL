@@ -42,10 +42,10 @@ std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexC
 }
 
 void PipelineLayoutMTL::SetLayout(const LayoutConfig& config){
-    
+    this->samplerTextures = config.boundTextures;
 }
 
-RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice){
+RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice), settings(desc){
     auto pipelineDesc = [MTLRenderPipelineDescriptor new];
     
     id<MTLFunction> vertFunc = nullptr, fragFunc = nullptr;

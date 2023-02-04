@@ -37,6 +37,12 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     [pipeline->rpd.colorAttachments[0] setClearColor:MTLClearColorMake(clearColor[0], clearColor[1], clearColor[2], clearColor[3])];
     currentCommandEncoder = [currentCommandBuffer renderCommandEncoderWithDescriptor:pipeline->rpd];
     [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
+    
+    uint32_t index = 0;
+    for(const auto& item : pipeline->settings.pipelineLayout->samplerTextures){
+        SetFragmentTexture(item.texture.get(), index);
+        SetFragmentSampler(item.sampler, index);
+    }
 }
 
 void CommandBufferMTL::BeginRendering(const BeginRenderingConfig & config){

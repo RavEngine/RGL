@@ -9,6 +9,8 @@ namespace RGL{
     
     struct PipelineLayoutMTL : public IPipelineLayout{
         
+        std::vector<LayoutConfig::TextureAndSampler> samplerTextures;
+        
         PipelineLayoutDescriptor settings;
         PipelineLayoutMTL(const decltype(settings)& settings) : settings(settings){}
         
@@ -20,6 +22,7 @@ namespace RGL{
         APPLE_API_PTR(MTLRenderPassDescriptor) rpd = nullptr;
         OBJC_ID(MTLRenderPipelineState) pipelineState;
         const std::shared_ptr<DeviceMTL> owningDevice;
+        RenderPipelineDescriptor settings;
         
         RenderPipelineMTL(decltype(owningDevice), const RenderPipelineDescriptor&);
     };
