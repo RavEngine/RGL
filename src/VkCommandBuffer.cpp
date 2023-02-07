@@ -5,6 +5,7 @@
 #include "VkRenderPipeline.hpp"
 #include "VkTexture.hpp"
 #include "VkBuffer.hpp"
+#include <cstring>
 
 namespace RGL {
 	void RGL::CommandBufferVk::Reset()
@@ -86,7 +87,7 @@ namespace RGL {
 			.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
 			.renderArea = {
 				.offset = {0,0},
-				.extent = VkExtent2D(texSize.width, texSize.height),
+				.extent = VkExtent2D{.width = texSize.width, .height = texSize.height},
 			},
 			.layerCount = 1,
 			.colorAttachmentCount = 1,	//TODO: support multiple attachments (make multiple VkRenderingAttachmentInfoKHR structures)

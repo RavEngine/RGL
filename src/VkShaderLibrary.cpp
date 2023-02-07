@@ -8,7 +8,7 @@ static std::vector<uint8_t> readFile(const std::filesystem::path& filename) {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open()) {
-		throw std::runtime_error(std::format("failed to open {}", filename.string()));
+		throw std::runtime_error(std::string("failed to open {}") + filename.string());
 	}
 
 	size_t fileSize = (size_t)file.tellg();

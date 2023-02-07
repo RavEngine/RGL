@@ -8,6 +8,10 @@ if(MSVC)
 	add_definitions(/MP)
 endif()
 
+if (LINUX)
+find_package(X11)
+endif()
+
 project(RGL)
 
 option(RGL_ENABLE_RGLC "Enable the separate compiler executable" ON)
@@ -24,6 +28,9 @@ if (APPLE)
 set_source_files_properties(${MM_SOURCES} PROPERTIES
 	COMPILE_FLAGS "-x objective-c++"
 )
+
+if (linux)
+endif()
 
 endif()
 
@@ -99,11 +106,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	${FOUNDATION_LIB}
 	${METAL_LIB}
 	${QZC_LIB}
+	${X11_LIBRARIES}
 )
 
 target_include_directories(${PROJECT_NAME} 
 	PRIVATE
-		
+		${X11_INCLUDE_DIR}
 		${MTL_INCLUDE}
 		"include/RGL"
 	PUBLIC

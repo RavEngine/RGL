@@ -1,6 +1,7 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <memory>
+#include <cstdint>
 
 namespace RGL {
 
@@ -10,7 +11,7 @@ namespace RGL {
 
 	struct CreateSurfaceConfig {
 		void* pointer = nullptr;
-		void* pointer2 = nullptr;
+		uintptr_t pointer2 = 0;
 	};
 
 	/**

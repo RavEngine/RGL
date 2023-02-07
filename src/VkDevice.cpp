@@ -13,7 +13,6 @@
 #include <vector>
 #include <stdexcept>
 #include <set>
-#include <format>
 
 namespace RGL {
 

@@ -7,6 +7,7 @@
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
 #elif __linux__
+#include <X11/Xlib.h>
 #include <vulkan/vulkan_xlib.h>
 #endif
 
@@ -30,8 +31,8 @@ RGLSurfacePtr RGL::CreateVKSurfaceFromPlatformData(const CreateSurfaceConfig& co
            .sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
            .pNext = nullptr,
            .flags = 0,
-           .dpy = config.pointer2,
-           .window = config.pointer,
+           .dpy = static_cast<Display*>(config.pointer),
+           .window = static_cast<Window>(config.pointer2),
     };
     VK_CHECK(vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface));
 #endif

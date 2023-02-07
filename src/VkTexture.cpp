@@ -2,6 +2,7 @@
 #include "VkTexture.hpp"
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"
+#include <cstring>
 
 namespace RGL {
 

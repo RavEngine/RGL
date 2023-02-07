@@ -3,7 +3,7 @@
 #include "RGLCommon.hpp"
 #include "TextureFormat.hpp"
 #include <stdexcept>
-#include <format>
+#include <cstring>
 
 namespace RGL {
 
@@ -96,7 +96,7 @@ namespace RGL {
                     return strcmp(layerName, layerProperties.layerName) == 0;
                     }
                 ) == availableLayers.end()) {
-                    throw std::runtime_error(std::format("required validation layer {} not found", layerName));
+                    throw std::runtime_error(std::string("required validation layer not found: ") + layerName);
                 }
             }
             instanceCreateInfo.enabledLayerCount = std::size(validationLayers);
