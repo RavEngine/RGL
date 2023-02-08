@@ -11,7 +11,7 @@ namespace RGL {
 	struct ICommandBuffer;
 
 	struct ICommandQueue {
-		virtual CommandBufferPtr CreateCommandBuffer() = 0;
+		virtual RGLCommandBufferPtr CreateCommandBuffer() = 0;
 		virtual void WaitUntilCompleted() = 0;
 	};
 }

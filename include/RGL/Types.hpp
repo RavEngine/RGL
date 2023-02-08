@@ -28,6 +28,7 @@ namespace RGL {
 	struct ICommandBuffer;
 	struct ICommandQueue;
 	struct ISwapchain;
+    struct IRenderPass;
 }
 
 #if RGL_SINGLE_BACKEND
@@ -49,6 +50,7 @@ namespace RGL {
     struct DeviceMTL;
     struct CommandQueueMTL;
     struct CommandBufferMTL;
+    struct RenderPassMTL;
 }
 
 using RGLDevicePtr = std::shared_ptr<RGL::DeviceMTL>;
@@ -64,7 +66,8 @@ using RGLSemaphorePtr = std::shared_ptr<RGL::SemaphoreMTL>;
 using RGLTexturePtr = std::shared_ptr<RGL::TextureMTL>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerMTL>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueMTL>;
-using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferMTL>;
+using RGLCommandBufferPtr = std::shared_ptr<RGL::CommandBufferMTL>;
+using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassMTL>;
 #elif RGL_VK_AVAILABLE
 namespace RGL {
 	struct SwapchainVK;
@@ -98,7 +101,7 @@ using RGLSemaphorePtr = std::shared_ptr<RGL::SemaphoreVk>;
 using RGLTexturePtr = std::shared_ptr<RGL::TextureVk>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerVk>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueVk>;
-using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferVk>;
+using RGLCommandBufferPtr = std::shared_ptr<RGL::CommandBufferVk>;
 
 #elif RGL_DX12_AVAILABLE
 namespace RGL {
@@ -151,5 +154,6 @@ using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 	using RGLCommandQueuePtr = std::shared_ptr<RGL::ICommandQueue>;
 	using CommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
 	using RGLSwapchainPtr = std::shared_ptr<RGL::ISwapchain>;
+    using RGLRenderPassPtr = std::shared_ptr<RGL::IRenderPass>;
 #endif
 

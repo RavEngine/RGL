@@ -17,18 +17,6 @@ MTLPixelFormat rgl2mtlformat(TextureFormat format){
     }
 }
 
-MTLLoadAction rgl2mtlload(LoadAccessOperation op){
-    switch(op){
-        case LoadAccessOperation::Load:
-            return MTLLoadActionLoad;
-        case LoadAccessOperation::Clear:
-            return MTLLoadActionClear;
-        case LoadAccessOperation::DontCare:
-        case LoadAccessOperation::NotAccessed:
-            return MTLLoadActionDontCare;
-    }
-};
-
 std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format){
     switch(format){
         case decltype(format)::Undefined:
@@ -94,18 +82,6 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
     }
     
     MTL_CHECK(pipelineState = [owningDevice->device newRenderPipelineStateWithDescriptor:pipelineDesc error:&err]);
-
-
-    rpd = [MTLRenderPassDescriptor new];
-    //TODO: support setting load store ops
-    [rpd.colorAttachments[0] setLoadAction:MTLLoadActionClear];
-    [rpd.colorAttachments[0] setStoreAction:MTLStoreActionStore];
-    
-#if TARGET_OS_IPHONE
-    [rpd setDefaultRasterSampleCount:0];
-#else
-    [rpd setDefaultRasterSampleCount:static_cast<int>(desc.multisampleConfig.sampleCount)];
-#endif
     
 }
 

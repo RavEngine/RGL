@@ -38,6 +38,7 @@
         #include <RGL/../../src/MTLSurface.hpp>
         #include <RGL/../../src/MTLSynchronization.hpp>
         #include <RGL/../../src/MTLTexture.hpp>
+        #include <RGL/../../src/MTLRenderPass.hpp>
     #endif
 #endif
 #undef LoadImage

@@ -12,7 +12,7 @@ namespace RGL {
     
 	struct CommandQueueD3D12 : public ICommandQueue, public std::enable_shared_from_this<CommandQueueD3D12>{
 
-		CommandBufferPtr CreateCommandBuffer() final;
+        RGLCommandBufferPtr CreateCommandBuffer() final;
 
         CommandQueueD3D12(Microsoft::WRL::ComPtr<ID3D12Device2> device, QueueType type);
         virtual ~CommandQueueD3D12() {}

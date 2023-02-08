@@ -13,6 +13,7 @@ void SwapchainMTL::GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore) {
     auto next = [surface->layer nextDrawable];
     
     activeTextures[idx] = TextureMTL(next, {static_cast<uint32_t>([[next texture] width]), static_cast<uint32_t>([[next texture] height])});
+    activeTextures[idx].texture = [activeTextures[idx].drawable texture];
     
     *index = this->idx;
     idx = (idx + 1) % activeTextures.size();
@@ -23,8 +24,8 @@ ITexture* SwapchainMTL::ImageAtIndex(uint32_t index) {
     return &activeTextures[index];
 }
 
-void SwapchainMTL::Present(const SwapchainPresentConfig&) {
-    //[activeTextures[idx].texture present];
+void SwapchainMTL::Present(const SwapchainPresentConfig& config) {
+    [activeTextures[config.imageIndex].drawable present];
 }
 
 }

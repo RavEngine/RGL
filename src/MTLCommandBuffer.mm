@@ -7,6 +7,7 @@
 #include "MTLTexture.hpp"
 #include "MTLBuffer.hpp"
 #include "MTLSampler.hpp"
+#include "MTLRenderPass.hpp"
 
 namespace RGL{
 CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQueue(owningQueue){
@@ -16,7 +17,6 @@ CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQu
 void CommandBufferMTL::Reset(){
     currentCommandEncoder = nullptr;
     currentCommandBuffer = nullptr;
-    targetFB = nullptr;
 }
 
 void CommandBufferMTL::Begin(){
@@ -33,9 +33,6 @@ void CommandBufferMTL::SetIndexBuffer(RGLBufferPtr buffer) {
 
 void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
-    [pipeline->rpd.colorAttachments[0] setTexture:[targetFB->drawable texture]];
-    [pipeline->rpd.colorAttachments[0] setClearColor:MTLClearColorMake(clearColor[0], clearColor[1], clearColor[2], clearColor[3])];
-    currentCommandEncoder = [currentCommandBuffer renderCommandEncoderWithDescriptor:pipeline->rpd];
     [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
     
     uint32_t index = 0;
@@ -45,10 +42,9 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     }
 }
 
-void CommandBufferMTL::BeginRendering(const BeginRenderingConfig & config){
-    targetFB = static_cast<TextureMTL*>(config.targetFramebuffer);
-    [currentCommandBuffer presentDrawable:targetFB->drawable];
-    clearColor = config.clearColor;
+void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){
+    auto casted = std::static_pointer_cast<RenderPassMTL>(renderPass);
+    currentCommandEncoder = [currentCommandBuffer renderCommandEncoderWithDescriptor:casted->renderPassDescriptor];
 }
 
 void CommandBufferMTL::EndRendering(){

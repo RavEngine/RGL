@@ -20,7 +20,7 @@ namespace RGL {
 		void Submit(CommandBufferVk*, const CommitConfig&);
 		
 		// ICommandQueue
-		CommandBufferPtr CreateCommandBuffer() final;
+        RGLCommandBufferPtr CreateCommandBuffer() final;
 
 		void WaitUntilCompleted() final;
 	};

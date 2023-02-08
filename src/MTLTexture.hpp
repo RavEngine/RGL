@@ -9,8 +9,8 @@ namespace RGL{
 struct DeviceMTL;
 
 struct TextureMTL : public ITexture{
-    OBJC_ID(CAMetalDrawable) drawable;
-    OBJC_ID(MTLTexture) texture;
+    OBJC_ID(CAMetalDrawable) drawable = nullptr;
+    OBJC_ID(MTLTexture) texture = nullptr;
     
     // default constructor, don't explicity use
     TextureMTL() : ITexture({0,0}){}

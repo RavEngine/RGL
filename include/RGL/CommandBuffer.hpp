@@ -41,10 +41,6 @@ namespace RGL {
 		std::array<uint32_t, 2> extent{ 0,0, };
 	};
 
-	struct BeginRenderingConfig {
-		std::array<float, 4> clearColor{ 0,0,0, 1 };
-		ITexture* targetFramebuffer = nullptr;
-	};
 
 	struct CommitConfig {
 		RGLFencePtr signalFence;
@@ -61,7 +57,7 @@ namespace RGL {
 		// signal that all commands ahve been encoded
 		virtual void End() = 0;
 
-		virtual void BeginRendering(const BeginRenderingConfig&) = 0;
+		virtual void BeginRendering(RGLRenderPassPtr) = 0;
 		virtual void EndRendering() = 0;
 
 		virtual void BindPipeline(RGLRenderPipelinePtr) = 0;

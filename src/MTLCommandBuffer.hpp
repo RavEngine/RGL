@@ -13,8 +13,6 @@ struct BufferMTL;
     struct CommandBufferMTL : public ICommandBuffer{
         OBJC_ID(MTLCommandBuffer) currentCommandBuffer = nullptr;
         OBJC_ID(MTLRenderCommandEncoder) currentCommandEncoder = nullptr;
-        TextureMTL* targetFB = nullptr;
-        std::array<float, 4> clearColor{0,0,0,0};
         
         std::shared_ptr<BufferMTL> indexBuffer;
         
@@ -27,7 +25,7 @@ struct BufferMTL;
         void End() final;
         void BindPipeline(RGLRenderPipelinePtr) final;
 
-        void BeginRendering(const BeginRenderingConfig&) final;
+        void BeginRendering(RGLRenderPassPtr) final;
         void EndRendering() final;
 
         void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;

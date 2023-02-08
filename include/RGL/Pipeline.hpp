@@ -9,51 +9,6 @@
 
 namespace RGL {
 
-	struct RenderPassConfig {
-		struct AttachmentDesc {
-			// formats, multisample count, load and store ops (see VkAttachmentDescription), and layout (from VkAttachmentReference)
-			TextureFormat format;
-			MSASampleCount sampleCount = MSASampleCount::C1;
-			LoadAccessOperation loadOp = LoadAccessOperation::DontCare;
-			StoreAccessOperation storeOp = StoreAccessOperation::DontCare;
-
-			LoadAccessOperation stencilLoadOp = LoadAccessOperation::DontCare;
-			StoreAccessOperation stencilStoreOp = StoreAccessOperation::DontCare;
-
-			TextureLayout initialLayout;	// TODO: support (vk)
-			TextureLayout finalLayout;		// TODO: support (vk)
-		};
-		std::vector<AttachmentDesc> attachments;
-
-		struct SubpassDesc {	// see (VkSubpassDescription)
-			// what type (graphics, compute, raytrace)
-			enum class Type : uint8_t {
-				Undefined,	// don't use this!
-				Graphics,
-				Compute,
-				Raytrace
-			} type = Type::Undefined;
-
-			// how many Input attachments + their indices into AttachmentDescs
-			std::vector<uint16_t> inputAttachmentIndices;
-			// how many Color attachments + their indices into AttachmentDesc
-			std::vector<uint16_t> colorAttachmentIndices;
-			// DepthStencil AttachmentDescs (only have 1) (use std::optional)
-			std::optional<uint16_t> depthStencilAttachmentIndex;
-		};
-		std::vector<SubpassDesc> subpasses;
-
-		struct SubpassDependencyDesc {	// see VkSubpassDependency, one of these will be created implicitly for the front of the pass itself
-			
-		};
-		std::vector<SubpassDependencyDesc> subpassDependencies;	//TODO: support (vk)
-
-	};
-
-	struct IRenderPass {
-
-	};
-
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
@@ -250,7 +205,6 @@ namespace RGL {
 		} colorBlendConfig;
 		// list of what states are dynamic (TODO)
 		RGLPipelineLayoutPtr pipelineLayout;
-		uint32_t subpassIndex = 0;				// what subpass in the renderpass will be used (index)
 	};
 
 	struct IRenderPipeline {

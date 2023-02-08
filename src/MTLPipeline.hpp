@@ -19,7 +19,6 @@ namespace RGL{
     };
 
     struct RenderPipelineMTL : public IRenderPipeline{
-        APPLE_API_PTR(MTLRenderPassDescriptor) rpd = nullptr;
         OBJC_ID(MTLRenderPipelineState) pipelineState;
         const std::shared_ptr<DeviceMTL> owningDevice;
         RenderPipelineDescriptor settings;

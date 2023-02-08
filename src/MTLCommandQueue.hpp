@@ -12,7 +12,7 @@ struct CommandQueueMTL : public ICommandQueue, public std::enable_shared_from_th
     OBJC_ID(MTLCommandQueue) commandQueue = nullptr;
     CommandQueueMTL(decltype(owningDevice));
     
-    CommandBufferPtr CreateCommandBuffer() final;
+    RGLCommandBufferPtr CreateCommandBuffer() final;
 
     void WaitUntilCompleted() final;
     virtual ~CommandQueueMTL(){}
