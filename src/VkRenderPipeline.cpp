@@ -213,7 +213,7 @@ namespace RGL {
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout->layout,
             .renderPass = VK_NULL_HANDLE,       // VK_KHR_dynamic_rendering
-            .subpass = desc.subpassIndex,
+            .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE, // optional
             .basePipelineIndex = -1, // optional
             

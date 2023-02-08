@@ -89,7 +89,7 @@ void RGL::Init(const InitOptions& options)
         InitD3D12(options);
 #elif __APPLE__
         InitMTL(options);
-#elif __linux__ && RGL_VK_AVAILABLE
+#elif __linux__ || RGL_VK_AVAILABLE
         InitVk(options);
 #else
 

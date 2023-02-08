@@ -7,7 +7,7 @@
         #include <RGL/../../src/VkBuffer.hpp>
         #include <RGL/../../src/VkCommandBuffer.hpp>
         #include <RGL/../../src/VkCommandQueue.hpp>
-        #include <RGL/../../src/VkRenderpass.hpp>
+        #include <RGL/../../src/VkRenderPass.hpp>
         #include <RGL/../../src/VkRenderPipeline.hpp>
         #include <RGL/../../src/VkSampler.hpp>
         #include <RGL/../../src/VkShaderLibrary.hpp>

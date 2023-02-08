@@ -20,6 +20,7 @@ struct RenderPassConfig {
         TextureLayout initialLayout;    // TODO: support (vk)
         TextureLayout finalLayout;        // TODO: support (vk)
         std::array<float, 4> clearColor{ 0,0,0, 1 };
+        bool shouldTransition = false;
     };
     std::vector<AttachmentDesc> attachments;
 };

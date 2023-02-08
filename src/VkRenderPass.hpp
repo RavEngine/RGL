@@ -1,26 +1,20 @@
 #pragma once
 #include <RGL/Types.hpp>
-#include <RGL/Pipeline.hpp>
-#include <vulkan/vulkan.h>
+#include <RGL/RenderPass.hpp>
 #include "VkDevice.hpp"
 
 namespace RGL {
-	struct RenderPassVk : public IRenderPass {
-		const std::shared_ptr<DeviceVk> device;
-		VkRenderPass renderPass = VK_NULL_HANDLE;
-		VkFramebuffer passFrameBuffer = VK_NULL_HANDLE;
-		uint32_t currentWidth = 0, currentHeight = 0;
-		std::vector<VkFormat> attachmentFormats;
+	struct TextureVk;
 
-		RenderPassVk(decltype(device), const RenderPassConfig&);
+	struct RenderPassVk : public IRenderPass {
+		RenderPassConfig config;
+
+		RenderPassVk(const RenderPassConfig&);
 		virtual ~RenderPassVk();
 
-		/**
-		Updates the internal framebuffer if needed. 
-		@param width requested width of the framebuffer
-		@param height requested height of the framebuffer
-		*/
-		void UpdateFramebuffer(decltype(currentWidth) width, decltype(currentHeight) height);
+		std::vector<TextureVk*> textures;
+
+		void SetAttachmentTexture(uint32_t index, ITexture* texture) final;
 	};
 
 }

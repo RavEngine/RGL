@@ -184,3 +184,10 @@ endif()
 if (RGL_DX12_AVAILABLE)
 	set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "RGL/Libraries")
 endif()
+
+
+
+if (RGL_VK_AVAILABLE OR RGL_DX12_AVAILABLE OR RGL_METAL_AVAILABLE)
+else()
+message(FATAL_ERROR "No backends are enabled! Check that all required SDKs are installed.")
+endif()

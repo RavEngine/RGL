@@ -18,7 +18,6 @@ namespace RGL {
 		virtual std::string GetBrandString() = 0;
 		
 		virtual RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr presentQueue, int width, int height) = 0;
-		virtual RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) = 0;
 
 		virtual RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) = 0;
 		virtual RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) = 0;

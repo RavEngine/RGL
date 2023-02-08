@@ -5,6 +5,7 @@
 #include "VkRenderPipeline.hpp"
 #include "VkTexture.hpp"
 #include "VkBuffer.hpp"
+#include "VkRenderPass.hpp"
 #include <cstring>
 
 namespace RGL {
@@ -22,38 +23,8 @@ namespace RGL {
 		VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo))
 	}
 	void CommandBufferVk::End()
-	{
-		// the swapchain image is not in the correct format for presentation now
-		// so it needs to be transitioned 
-		const VkImageMemoryBarrier image_memory_barrier_end{
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-			.image = swapchainImage,
-			.subresourceRange = {
-			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			  .baseMipLevel = 0,
-			  .levelCount = 1,
-			  .baseArrayLayer = 0,
-			  .layerCount = 1,
-			}
-		};
-
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1, // imageMemoryBarrierCount
-			&image_memory_barrier_end // pImageMemoryBarriers
-		);
+	{		
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
-		swapchainImage = VK_NULL_HANDLE;
 	}
 	void CommandBufferVk::BindPipeline(RGLRenderPipelinePtr generic_pipeline)
 	{
@@ -68,20 +39,61 @@ namespace RGL {
 		currentRenderPipeline = pipeline;
 
 	}
-	void CommandBufferVk::BeginRendering(const BeginRenderingConfig& config)
+	void CommandBufferVk::BeginRendering(RGLRenderPassPtr renderPassPtr)
 	{
-		VkClearValue clearColor = { {{config.clearColor[0], config.clearColor[1], config.clearColor[2], config.clearColor[3]}} };
-		auto texture = static_cast<TextureVk*>(config.targetFramebuffer);
-		auto texSize = texture->GetSize();
+		auto renderPass = std::static_pointer_cast<RenderPassVk>(renderPassPtr);
+		currentRenderPass = renderPass;
 
-		const VkRenderingAttachmentInfoKHR color_attachment_info{
-			.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-			.imageView = (texture->vkImageView),
-			.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-			.clearValue = clearColor,
-		};
+		stackarray(attachmentInfos, VkRenderingAttachmentInfoKHR, renderPass->config.attachments.size());
+
+		uint32_t i = 0;
+		for (const auto& attachment : renderPass->config.attachments) {
+			VkClearValue clearColor = { {{attachment.clearColor[0], attachment.clearColor[1], attachment.clearColor[2], attachment.clearColor[3]}} };
+
+			attachmentInfos[i] = {
+				.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+				.imageView = (renderPass->textures[i]->vkImageView),
+				.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.clearValue = clearColor,
+			};
+
+			// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
+			if (attachment.shouldTransition) {
+				const VkImageMemoryBarrier image_memory_barrier_begin{
+					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+					.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+					.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					.image = static_cast<TextureVk*>(renderPass->textures[i])->vkImage,
+					.subresourceRange = {
+					  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+					  .baseMipLevel = 0,
+					  .levelCount = 1,
+					  .baseArrayLayer = 0,
+					  .layerCount = 1,
+					}
+				};
+
+				vkCmdPipelineBarrier(
+					commandBuffer,
+					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
+					0,
+					0,
+					nullptr,
+					0,
+					nullptr,
+					1, // imageMemoryBarrierCount
+					&image_memory_barrier_begin // pImageMemoryBarriers
+				);
+			}
+
+			i++;
+		}
+
+		auto texSize = renderPass->textures[0]->GetSize();
 
 		const VkRenderingInfoKHR render_info{
 			.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
@@ -90,40 +102,10 @@ namespace RGL {
 				.extent = VkExtent2D{.width = texSize.width, .height = texSize.height},
 			},
 			.layerCount = 1,
-			.colorAttachmentCount = 1,	//TODO: support multiple attachments (make multiple VkRenderingAttachmentInfoKHR structures)
-			.pColorAttachments = &color_attachment_info,
+			.colorAttachmentCount = static_cast<uint32_t>(renderPass->config.attachments.size()),
+			.pColorAttachments = attachmentInfos,
 		};
 
-		swapchainImage = texture->vkImage;
-
-		// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
-		const VkImageMemoryBarrier image_memory_barrier_begin{
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			.image = swapchainImage,
-			.subresourceRange = {
-			  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			  .baseMipLevel = 0,
-			  .levelCount = 1,
-			  .baseArrayLayer = 0,
-			  .layerCount = 1,
-			}
-		};
-
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1, // imageMemoryBarrierCount
-			&image_memory_barrier_begin // pImageMemoryBarriers
-		);
 
 		vkCmdBeginRendering(commandBuffer, &render_info);
 	}
@@ -131,6 +113,42 @@ namespace RGL {
 	{
 		vkCmdEndRendering(commandBuffer);
 		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
+		uint32_t i = 0;
+		for (const auto& attachment : currentRenderPass->config.attachments) {
+			if (attachment.shouldTransition) {
+				// the swapchain image is not in the correct format for presentation now
+				// so it needs to be transitioned 
+				const VkImageMemoryBarrier image_memory_barrier_end{
+					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+					.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+					.image = static_cast<TextureVk*>(currentRenderPass->textures[i])->vkImage,
+					.subresourceRange = {
+					  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+					  .baseMipLevel = 0,
+					  .levelCount = 1,
+					  .baseArrayLayer = 0,
+					  .layerCount = 1,
+					}
+				};
+
+				vkCmdPipelineBarrier(
+					commandBuffer,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
+					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
+					0,
+					0,
+					nullptr,
+					0,
+					nullptr,
+					1, // imageMemoryBarrierCount
+					&image_memory_barrier_end // pImageMemoryBarriers
+				);
+			}
+			i++;
+		}
+
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
 	{

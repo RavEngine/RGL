@@ -219,11 +219,6 @@ namespace RGL {
         return std::make_shared<SwapchainVK>(std::static_pointer_cast<RGL::SurfaceVk>(surface), shared_from_this(), width, height);
     }
 
-    RGLRenderPassPtr RGL::DeviceVk::CreateRenderPass(const RenderPassConfig& config)
-    {
-        return std::make_shared<RenderPassVk>(shared_from_this(), config);
-    }
-
     RGLPipelineLayoutPtr RGL::DeviceVk::CreatePipelineLayout(const PipelineLayoutDescriptor& pld)
     {
         return std::make_shared<PipelineLayoutVk>(shared_from_this(), pld);
