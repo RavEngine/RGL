@@ -2,6 +2,7 @@
 
 #include "RGLCommon.hpp"
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
 #include <cassert>
 
 #define VK_CHECK(a) {auto VK_CHECK_RESULT = a; Assert(VK_CHECK_RESULT == VK_SUCCESS, "Vulkan assertion failed");}
@@ -23,6 +24,8 @@ namespace RGL {
 	void InitVk(const InitOptions&);
 	void DeinitVk();
 
+	struct DeviceVk;
+
 	extern VkInstance instance;
 
 	struct SwapChainSupportDetails {
@@ -37,7 +40,7 @@ namespace RGL {
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice);
 
-	void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+	VmaAllocation createBuffer(DeviceVk*, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer);
 
 	VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool);
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device, VkCommandPool commandPool);

@@ -13,6 +13,7 @@
 #include <vector>
 #include <stdexcept>
 #include <set>
+#include <vulkan/vulkan.h>
 
 namespace RGL {
 
@@ -181,10 +182,27 @@ namespace RGL {
            .queueFamilyIndex = indices.graphicsFamily.value()
         };
         VK_CHECK(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool));
+
+        VmaAllocatorCreateInfo allocInfo{
+            .flags = 0,
+            .physicalDevice = physicalDevice,
+            .device = device,
+            .preferredLargeHeapBlockSize = 0,   // default
+            .pAllocationCallbacks = nullptr,
+            .pDeviceMemoryCallbacks = nullptr,
+            .pHeapSizeLimit = nullptr,
+            .pVulkanFunctions = nullptr,
+            .instance = RGL::instance,
+            .vulkanApiVersion = VK_API_VERSION_1_3,
+            .pTypeExternalMemoryHandleTypes = nullptr,
+        };
+
+        VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
     }
 
     RGL::DeviceVk::~DeviceVk() {
 
+        vmaDestroyAllocator(vkallocator);
         vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyDevice(device, nullptr);
     }

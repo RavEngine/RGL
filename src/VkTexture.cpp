@@ -95,16 +95,16 @@ namespace RGL {
 
 		// allocate a staging buffer for the texture
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
-		createBuffer(owningDevice->device, owningDevice->physicalDevice, bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		auto allocation = createBuffer(owningDevice.get(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer);
 
 		auto device = owningDevice->device;
 
+
 		// put the data in the buffer
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bytes.size(), 0, &data);
+		vmaMapMemory(owningDevice->vkallocator, allocation, &data);
 		memcpy(data, bytes.data(), bytes.size());
-		vkUnmapMemory(device, stagingBufferMemory);
+		vmaUnmapMemory(owningDevice->vkallocator, allocation);
 
 
 		//TODO: read other options from config
@@ -151,7 +151,7 @@ namespace RGL {
 
 		// cleanup
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		vmaFreeMemory(owningDevice->vkallocator, allocation);
 
 		VkImageViewCreateInfo createInfo{
 			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
