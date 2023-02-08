@@ -2,6 +2,7 @@
 #include "RGLVk.hpp"
 #include "RGLCommon.hpp"
 #include "TextureFormat.hpp"
+#include "VkDevice.hpp"
 #include <stdexcept>
 #include <cstring>
 
@@ -9,6 +10,8 @@ namespace RGL {
 
     STATIC(RGL::instance) = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+
+    VmaAllocator vkallocator; 
 
     // vulkan calls this on debug message
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -134,6 +137,8 @@ namespace RGL {
             };
             VK_CHECK(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
         }
+
+        
     }
 
     void RGL::DeinitVk() {
@@ -196,7 +201,7 @@ namespace RGL {
         throw std::runtime_error("failed to find suitable memory type!");
     }
 
-    void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+    VmaAllocation createBuffer(DeviceVk* rgldevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer) {
         VkBufferCreateInfo bufferInfo{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .size = size,
@@ -204,21 +209,15 @@ namespace RGL {
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE
         };
 
-        VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
-
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
-            .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, physicalDevice)
+        VmaAllocationCreateInfo allocInfo = {
+            .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+            .usage = VMA_MEMORY_USAGE_AUTO,
+            .pool = VK_NULL_HANDLE, // use the default pool
         };
 
-
-        VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory))
-
-            vkBindBufferMemory(device, buffer, bufferMemory, 0);
+        VmaAllocation allocation;
+        vmaCreateBuffer(rgldevice->vkallocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
+        return allocation;
     }
 
     VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool) {

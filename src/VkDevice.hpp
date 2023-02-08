@@ -2,8 +2,10 @@
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
 #include <optional>
+#include <memory>
 #include <vulkan/vulkan.h>
 #include <RGL/Pipeline.hpp>
+#include <vk_mem_alloc.h>
 
 #undef CreateSemaphore
 
@@ -22,6 +24,8 @@ namespace RGL {
 		QueueFamilyIndices indices;
 		VkQueue presentQueue = VK_NULL_HANDLE;	// do not need to be destroyed
 		VkCommandPool commandPool = VK_NULL_HANDLE;
+		VmaAllocator vkallocator;
+
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
 

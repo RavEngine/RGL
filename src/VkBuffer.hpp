@@ -4,6 +4,7 @@
 #include <memory>
 #include <span>
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
 
 namespace RGL {
 	struct DeviceVk;
@@ -11,7 +12,7 @@ namespace RGL {
 	struct BufferVk : public IBuffer {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		VkBuffer buffer = VK_NULL_HANDLE;
-		VkDeviceMemory bufferMemory = VK_NULL_HANDLE;
+		VmaAllocation allocation = VK_NULL_HANDLE;
 
 		MutableSpan mappedMemory;
 

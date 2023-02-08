@@ -9,14 +9,14 @@ namespace RGL {
 	BufferVk::BufferVk(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice) {
         //TODO: use vkmemoryallocator
 
-        createBuffer(owningDevice->device, owningDevice->physicalDevice, config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer, bufferMemory);
+       allocation =  createBuffer(owningDevice.get(), config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer);
 
         mappedMemory.size = config.size_bytes;
 	}
 
     BufferVk::~BufferVk() {
         vkDestroyBuffer(owningDevice->device, buffer, nullptr);
-        vkFreeMemory(owningDevice->device, bufferMemory, nullptr);
+        vmaFreeMemory(owningDevice->vkallocator, allocation);
     }
 
     void BufferVk::SetBufferData(untyped_span data) {
@@ -25,10 +25,10 @@ namespace RGL {
     }
 
     void BufferVk::MapMemory() {
-        vkMapMemory(owningDevice->device, bufferMemory, 0, mappedMemory.size, 0, &mappedMemory.data);
+        vmaMapMemory(owningDevice->vkallocator, allocation, &mappedMemory.data);
     }
     void BufferVk::UnmapMemory() {
-        vkUnmapMemory(owningDevice->device, bufferMemory);
+        vmaUnmapMemory(owningDevice->vkallocator, allocation);
         mappedMemory.data = nullptr;
     }
 
