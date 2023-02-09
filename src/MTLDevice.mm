@@ -35,10 +35,6 @@ RGLSwapchainPtr DeviceMTL::CreateSwapchain(RGLSurfacePtr isurface, RGLCommandQue
     return std::make_shared<SwapchainMTL>(surface, width, height);
 }
 
-RGLRenderPassPtr DeviceMTL::CreateRenderPass(const RenderPassConfig&) {
-    FatalError("CreateRenderPass not implemented");
-}
-
 RGLPipelineLayoutPtr DeviceMTL::CreatePipelineLayout(const PipelineLayoutDescriptor& desc) {
     return std::make_shared<PipelineLayoutMTL>(desc);
 }
@@ -86,6 +82,10 @@ RGLSemaphorePtr DeviceMTL::CreateSemaphore() {
 
 RGLTexturePtr DeviceMTL::CreateTextureWithData(const TextureConfig& config, untyped_span data){
     return std::make_shared<TextureMTL>(shared_from_this(), config, data);
+}
+
+RGLTexturePtr DeviceMTL::CreateTexture(const TextureConfig& config){
+    return std::make_shared<TextureMTL>(shared_from_this(), config);
 }
 
 RGLSamplerPtr DeviceMTL::CreateSampler(const SamplerConfig& config){

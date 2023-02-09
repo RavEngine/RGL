@@ -9,8 +9,10 @@
 #ifdef __OBJC__
 #define OBJC_ID(a) id< a >
 #define APPLE_API_PTR(a) a *
+#define APPLE_API_TYPE(a) a
 #else
 #define OBJC_ID(a) id
 #define APPLE_API_PTR(a) void *
+#define APPLE_API_TYPE(a) int
 
 #endif

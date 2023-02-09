@@ -9,5 +9,9 @@ namespace RGL{
         RenderPassMTL(const RenderPassConfig& config);
         virtual ~RenderPassMTL(){}
         void SetAttachmentTexture(uint32_t index, ITexture* texture) final;
+        
+        void SetDepthAttachmentTexture(ITexture* texture) final;
+        void SetStencilAttachmentTexture(ITexture* texture) final;
     };
+
 }

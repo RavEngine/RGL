@@ -45,6 +45,16 @@ RenderPassMTL::RenderPassMTL(const RenderPassConfig& config){
         idx++;
     }
   
+    if (config.depthAttachment.has_value()){
+        const auto& attachmentdesc = config.depthAttachment.value();
+        [renderPassDescriptor.depthAttachment setLoadAction: rgl2mtlload(attachmentdesc.loadOp)];
+        [renderPassDescriptor.depthAttachment setStoreAction: rgl2mtlstore(attachmentdesc.storeOp)];
+        [renderPassDescriptor.depthAttachment setClearDepth:attachmentdesc.clearColor[0]];
+    }
+    
+    if (config.stencilAttachment.has_value()){
+        FatalError("Stencil is not implmeneted");
+    }
     
 #if TARGET_OS_IPHONE
     [renderPassDescriptor setDefaultRasterSampleCount:0];
@@ -55,6 +65,13 @@ RenderPassMTL::RenderPassMTL(const RenderPassConfig& config){
 
 void RenderPassMTL::SetAttachmentTexture(uint32_t index, ITexture* texture){
     [renderPassDescriptor.colorAttachments[index] setTexture:static_cast<TextureMTL*>(texture)->texture];
+}
+
+void RenderPassMTL::SetDepthAttachmentTexture(ITexture* texture){
+    [renderPassDescriptor.depthAttachment setTexture:static_cast<TextureMTL*>(texture)->texture];
+}
+void RenderPassMTL::SetStencilAttachmentTexture(ITexture* texture){
+    FatalError("SetStencilAttachmentTexture not implemented");
 }
 
 }

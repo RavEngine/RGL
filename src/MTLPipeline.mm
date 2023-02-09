@@ -8,15 +8,6 @@
 
 namespace RGL{
 
-MTLPixelFormat rgl2mtlformat(TextureFormat format){
-    switch(format){
-        case decltype(format)::BGRA8_Unorm:
-            return MTLPixelFormatBGRA8Unorm;
-        default:
-            FatalError("Texture format not supported");
-    }
-}
-
 std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format){
     switch(format){
         case decltype(format)::Undefined:
@@ -80,6 +71,8 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
         auto& attachment = desc.colorBlendConfig.attachments[i];
         [pipelineDesc.colorAttachments[i] setPixelFormat:rgl2mtlformat(attachment.format)];
     }
+    
+    pipelineDesc.depthAttachmentPixelFormat = rgl2mtlformat(desc.depthStencilConfig.depthFormat);
     
     MTL_CHECK(pipelineState = [owningDevice->device newRenderPipelineStateWithDescriptor:pipelineDesc error:&err]);
     

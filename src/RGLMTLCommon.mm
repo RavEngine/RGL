@@ -1,13 +1,42 @@
+#import <Metal/Metal.h>
 #include "RGLMTL.hpp"
 #include "RGLCommon.hpp"
 
 using namespace RGL;
 
-void RGL::InitMTL(const RGL::InitOptions&) {
-	Assert(CanInitAPI(RGL::API::Metal), "Metal cannot be initialized on this platform.");
-	RGL::currentAPI = API::Metal;
+namespace RGL{
+
+void InitMTL(const RGL::InitOptions&) {
+    Assert(CanInitAPI(RGL::API::Metal), "Metal cannot be initialized on this platform.");
+    RGL::currentAPI = API::Metal;
 }
 
-void RGL::DeinitMTL(){
-	// do nothing for now
+void DeinitMTL(){
+    // do nothing for now
+}
+
+MTLPixelFormat rgl2mtlformat(TextureFormat format){
+    switch(format){
+        case decltype(format)::Undefined: return MTLPixelFormatInvalid;
+        case decltype(format)::BGRA8_Unorm: return MTLPixelFormatBGRA8Unorm;
+        case decltype(format)::RGBA8_Uint: return MTLPixelFormatRGBA8Uint;
+        case decltype(format)::D32SFloat: return MTLPixelFormatDepth32Float;
+        case decltype(format)::D24UnormS8Uint: return MTLPixelFormatDepth24Unorm_Stencil8;
+        default:
+            FatalError("Texture format not supported");
+    }
+}
+
+APPLE_API_TYPE(MTLTextureUsage) rgl2mtlTextureUsage(RGL::TextureUsage usage){
+    MTLTextureUsage ret = 0;
+    if (usage & decltype(usage)::Sampled){
+        ret |= MTLTextureUsageShaderRead;
+    }
+    
+    if (usage & decltype(usage)::ColorAttachment || usage & decltype(usage)::DepthStencilAttachment){
+        ret |= MTLTextureUsageRenderTarget;
+    }
+    return ret;
+}
+
 }

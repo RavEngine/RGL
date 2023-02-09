@@ -17,6 +17,7 @@ struct TextureMTL : public ITexture{
     
     TextureMTL(decltype(drawable), const Dimension&);
     TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config, const untyped_span);
+    TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config);
     
     Dimension GetSize() const;
 };

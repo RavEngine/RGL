@@ -3,7 +3,7 @@
 #import <QuartzCore/CAMetalLayer.h>
 #include "MTLTexture.hpp"
 #include "MTLDevice.hpp"
-
+#include "RGLMTL.hpp"
 
 namespace RGL {
 
@@ -11,18 +11,23 @@ TextureMTL::TextureMTL(decltype(drawable) texture, const Dimension& size) : draw
     
 }
 
+TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config) : TextureMTL(nullptr, {config.width,config.height})
+{
+    MTLPixelFormat format = rgl2mtlformat(config.format);
+    
+    auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 1];
+    auto usage = rgl2mtlTextureUsage(config.usage);;
+    desc.usage = usage;
+    desc.storageMode =  (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil) ? MTLStorageModePrivate :  MTLStorageModeManaged;
+    texture = [owningDevice->device newTextureWithDescriptor:desc];
+}
+
 Dimension TextureMTL::GetSize() const{
     return size;
 }
 
-TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config, const untyped_span data) : ITexture({config.width, config.height}){
+TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config, const untyped_span data) : TextureMTL(owningDevice, config){
     
-    //TODO: convert format
-    MTLPixelFormat format = MTLPixelFormatRGBA8Uint;
-    
-    auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 1];
-    desc.usage = MTLTextureUsageShaderRead;
-    texture = [owningDevice->device newTextureWithDescriptor:desc];
     
     MTLRegion region = {
         { 0, 0, 0 },                   // MTLOrigin
