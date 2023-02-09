@@ -267,6 +267,7 @@ namespace RGL {
         switch (format) {
         case decltype(format)::Undefined:           return VK_FORMAT_UNDEFINED;
         case decltype(format)::BGRA8_Unorm:         return VK_FORMAT_B8G8R8A8_UNORM;
+        case decltype(format)::RGBA8_Unorm:         return VK_FORMAT_R8G8B8A8_UNORM;
         case decltype(format)::RGBA8_Uint:          return VK_FORMAT_R8G8B8A8_UINT;
         case decltype(format)::D24UnormS8Uint:      return VK_FORMAT_D24_UNORM_S8_UINT;
         case decltype(format)::D32SFloat:           return VK_FORMAT_D32_SFLOAT;

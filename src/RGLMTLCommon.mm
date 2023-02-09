@@ -1,3 +1,4 @@
+#if RGL_MTL_AVAILABLE
 #import <Metal/Metal.h>
 #include "RGLMTL.hpp"
 #include "RGLCommon.hpp"
@@ -41,3 +42,4 @@ APPLE_API_TYPE(MTLTextureUsage) rgl2mtlTextureUsage(RGL::TextureUsage usage){
 }
 
 }
+#endif
