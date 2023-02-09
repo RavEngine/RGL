@@ -2,6 +2,7 @@
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12ShaderLibrary.hpp"
+#include "D3D12Sampler.hpp"
 
 namespace RGL {
     DXGI_FORMAT rgl2dxgiformat(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format) {
@@ -65,8 +66,21 @@ namespace RGL {
             rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
 
+        const auto numSamplers = desc.boundSamplers.size();
+        stackarray(samplerStates, D3D12_STATIC_SAMPLER_DESC, numSamplers);
+        {
+            uint32_t i = 0;
+            for (const auto& isampler : desc.boundSamplers) {
+                auto sampler = std::static_pointer_cast<SamplerD3D12>(isampler);
+                samplerStates[i] = {
+                    //TODO: fill
+                };
+            }
+        }
+
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-        rootSignatureDescription.Init_1_1(nconstants, rootParameters, 0, nullptr, rootSignatureFlags);
+        rootSignatureDescription.Init_1_1(nconstants, rootParameters, numSamplers, samplerStates, rootSignatureFlags);
 
         // Serialize the root signature.
         // it becomes a binary object which can be used to create the actual root signature

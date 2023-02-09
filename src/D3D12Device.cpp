@@ -160,11 +160,6 @@ namespace RGL {
     {
         return std::make_shared<SwapchainD3D12>(shared_from_this(), std::static_pointer_cast<SurfaceD3D12>(surface), width, height, std::static_pointer_cast<CommandQueueD3D12>(presentQueue));
     }
-    RGLRenderPassPtr RGL::DeviceD3D12::CreateRenderPass(const RenderPassConfig&)
-    {
-        FatalError("CreateRenderPass: Not implemented");
-        return RGLRenderPassPtr();
-    }
     RGLPipelineLayoutPtr RGL::DeviceD3D12::CreatePipelineLayout(const PipelineLayoutDescriptor& desc)
     {
         return std::make_shared<PipelineLayoutD3D12>(shared_from_this(),desc);
@@ -203,6 +198,11 @@ namespace RGL {
     RGLTexturePtr DeviceD3D12::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
     {
         return std::make_shared<TextureD3D12>(shared_from_this(), config, bytes);
+    }
+
+    RGLTexturePtr DeviceD3D12::CreateTexture(const TextureConfig& config)
+    {
+        return std::make_shared<TextureD3D12>(shared_from_this(), config);
     }
 
     RGLSamplerPtr DeviceD3D12::CreateSampler(const SamplerConfig& config)

@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include "TextureFormat.hpp"
 #include <vector>
 #include <array>
@@ -33,4 +34,7 @@ struct IRenderPass {
     virtual void SetDepthAttachmentTexture(ITexture* texture) = 0;
     virtual void SetStencilAttachmentTexture(ITexture* texture) = 0;
 };
+
+RGLRenderPassPtr CreateRenderPass(const RenderPassConfig& config);
+
 }

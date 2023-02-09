@@ -1,6 +1,8 @@
 #if RGL_DX12_AVAILABLE
+#include "Types.hpp"
 #include "RGLD3D12.hpp"
 #include "RGLCommon.hpp"
+#include "D3D12RenderPass.hpp"
 #include <d3d12sdklayers.h>
 #include <wrl.h>
 
@@ -44,6 +46,10 @@ namespace RGL {
         DX_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 
         return descriptorHeap;
+    }
+    RGLRenderPassPtr CreateRenderPassD3D12(const RenderPassConfig& config)
+    {
+        return std::make_shared<RenderPassD3D12>(config);
     }
 }
 #endif

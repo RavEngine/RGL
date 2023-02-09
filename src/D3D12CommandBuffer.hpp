@@ -13,7 +13,8 @@ namespace RGL {
 		ComPtr<ID3D12GraphicsCommandList2> commandList;
 		const std::shared_ptr<CommandQueueD3D12> owningQueue;
 
-		TextureD3D12* currentBackbuffer;
+		std::shared_ptr<struct RenderPassD3D12> currentRenderPass;
+
 		bool ended = false;
 
 		CommandBufferD3D12(decltype(owningQueue));
@@ -27,7 +28,7 @@ namespace RGL {
 		// signal that all commands ahve been encoded
 		void End() final;
 
-		void BeginRendering(const BeginRenderingConfig&) final;
+		void BeginRendering(RGLRenderPassPtr) final;
 		void EndRendering() final;
 
 		void BindPipeline(RGLRenderPipelinePtr) final;

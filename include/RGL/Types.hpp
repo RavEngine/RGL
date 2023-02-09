@@ -137,6 +137,7 @@ using RGLTexturePtr = std::shared_ptr<RGL::TextureD3D12>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerD3D12>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueD3D12>;
 using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
+using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassD3D12>;
 #endif
 
 #else
@@ -152,7 +153,7 @@ using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 	using RGLTexturePtr = std::shared_ptr<RGL::ITexture>;
 	using RGLSamplerPtr = std::shared_ptr<RGL::ISampler>;
 	using RGLCommandQueuePtr = std::shared_ptr<RGL::ICommandQueue>;
-	using CommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
+	using RGLCommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
 	using RGLSwapchainPtr = std::shared_ptr<RGL::ISwapchain>;
     using RGLRenderPassPtr = std::shared_ptr<RGL::IRenderPass>;
 #endif

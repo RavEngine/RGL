@@ -1,4 +1,5 @@
 #pragma once
+#include <RGL/Types.hpp>
 #include <RGL/Core.hpp>
 #include "RGLCommon.hpp"
 #include <cassert>
@@ -17,7 +18,10 @@ using namespace Microsoft::WRL;
 namespace RGL {
 	void InitD3D12(const RGL::InitOptions&);
 	void DeintD3D12();
+	struct RenderPassConfig;
 
 	ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(ComPtr<ID3D12Device2> device,
 		D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
+
+	RGLRenderPassPtr CreateRenderPassD3D12(const RenderPassConfig& config);
 }

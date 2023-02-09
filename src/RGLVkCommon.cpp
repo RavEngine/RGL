@@ -1,5 +1,6 @@
 #if RGL_VK_AVAILABLE
 #include "RGLVk.hpp"
+#include "VkRenderPass.hpp"
 #include "RGLCommon.hpp"
 #include "TextureFormat.hpp"
 #include "VkDevice.hpp"
@@ -251,6 +252,11 @@ namespace RGL {
         vkQueueWaitIdle(graphicsQueue);
 
         vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    }
+
+    RGLRenderPassPtr CreateRenderPassVk(const RenderPassConfig& config)
+    {
+        return std::make_shared<RenderPassVk>(config);
     }
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkQueue graphicsQueue, VkDevice device, VkCommandPool commandPool) {

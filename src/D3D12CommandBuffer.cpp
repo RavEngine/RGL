@@ -8,6 +8,7 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12Sampler.hpp"
+#include "D3D12RenderPass.hpp"
 
 namespace RGL {
 	void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
@@ -43,30 +44,57 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::End()
 	{
-		TransitionResource(commandList, currentBackbuffer->texture,
-			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		DX_CHECK(commandList->Close());
 		ended = true;
 	}
-	void CommandBufferD3D12::BeginRendering(const BeginRenderingConfig& config)
+	void CommandBufferD3D12::BeginRendering(RGLRenderPassPtr renderPass)
 	{
-		auto tx = static_cast<TextureD3D12*>(config.targetFramebuffer);
-		currentBackbuffer = tx;
-		
-		TransitionResource(commandList, tx->texture,
-			D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		currentRenderPass = std::static_pointer_cast<RenderPassD3D12>(renderPass);
 
-		auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-			tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
-		commandList->ClearRenderTargetView(rtv, config.clearColor.data(), 0, nullptr);
+		uint32_t i = 0;
+		for (const auto& attachment : currentRenderPass->config.attachments) {
+			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
 
-		//TODO: allow passing a depth stencil
-		commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+			if (attachment.shouldTransition) {
+				TransitionResource(commandList, tx->texture,
+					D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			}
+			auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+				tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
+			commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
 
-		//commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
+			commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+
+			i++;
+		}
+
+		//depth stencil
+		{
+			if (currentRenderPass->depthTexture) {
+				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
+				if (currentRenderPass->config.depthAttachment->shouldTransition) {
+					TransitionResource(commandList, tx->texture,
+						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				}
+				auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+					tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
+				commandList->ClearDepthStencilView(rtv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
+			}
+		}
+
 	}
 	void CommandBufferD3D12::EndRendering()
 	{
+		uint32_t i = 0;
+		for (const auto& attachment : currentRenderPass->config.attachments) {
+			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
+			if (attachment.shouldTransition) {
+				TransitionResource(commandList, tx->texture,
+					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+			}
+		}
+
+		currentRenderPass = nullptr;
 	}
 	void CommandBufferD3D12::BindPipeline(RGLRenderPipelinePtr in_pipeline)
 	{

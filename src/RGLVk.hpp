@@ -1,5 +1,6 @@
 # pragma once
 
+#include <RGL/Types.hpp>
 #include "RGLCommon.hpp"
 #include "TextureFormat.hpp"
 #include <vulkan/vulkan.h>
@@ -48,5 +49,5 @@ namespace RGL {
 	VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool);
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device, VkCommandPool commandPool);
 
-
+	RGLRenderPassPtr CreateRenderPassVk(const RenderPassConfig& config);
 }

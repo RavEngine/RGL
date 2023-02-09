@@ -32,7 +32,6 @@ namespace RGL {
 		// IDevice
 		std::string GetBrandString();
 		RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr, int, int) final;
-		RGLRenderPassPtr CreateRenderPass(const RenderPassConfig&) final;
 		RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
 		RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) final;
 
@@ -44,6 +43,7 @@ namespace RGL {
 
 		RGLBufferPtr CreateBuffer(const BufferConfig&) final;
 		RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) final;
+		RGLTexturePtr CreateTexture(const TextureConfig&) final;
 
 		RGLSamplerPtr CreateSampler(const SamplerConfig&) final;
 
