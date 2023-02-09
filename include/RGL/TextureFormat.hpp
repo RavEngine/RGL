@@ -5,6 +5,7 @@ namespace RGL {
 		Undefined,
 		BGRA8_Unorm,
         RGBA8_Uint,
+        RGBA8_Unorm,
 
 		D32SFloat,			// 32 bit float
 		D24UnormS8Uint,		// 24 bit depth, 8 bit stencil

@@ -20,6 +20,7 @@ MTLPixelFormat rgl2mtlformat(TextureFormat format){
         case decltype(format)::Undefined: return MTLPixelFormatInvalid;
         case decltype(format)::BGRA8_Unorm: return MTLPixelFormatBGRA8Unorm;
         case decltype(format)::RGBA8_Uint: return MTLPixelFormatRGBA8Uint;
+        case decltype(format)::RGBA8_Unorm: return MTLPixelFormatRGBA8Unorm;
         case decltype(format)::D32SFloat: return MTLPixelFormatDepth32Float;
         case decltype(format)::D24UnormS8Uint: return MTLPixelFormatDepth24Unorm_Stencil8;
         default:
