@@ -7,21 +7,10 @@
 namespace RGL {
     DXGI_FORMAT rgl2dxgiformat(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format) {
         switch (format) {
-        case decltype(format)::R32G32B32_SignedFloat:
-            return DXGI_FORMAT_R32G32B32_FLOAT;
-        case decltype(format)::R32G32_SignedFloat:
-            return DXGI_FORMAT_R32G32_FLOAT;
+        case decltype(format)::R32G32B32_SignedFloat:   return DXGI_FORMAT_R32G32B32_FLOAT;
+        case decltype(format)::R32G32_SignedFloat:      return DXGI_FORMAT_R32G32_FLOAT;
         default:
             FatalError("Unsupported vertex attribute format");
-        }
-    }
-
-    DXGI_FORMAT rgl2dxgiformat_texture(RGL::TextureFormat format) {
-        switch (format) {
-        case decltype(format)::BGRA8_Unorm:
-            return DXGI_FORMAT_R8G8B8A8_UNORM;
-        default:
-            FatalError("Unsupported texture format");
         }
     }
 
@@ -37,6 +26,23 @@ namespace RGL {
             return D3D12_CULL_MODE_NONE;    //TODO: this should be the All option which results in no rendering
         }
     };
+
+    D3D12_COMPARISON_FUNC rgl2d3dcompfn(decltype(RenderPipelineDescriptor::DepthStencilConfig::depthFunction) depthFunction) {
+        switch (depthFunction) {
+        case decltype(depthFunction)::Always: return D3D12_COMPARISON_FUNC_ALWAYS;
+        case decltype(depthFunction)::Equal: return D3D12_COMPARISON_FUNC_EQUAL;
+        case decltype(depthFunction)::Greater: return D3D12_COMPARISON_FUNC_GREATER;
+        case decltype(depthFunction)::GreaterOrEqual: return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        case decltype(depthFunction)::Less: return D3D12_COMPARISON_FUNC_LESS;
+        case decltype(depthFunction)::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+        case decltype(depthFunction)::Never: return D3D12_COMPARISON_FUNC_NEVER;
+        case decltype(depthFunction)::NotEqual: return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+        default:
+            FatalError("Compare function not supported");
+
+        }
+    }
+
 
 	PipelineLayoutD3D12::PipelineLayoutD3D12(decltype(owningDevice) owningDevice, const PipelineLayoutDescriptor& desc) : owningDevice(owningDevice)
 	{
@@ -160,8 +166,12 @@ namespace RGL {
         rasterizerDesc.FrontCounterClockwise = desc.rasterizerConfig.windingOrder == decltype(desc.rasterizerConfig.windingOrder)::Counterclockwise;
 
         CD3DX12_DEPTH_STENCIL_DESC depthStencilDesc{ D3D12_DEFAULT };
-        depthStencilDesc.DepthEnable = false;
-        depthStencilDesc.StencilEnable = false;
+        depthStencilDesc.DepthEnable = desc.depthStencilConfig.depthTestEnabled;
+        depthStencilDesc.DepthFunc = rgl2d3dcompfn(desc.depthStencilConfig.depthFunction);
+        depthStencilDesc.DepthWriteMask = desc.depthStencilConfig.depthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+
+        //TODO: complete stencil
+        depthStencilDesc.StencilEnable = desc.depthStencilConfig.stencilTestEnabled;
 
         // describe the pipeline state object
         pipelineStateDesc.pRootSignature = std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout)->rootSignature.Get();
@@ -169,7 +179,7 @@ namespace RGL {
         pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateDesc.VS = vertFunc->shaderBytecode;
         pipelineStateDesc.PS = fragFunc->shaderBytecode;
-        pipelineStateDesc.DSVFormat = /*DXGI_FORMAT_D32_FLOAT*/ DXGI_FORMAT_UNKNOWN;  // use Unknown to specify that there is no depth stencil view
+        pipelineStateDesc.DSVFormat = rgl2dxgiformat_texture(desc.depthStencilConfig.depthFormat);
         pipelineStateDesc.RasterizerState = rasterizerDesc;
         pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         pipelineStateDesc.DepthStencilState = depthStencilDesc;

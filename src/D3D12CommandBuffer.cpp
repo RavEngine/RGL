@@ -51,6 +51,9 @@ namespace RGL {
 	{
 		currentRenderPass = std::static_pointer_cast<RenderPassD3D12>(renderPass);
 
+		const auto nrtvs = currentRenderPass->config.attachments.size();
+		stackarray(rtvs, CD3DX12_CPU_DESCRIPTOR_HANDLE,nrtvs);
+
 		uint32_t i = 0;
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
@@ -63,12 +66,14 @@ namespace RGL {
 				tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
 			commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
 
-			commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+			rtvs[i] = rtv;
 
 			i++;
 		}
 
 		//depth stencil
+		D3D12_CPU_DESCRIPTOR_HANDLE dsv;
+		D3D12_CPU_DESCRIPTOR_HANDLE* dsvptr = nullptr;
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
@@ -76,12 +81,14 @@ namespace RGL {
 					TransitionResource(commandList, tx->texture,
 						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				}
-				auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-					tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
-				//commandList->ClearDepthStencilView(rtv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
+				dsv = tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+				dsvptr = &dsv;
+				commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
 			}
 		}
 
+		// bind the targets
+		commandList->OMSetRenderTargets(nrtvs, rtvs, FALSE, dsvptr);
 	}
 	void CommandBufferD3D12::EndRendering()
 	{

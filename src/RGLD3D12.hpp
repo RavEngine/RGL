@@ -1,6 +1,7 @@
 #pragma once
 #include <RGL/Types.hpp>
 #include <RGL/Core.hpp>
+#include <RGL/TextureFormat.hpp>
 #include "RGLCommon.hpp"
 #include <cassert>
 #include <comdef.h>
@@ -24,4 +25,7 @@ namespace RGL {
 		D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
 
 	RGLRenderPassPtr CreateRenderPassD3D12(const RenderPassConfig& config);
+
+	DXGI_FORMAT rgl2dxgiformat_texture(RGL::TextureFormat format);
+
 }

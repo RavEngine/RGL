@@ -42,6 +42,7 @@ namespace RGL {
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.NumDescriptors = numDescriptors;
         desc.Type = type;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
         DX_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 
@@ -50,6 +51,22 @@ namespace RGL {
     RGLRenderPassPtr CreateRenderPassD3D12(const RenderPassConfig& config)
     {
         return std::make_shared<RenderPassD3D12>(config);
+    }
+
+    DXGI_FORMAT rgl2dxgiformat_texture(RGL::TextureFormat format) {
+        switch (format) {
+        case decltype(format)::BGRA8_Unorm:  return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case decltype(format)::RGBA8_Unorm:  return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case decltype(format)::RGBA8_Uint:  return DXGI_FORMAT_R8G8B8A8_UINT;
+
+        case decltype(format)::D32SFloat:  return DXGI_FORMAT_D32_FLOAT;
+        case decltype(format)::D24UnormS8Uint:  return DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+
+        case decltype(format)::Undefined:  return DXGI_FORMAT_UNKNOWN;
+        default:
+            FatalError("Unsupported texture format");
+        }
     }
 }
 #endif

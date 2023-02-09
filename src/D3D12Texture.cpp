@@ -66,45 +66,73 @@ namespace RGL {
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config) : owningDevice(owningDevice), ITexture({ config.width,config.height })
 	{
-		auto format = DXGI_FORMAT_R8G8B8A8_UINT;	//TODO: obey format
+		const auto format = rgl2dxgiformat_texture(config.format);
+
+		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
 
 		D3D12_RESOURCE_DESC resourceDesc = {};
 		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		resourceDesc.Alignment = 0;
 		resourceDesc.Width = config.width;
-		resourceDesc.Height = config.depth;
+		resourceDesc.Height = config.height;
 		resourceDesc.DepthOrArraySize = config.arrayLayers;
 		resourceDesc.MipLevels = config.mipLevels;
 		resourceDesc.Format = format;
 		resourceDesc.SampleDesc.Count = 1;
 		resourceDesc.SampleDesc.Quality = 0;
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		resourceDesc.Flags = isDS ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 		D3D12MA::ALLOCATION_DESC allocDesc = {};
 		allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		// allocate the resource
 		
-		HRESULT hr = owningDevice->allocator->CreateResource(
-			&allocDesc, &resourceDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST, NULL,
-			&allocation, IID_PPV_ARGS(&texture));
+		const auto state = isDS ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COPY_DEST;
 
-		// create the resource view
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = format;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = config.mipLevels;
-
-		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
-
-		D3D12_CPU_DESCRIPTOR_HANDLE descHandle = {
-				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
+		D3D12_CLEAR_VALUE optimizedClearValue = {
+			.Format = resourceDesc.Format,
 		};
 
-		owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, descHandle);
+		if (isDS) {
+			optimizedClearValue.DepthStencil = { 1,0 };
+		}
+		else {
+			std::fill(optimizedClearValue.Color, optimizedClearValue.Color + std::size(optimizedClearValue.Color), 0);
+		}
+
+		HRESULT hr = owningDevice->allocator->CreateResource(
+			&allocDesc, &resourceDesc,
+			state, &optimizedClearValue,
+			&allocation, IID_PPV_ARGS(&texture));
+
+		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, type, 1);
+
+		auto descHandle = owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+		// create the correct type of resource view
+		if (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) {
+			// create the resource view
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = config.mipLevels;
+
+			
+			owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, descHandle);
+		}
+		else if (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV) {
+			D3D12_DEPTH_STENCIL_VIEW_DESC dsv = {};
+			dsv.Format = rgl2dxgiformat_texture(config.format);
+			dsv.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+			dsv.Texture2D.MipSlice = 0;
+			dsv.Flags = D3D12_DSV_FLAG_NONE;
+
+			owningDevice->device->CreateDepthStencilView(texture.Get(), &dsv, descHandle);
+		}
 	}
 	Dimension TextureD3D12::GetSize() const
 	{
