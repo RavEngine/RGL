@@ -53,34 +53,53 @@ namespace RGL {
 
         // Allow input layout and deny unnecessary access to certain pipeline stages.
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
         // create the constants data
         const auto nconstants = desc.constants.size();
-        stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, nconstants);
+        const auto nsamplers = desc.boundSamplers.size();
+        const auto totalParams = nconstants + nsamplers;
+        stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
         for (int i = 0; i < nconstants; i++) {
             rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
+        //TODO: check 
+        for (int i = 0; i < nsamplers; i++) {
+            D3D12_DESCRIPTOR_RANGE1 range{
+                .NumDescriptors = 1,
+                .BaseShaderRegister = 0,
+                .RegisterSpace = 0,
+                .OffsetInDescriptorsFromTableStart = 0,
+            };
+            rootParameters[i + nconstants].InitAsDescriptorTable(1,&range);
+        }
 
-        const auto numSamplers = desc.boundSamplers.size();
-        stackarray(samplerStates, D3D12_STATIC_SAMPLER_DESC, numSamplers);
+        stackarray(samplerStates, D3D12_STATIC_SAMPLER_DESC, nsamplers);
         {
             uint32_t i = 0;
             for (const auto& isampler : desc.boundSamplers) {
                 auto sampler = std::static_pointer_cast<SamplerD3D12>(isampler);
+                auto& samplerDesc = sampler->samplerDesc;
                 samplerStates[i] = {
-                    //TODO: fill
+                    .Filter = samplerDesc.Filter,
+                    .AddressU = samplerDesc.AddressU,
+                    .AddressV = samplerDesc.AddressV,
+                    .AddressW = samplerDesc.AddressW,
+                    .MipLODBias = samplerDesc.MipLODBias,
+                    .MaxAnisotropy = samplerDesc.MaxAnisotropy,
+                    .ComparisonFunc = samplerDesc.ComparisonFunc,
+                    .BorderColor = {},
+                    .MinLOD = samplerDesc.MinLOD,
+                    .MaxLOD = samplerDesc.MaxLOD,
+                    .ShaderRegister = i,
+                    .RegisterSpace = 0,             //TODO: set register
+                    .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
                 };
             }
         }
 
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-        rootSignatureDescription.Init_1_1(nconstants, rootParameters, numSamplers, samplerStates, rootSignatureFlags);
+        rootSignatureDescription.Init_1_1(totalParams, rootParameters, nsamplers, samplerStates, rootSignatureFlags);
 
         // Serialize the root signature.
         // it becomes a binary object which can be used to create the actual root signature

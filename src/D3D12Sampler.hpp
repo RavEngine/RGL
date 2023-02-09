@@ -12,5 +12,7 @@ namespace RGL {
 		ComPtr<ID3D12DescriptorHeap> owningDescriptorHeap = nullptr;
 		SamplerD3D12(decltype(owningDevice), const SamplerConfig&);
 		virtual ~SamplerD3D12() {}
+
+		D3D12_SAMPLER_DESC samplerDesc;
 	};
 }

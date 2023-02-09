@@ -13,7 +13,7 @@ namespace RGL {
 				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
 		};
 
-		D3D12_SAMPLER_DESC samplerDesc{
+		 samplerDesc = {
 			.Filter = D3D12_FILTER_ANISOTROPIC,
 			.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
 			.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,

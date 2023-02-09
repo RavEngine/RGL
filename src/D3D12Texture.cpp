@@ -61,6 +61,8 @@ namespace RGL {
 		auto fenceValue = owningDevice->internalQueue->ExecuteCommandList(commandList);
 		owningDevice->internalQueue->WaitForFenceValue(fenceValue);
 
+		textureUploadAllocation->Release();	// no longer need this so get rid of it
+
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config) : owningDevice(owningDevice), ITexture({ config.width,config.height })
 	{
@@ -101,6 +103,7 @@ namespace RGL {
 		D3D12_CPU_DESCRIPTOR_HANDLE descHandle = {
 				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
 		};
+
 		owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, descHandle);
 	}
 	Dimension TextureD3D12::GetSize() const
@@ -109,6 +112,9 @@ namespace RGL {
 	}
 	TextureD3D12::~TextureD3D12()
 	{
+		if (allocation) {
+			allocation->Release();
+		}
 	}
 }
 #endif

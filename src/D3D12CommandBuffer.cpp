@@ -78,7 +78,7 @@ namespace RGL {
 				}
 				auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
 					tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
-				commandList->ClearDepthStencilView(rtv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
+				//commandList->ClearDepthStencilView(rtv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
 			}
 		}
 
