@@ -108,6 +108,29 @@ namespace RGL {
 		auto pipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
 		commandList->SetPipelineState(pipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(pipeline->pipelineLayout->rootSignature.Get());
+
+		const auto totalDescHeaps = pipeline->pipelineLayout->boundSamplers.size();
+
+		stackarray(descriptorHeaps, ID3D12DescriptorHeap*, totalDescHeaps);
+
+		{
+			uint32_t heapidx = 0;
+			for (const auto& samplerTextureCombo : pipeline->pipelineLayout->boundSamplers) {
+				descriptorHeaps[heapidx] = std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler)->owningDescriptorHeap.Get();
+				//descriptorHeaps[heapidx + 1] = std::static_pointer_cast<TextureD3D12>(samplerTextureCombo.texture)->owningDescriptorHeap.Get();
+				heapidx++;
+			}
+		}
+
+		commandList->SetDescriptorHeaps(totalDescHeaps, descriptorHeaps);
+
+		// bind samplers and textures
+		uint32_t index = 1;
+		for (const auto& samplerTextureCombo : pipeline->pipelineLayout->boundSamplers) {
+			commandList->SetGraphicsRootDescriptorTable(index, std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler)->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+			//commandList->SetGraphicsRootDescriptorTable(index, static_cast<TextureD3D12*>(samplerTextureCombo.texture.get())->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+			index++;	//TODO: sync with SRVs, this is certainly wrong
+		}
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
 	{
@@ -128,11 +151,11 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		//commandList->SetGraphicsRootDescriptorTable(index, std::static_pointer_cast<SamplerD3D12>(sampler)->descHandle);
-		// https://stackoverflow.com/questions/55628161/how-to-bind-textures-to-different-register-in-dx12
+		
 	}
 	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
+
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{

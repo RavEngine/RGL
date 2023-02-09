@@ -63,20 +63,36 @@ namespace RGL {
         // create the constants data
         const auto nconstants = desc.constants.size();
         const auto nsamplers = desc.boundSamplers.size();
-        const auto totalParams = nconstants + nsamplers;
+        const auto totalParams = nconstants + (nsamplers * 2);
         stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
         for (int i = 0; i < nconstants; i++) {
             rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
         //TODO: check 
-        for (int i = 0; i < nsamplers; i++) {
-            D3D12_DESCRIPTOR_RANGE1 range{
-                .NumDescriptors = 1,
-                .BaseShaderRegister = 0,
-                .RegisterSpace = 0,
-                .OffsetInDescriptorsFromTableStart = 0,
-            };
-            rootParameters[i + nconstants].InitAsDescriptorTable(1,&range);
+        for (int i = 0; i < nsamplers * 2; i+=2) {
+            // sampler
+            {
+                D3D12_DESCRIPTOR_RANGE1 range{
+                    .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+                    .NumDescriptors = 1,
+                    .BaseShaderRegister = 0,
+                    .RegisterSpace = 0,
+                    .OffsetInDescriptorsFromTableStart = 0,
+                };
+                rootParameters[i + nconstants].InitAsDescriptorTable(1, &range);
+            }
+
+            // SRV
+            {
+                D3D12_DESCRIPTOR_RANGE1 range{
+                    .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                    .NumDescriptors = 1,
+                    .BaseShaderRegister = 0,
+                    .RegisterSpace = 0,
+                    .OffsetInDescriptorsFromTableStart = 0,
+                };
+                rootParameters[i + 1 + nconstants].InitAsDescriptorTable(1, &range);
+            }
         }
 
         stackarray(samplerStates, D3D12_STATIC_SAMPLER_DESC, nsamplers);
@@ -105,7 +121,7 @@ namespace RGL {
 
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-        rootSignatureDescription.Init_1_1(totalParams, rootParameters, nsamplers, samplerStates, rootSignatureFlags);
+        rootSignatureDescription.Init_1_1(totalParams, rootParameters, 0, nullptr, rootSignatureFlags);
 
         // Serialize the root signature.
         // it becomes a binary object which can be used to create the actual root signature
@@ -117,7 +133,7 @@ namespace RGL {
 	}
     void PipelineLayoutD3D12::SetLayout(const LayoutConfig& config)
     {
-        // currently does nothing...
+        boundSamplers = config.boundTextures;
     }
 
 

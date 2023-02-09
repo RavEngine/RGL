@@ -8,7 +8,7 @@
 namespace RGL {
 	SamplerD3D12::SamplerD3D12(decltype(owningDevice) owningDevice, const SamplerConfig& config) : owningDevice(owningDevice)
 	{
-		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1);
+		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		descHandle = {
 				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
 		};

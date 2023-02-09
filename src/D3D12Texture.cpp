@@ -81,14 +81,14 @@ namespace RGL {
 		resourceDesc.SampleDesc.Count = 1;
 		resourceDesc.SampleDesc.Quality = 0;
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resourceDesc.Flags = isDS ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		resourceDesc.Flags = isDS ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
 
 		D3D12MA::ALLOCATION_DESC allocDesc = {};
 		allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		// allocate the resource
 		
-		const auto state = isDS ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COPY_DEST;
+		const auto state = isDS ? D3D12_RESOURCE_STATE_DEPTH_WRITE : (D3D12_RESOURCE_STATE_COPY_DEST);
 
 		D3D12_CLEAR_VALUE optimizedClearValue = {
 			.Format = resourceDesc.Format,
@@ -103,12 +103,14 @@ namespace RGL {
 
 		HRESULT hr = owningDevice->allocator->CreateResource(
 			&allocDesc, &resourceDesc,
-			state, &optimizedClearValue,
+			state, (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL || resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) ? &optimizedClearValue : nullptr,
 			&allocation, IID_PPV_ARGS(&texture));
 
 		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, type, 1);
+		const bool canBeShadervisible = !(resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET));
+
+		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, type, 1, canBeShadervisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 
 		auto descHandle = owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 

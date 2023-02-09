@@ -35,14 +35,14 @@ namespace RGL {
     }
 
     ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(ComPtr<ID3D12Device2> device,
-        D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors)
+        D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
     {
         ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.NumDescriptors = numDescriptors;
         desc.Type = type;
-        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        desc.Flags = flags;
 
         DX_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 

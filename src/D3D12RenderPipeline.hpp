@@ -4,6 +4,7 @@
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <directx/d3dx12.h>
+#include <vector>
 
 namespace RGL {
 	struct DeviceD3D12;
@@ -13,6 +14,8 @@ namespace RGL {
 
 		PipelineLayoutD3D12(decltype(owningDevice), const PipelineLayoutDescriptor&);
 		void SetLayout(const LayoutConfig& config) final;
+
+		std::vector<LayoutConfig::TextureAndSampler> boundSamplers;
 	};
 
 	struct RenderPipelineD3D12 : public IRenderPipeline {

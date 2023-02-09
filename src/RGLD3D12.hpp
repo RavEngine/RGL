@@ -22,7 +22,7 @@ namespace RGL {
 	struct RenderPassConfig;
 
 	ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(ComPtr<ID3D12Device2> device,
-		D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
+		D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 
 	RGLRenderPassPtr CreateRenderPassD3D12(const RenderPassConfig& config);
 
