@@ -43,6 +43,7 @@ namespace RGL {
 
 		RGLBufferPtr CreateBuffer(const BufferConfig&) final;
 		RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) final;
+		RGLTexturePtr CreateTexture(const TextureConfig&) final;
 
 		RGLSamplerPtr CreateSampler(const SamplerConfig&) final;
 

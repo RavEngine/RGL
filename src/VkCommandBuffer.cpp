@@ -9,6 +9,62 @@
 #include <cstring>
 
 namespace RGL {
+	VkAttachmentLoadOp RGL2LoadOp(LoadAccessOperation op) {
+		switch (op) {
+		case decltype(op)::Load: return VK_ATTACHMENT_LOAD_OP_LOAD;
+		case decltype(op)::Clear: return VK_ATTACHMENT_LOAD_OP_CLEAR;
+		case decltype(op)::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		case decltype(op)::NotAccessed: return VK_ATTACHMENT_LOAD_OP_NONE_EXT;
+		}
+	}
+
+	VkAttachmentStoreOp RGL2StoreOp(StoreAccessOperation op) {
+		switch (op) {
+		case decltype(op)::Store: return VK_ATTACHMENT_STORE_OP_STORE;
+		case decltype(op)::None: return VK_ATTACHMENT_STORE_OP_NONE;
+		case decltype(op)::DontCare: return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		}
+	}
+
+	void encodeResourceTransition(VkCommandBuffer commandBuffer, VkImage image, 
+		decltype(VkImageMemoryBarrier::srcAccessMask) srcAccessMask,
+		decltype(VkImageMemoryBarrier::dstAccessMask) dstAccessMask,
+		decltype(VkImageMemoryBarrier::oldLayout) oldLayout,
+		decltype(VkImageMemoryBarrier::newLayout) newLayout,
+		decltype(decltype(VkImageMemoryBarrier::subresourceRange)::aspectMask) aspectMask,
+		VkPipelineStageFlags srcStageMask,
+		VkPipelineStageFlags dstStageMask
+	) {
+		const VkImageMemoryBarrier image_memory_barrier_begin{
+					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+					.srcAccessMask = srcAccessMask,
+					.dstAccessMask = dstAccessMask,
+					.oldLayout = oldLayout,
+					.newLayout = newLayout,
+					.image = image,
+					.subresourceRange = {
+					  .aspectMask = aspectMask,
+					  .baseMipLevel = 0,
+					  .levelCount = 1,
+					  .baseArrayLayer = 0,
+					  .layerCount = 1,
+					}
+		};
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			srcStageMask,  // srcStageMask
+			dstStageMask, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1, // imageMemoryBarrierCount
+			&image_memory_barrier_begin // pImageMemoryBarriers
+		);
+	}
+
 	void RGL::CommandBufferVk::Reset()
 	{
 		VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
@@ -46,54 +102,63 @@ namespace RGL {
 
 		stackarray(attachmentInfos, VkRenderingAttachmentInfoKHR, renderPass->config.attachments.size());
 
-		uint32_t i = 0;
-		for (const auto& attachment : renderPass->config.attachments) {
+		auto makeAttachmentInfo = [](const RenderPassConfig::AttachmentDesc& attachment, VkImageView imageView) -> VkRenderingAttachmentInfoKHR {
 			VkClearValue clearColor = { {{attachment.clearColor[0], attachment.clearColor[1], attachment.clearColor[2], attachment.clearColor[3]}} };
 
-			attachmentInfos[i] = {
+			return {
 				.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-				.imageView = (renderPass->textures[i]->vkImageView),
+				.imageView = imageView,
 				.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.loadOp = RGL2LoadOp(attachment.loadOp),
+				.storeOp = RGL2StoreOp(attachment.storeOp),
 				.clearValue = clearColor,
 			};
+		};
+
+
+		uint32_t i = 0;
+		for (const auto& attachment : renderPass->config.attachments) {
+			
+			attachmentInfos[i] = makeAttachmentInfo(attachment, renderPass->textures[i]->vkImageView);
 
 			// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
 			if (attachment.shouldTransition) {
-				const VkImageMemoryBarrier image_memory_barrier_begin{
-					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-					.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-					.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-					.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-					.image = static_cast<TextureVk*>(renderPass->textures[i])->vkImage,
-					.subresourceRange = {
-					  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-					  .baseMipLevel = 0,
-					  .levelCount = 1,
-					  .baseArrayLayer = 0,
-					  .layerCount = 1,
-					}
-				};
-
-				vkCmdPipelineBarrier(
-					commandBuffer,
-					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
-					0,
-					0,
-					nullptr,
-					0,
-					nullptr,
-					1, // imageMemoryBarrierCount
-					&image_memory_barrier_begin // pImageMemoryBarriers
+				encodeResourceTransition(commandBuffer, 
+					static_cast<TextureVk*>(renderPass->textures[i])->vkImage, 
+					VK_ACCESS_NONE,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					VK_IMAGE_ASPECT_COLOR_BIT,
+					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 				);
 			}
 
 			i++;
 		}
 
+		// repeat for depth stencil attachment
+
 		auto texSize = renderPass->textures[0]->GetSize();
+		VkRenderingAttachmentInfoKHR* depthAttachmentinfo = nullptr;
+		VkRenderingAttachmentInfoKHR depthAttachmentInfoData{};
+
+		if (renderPass->config.depthAttachment.has_value()) {
+			auto& da = renderPass->config.depthAttachment.value();
+			depthAttachmentInfoData = makeAttachmentInfo(da, renderPass->depthTexture->vkImageView);
+			depthAttachmentinfo = &depthAttachmentInfoData;
+		}
+
+		VkRenderingAttachmentInfoKHR* stencilAttachmentInfo = nullptr;
+		VkRenderingAttachmentInfoKHR stencilAttachmentInfoData{};
+
+		if (renderPass->config.stencilAttachment.has_value()) {
+			auto& sa = renderPass->config.stencilAttachment.value();
+			stencilAttachmentInfoData = makeAttachmentInfo(sa, renderPass->depthTexture->vkImageView);
+			stencilAttachmentInfo = &stencilAttachmentInfoData;
+		}
+
 
 		const VkRenderingInfoKHR render_info{
 			.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
@@ -104,6 +169,8 @@ namespace RGL {
 			.layerCount = 1,
 			.colorAttachmentCount = static_cast<uint32_t>(renderPass->config.attachments.size()),
 			.pColorAttachments = attachmentInfos,
+			.pDepthAttachment = depthAttachmentinfo,
+			.pStencilAttachment = stencilAttachmentInfo
 		};
 
 
@@ -118,32 +185,16 @@ namespace RGL {
 			if (attachment.shouldTransition) {
 				// the swapchain image is not in the correct format for presentation now
 				// so it needs to be transitioned 
-				const VkImageMemoryBarrier image_memory_barrier_end{
-					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-					.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-					.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-					.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-					.image = static_cast<TextureVk*>(currentRenderPass->textures[i])->vkImage,
-					.subresourceRange = {
-					  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-					  .baseMipLevel = 0,
-					  .levelCount = 1,
-					  .baseArrayLayer = 0,
-					  .layerCount = 1,
-					}
-				};
 
-				vkCmdPipelineBarrier(
-					commandBuffer,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
-					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
-					0,
-					0,
-					nullptr,
-					0,
-					nullptr,
-					1, // imageMemoryBarrierCount
-					&image_memory_barrier_end // pImageMemoryBarriers
+				encodeResourceTransition(commandBuffer,
+					static_cast<TextureVk*>(currentRenderPass->textures[i])->vkImage,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_ACCESS_NONE,
+					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+					VK_IMAGE_ASPECT_COLOR_BIT,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
 				);
 			}
 			i++;

@@ -17,15 +17,6 @@ namespace RGL {
         }
     }
 
-    VkFormat RGLFormat2VK(RGL::TextureFormat format) {
-        switch (format) {
-        case TextureFormat::BGRA8_Unorm:
-            return VK_FORMAT_B8G8R8A8_SRGB;
-        default:
-            FatalError("Cannot convert texture format");
-        }
-    }
-
     VkPrimitiveTopology RGL2VkTopology(PrimitiveTopology top) {
         switch (top) {
             case decltype(top)::PointList: return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
@@ -185,7 +176,7 @@ namespace RGL {
         const uint32_t nattachments = desc.colorBlendConfig.attachments.size();
         stackarray(attachmentFormats, VkFormat, nattachments);
         for (int i = 0; i < nattachments; i++) {
-            attachmentFormats[i] = RGLFormat2VK(desc.colorBlendConfig.attachments[i].format);
+            attachmentFormats[i] = RGL2VkTextureFormat(desc.colorBlendConfig.attachments[i].format);
         }
 
         VkPipelineRenderingCreateInfoKHR renderingCreateInfo{
@@ -193,8 +184,21 @@ namespace RGL {
             .pNext = VK_NULL_HANDLE,
             .colorAttachmentCount = nattachments,
             .pColorAttachmentFormats = attachmentFormats,
-            //TODO: support depth and stencil attachments
-            
+            .depthAttachmentFormat = RGL2VkTextureFormat(desc.depthStencilConfig.depthFormat),
+            .stencilAttachmentFormat = RGL2VkTextureFormat(desc.depthStencilConfig.stencilFormat)
+        };
+
+        VkPipelineDepthStencilStateCreateInfo depthStencil{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .depthTestEnable = desc.depthStencilConfig.depthTestEnabled,
+            .depthWriteEnable = desc.depthStencilConfig.depthWriteEnabled,
+            .depthCompareOp = static_cast<VkCompareOp>(desc.depthStencilConfig.depthFunction),
+            .depthBoundsTestEnable = VK_FALSE,
+            .stencilTestEnable = desc.depthStencilConfig.stencilTestEnabled,
+            .front = static_cast<VkStencilOp>(desc.depthStencilConfig.stencilFrontOperation),
+            .back = static_cast<VkStencilOp>(desc.depthStencilConfig.stencilBackOperation),
+            .minDepthBounds = 0.0f,         // Optional,
+            .maxDepthBounds = 1.0f,      // Optional
         };
 
         // create the pipeline object
@@ -208,7 +212,7 @@ namespace RGL {
             .pViewportState = &viewportState,
             .pRasterizationState = &rasterizer,
             .pMultisampleState = &multisampling,
-            .pDepthStencilState = nullptr,
+            .pDepthStencilState = &depthStencil,
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout->layout,

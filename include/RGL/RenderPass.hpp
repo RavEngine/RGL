@@ -23,10 +23,14 @@ struct RenderPassConfig {
         bool shouldTransition = false;
     };
     std::vector<AttachmentDesc> attachments;
+
+    std::optional<AttachmentDesc> depthAttachment, stencilAttachment;
 };
 
 struct IRenderPass {
     
     virtual void SetAttachmentTexture(uint32_t index, ITexture* texture) = 0;
+    virtual void SetDepthAttachmentTexture(ITexture* texture) = 0;
+    virtual void SetStencilAttachmentTexture(ITexture* texture) = 0;
 };
 }

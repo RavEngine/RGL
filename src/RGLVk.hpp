@@ -1,6 +1,7 @@
 # pragma once
 
 #include "RGLCommon.hpp"
+#include "TextureFormat.hpp"
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 #include <cassert>
@@ -37,6 +38,8 @@ namespace RGL {
 
 	enum class MSASampleCount : uint8_t;
 	VkSampleCountFlagBits RGLMSA2VK(const RGL::MSASampleCount& samplecount);
+
+	VkFormat RGL2VkTextureFormat(TextureFormat);
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice);
 

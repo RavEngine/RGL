@@ -15,6 +15,7 @@ namespace RGL {
 		bool owning = false;
 		TextureVk(decltype(vkImageView) imageView, decltype(vkImage) image, const Dimension& size);
 		TextureVk(decltype(owningDevice), const TextureConfig&, untyped_span bytes);
+		TextureVk(decltype(owningDevice), const TextureConfig&);
 		Dimension GetSize() const final;
 		virtual ~TextureVk();
 	};

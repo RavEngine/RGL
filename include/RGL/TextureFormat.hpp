@@ -2,8 +2,12 @@
 
 namespace RGL {
 	enum class TextureFormat {
+		Undefined,
 		BGRA8_Unorm,
-        RGBA8_SFloat,
+        RGBA8_Uint,
+
+		D32SFloat,			// 32 bit float
+		D24UnormS8Uint,		// 24 bit depth, 8 bit stencil
 	};
 
 	enum class TextureLayout : uint8_t {

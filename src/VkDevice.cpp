@@ -267,6 +267,11 @@ namespace RGL {
         return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
     }
 
+    RGLTexturePtr DeviceVk::CreateTexture(const TextureConfig& config)
+    {
+        return std::make_shared<TextureVk>(shared_from_this(), config);
+    }
+
     RGLSamplerPtr DeviceVk::CreateSampler(const SamplerConfig& config)
     {
         return std::make_shared<SamplerVk>(shared_from_this(), config);

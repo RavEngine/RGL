@@ -30,6 +30,7 @@ namespace RGL {
 
 		virtual RGLBufferPtr CreateBuffer(const BufferConfig&) = 0;
 		virtual RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) = 0;
+		virtual RGLTexturePtr CreateTexture(const TextureConfig&) = 0;
         virtual RGLSamplerPtr CreateSampler(const SamplerConfig&) = 0;
 
 		virtual RGLCommandQueuePtr CreateCommandQueue(QueueType type) = 0;

@@ -14,7 +14,12 @@ namespace RGL {
 
 		std::vector<TextureVk*> textures;
 
+		TextureVk* depthTexture = nullptr;
+		TextureVk* stencilTexture = nullptr;
+
 		void SetAttachmentTexture(uint32_t index, ITexture* texture) final;
+		void SetDepthAttachmentTexture(ITexture* texture) final;
+		void SetStencilAttachmentTexture(ITexture* texture) final;
 	};
 
 }

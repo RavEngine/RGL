@@ -19,9 +19,9 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
     DestroySwapchainIfNeeded();
 
     constexpr auto chooseSwapSurfaceFormat = [](const std::vector<VkSurfaceFormatKHR>& availableFormats) -> VkSurfaceFormatKHR {
-        // we want BGRA8 SRGB in nonlinear space
+        // we want BGRA8 Unorm in nonlinear space
         for (const auto& availableFormat : availableFormats) {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return availableFormat;
             }
         }

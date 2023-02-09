@@ -9,6 +9,28 @@
 
 namespace RGL {
 
+	enum class DepthCompareFunction : uint8_t {
+		Never = 0,			// matches the values of VkCompareOp
+		Less = 1,
+		Equal = 2,
+		LessOrEqual = 3,
+		Greater = 4,
+		NotEqual = 5,
+		GreaterOrEqual = 6,
+		Always = 7,
+	};
+
+	enum class StencilOperation : uint8_t {
+		Keep = 0,			// matches the values of VkStencilOp
+		Zero = 1,
+		Replace = 2,
+		IncrementClamp = 3,
+		DecrementClamp = 4,
+		Invert = 5,
+		IncrementWrap = 6,
+		DecrementWrap = 7,
+	};
+
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
@@ -201,8 +223,24 @@ namespace RGL {
 				bool blendEnabled : 1 = false;
 			};
 			std::vector<ColorAttachmentConfig> attachments;	// create one for every attachment in the pass
+
+			
+
 			float blendconstants[4] = { 0,0,0,0 };
 		} colorBlendConfig;
+
+		struct DepthStencilConfig {
+			TextureFormat depthFormat = TextureFormat::Undefined;
+			TextureFormat stencilFormat = TextureFormat::Undefined;
+			bool depthTestEnabled = false;
+			bool depthWriteEnabled = false;
+			DepthCompareFunction depthFunction = DepthCompareFunction::Never;
+
+			bool stencilTestEnabled = false;
+			StencilOperation stencilFrontOperation = StencilOperation::Keep;
+			StencilOperation stencilBackOperation = StencilOperation::Keep;
+		} depthStencilConfig;
+
 		// list of what states are dynamic (TODO)
 		RGLPipelineLayoutPtr pipelineLayout;
 	};

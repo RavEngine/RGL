@@ -90,7 +90,7 @@ namespace RGL {
 	TextureVk::TextureVk(decltype(vkImageView) imageView, decltype(vkImage) image, const Dimension& size) : vkImageView(imageView), vkImage(image), ITexture(size)
 	{
 	}
-	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : owningDevice(owningDevice), owning(true), ITexture(Dimension{.width = config.width,.height = config.height})
+	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureVk(owningDevice, config)
 	{
 
 		// allocate a staging buffer for the texture
@@ -106,6 +106,22 @@ namespace RGL {
 		memcpy(data, bytes.data(), bytes.size());
 		vmaUnmapMemory(owningDevice->vkallocator, allocation);
 
+		auto format = RGL2VkTextureFormat(config.format);
+
+		// TODO: these probably should share the same command buffer
+		transitionImageLayout(vkImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		copyBufferToImage(stagingBuffer, vkImage, static_cast<uint32_t>(config.width), static_cast<uint32_t>(config.height), device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		transitionImageLayout(vkImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,device, owningDevice->commandPool, owningDevice->presentQueue);
+
+		// cleanup
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vmaFreeMemory(owningDevice->vkallocator, allocation);
+	}
+	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config) : owningDevice(owningDevice), owning(true), ITexture(Dimension{ .width = config.width,.height = config.height })
+	{
+		const auto format = RGL2VkTextureFormat(config.format);
 
 		//TODO: read other options from config
 		VkImageCreateInfo imageInfo{
@@ -113,7 +129,7 @@ namespace RGL {
 			.pNext = nullptr,
 			.flags = 0,
 			.imageType = VK_IMAGE_TYPE_2D,
-			.format = VK_FORMAT_R8G8B8A8_UINT,
+			.format = format,
 			.extent = {
 				.width = config.width,
 				.height = config.height,
@@ -123,14 +139,17 @@ namespace RGL {
 			.arrayLayers = config.arrayLayers,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.tiling = VK_IMAGE_TILING_OPTIMAL,
-			.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			.usage = static_cast<VkImageUsageFlags>(config.usage),
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 		};
+
+		//TODO: replace this with VMA
+
 		VK_CHECK(vkCreateImage(owningDevice->device, &imageInfo, nullptr, &vkImage));
 
 		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device, vkImage, &memRequirements);
+		vkGetImageMemoryRequirements(owningDevice->device, vkImage, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{
 			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -138,39 +157,28 @@ namespace RGL {
 			.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, owningDevice->physicalDevice)
 		};
 
-		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMem));
+		VK_CHECK(vkAllocateMemory(owningDevice->device, &allocInfo, nullptr, &textureImageMem));
 
-		vkBindImageMemory(device, vkImage, textureImageMem, 0);
-
-		// TODO: these probably should share the same command buffer
-		transitionImageLayout(vkImage, imageInfo.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device, owningDevice->commandPool, owningDevice->presentQueue);
-
-		copyBufferToImage(stagingBuffer, vkImage, static_cast<uint32_t>(config.width), static_cast<uint32_t>(config.height), device, owningDevice->commandPool, owningDevice->presentQueue);
-
-		transitionImageLayout(vkImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,device, owningDevice->commandPool, owningDevice->presentQueue);
-
-		// cleanup
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vmaFreeMemory(owningDevice->vkallocator, allocation);
+		vkBindImageMemory(owningDevice->device, vkImage, textureImageMem, 0);
 
 		VkImageViewCreateInfo createInfo{
-			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			.image = vkImage,
-			.viewType = VK_IMAGE_VIEW_TYPE_2D,
-			.format = imageInfo.format,
-			.components{
-				.r = VK_COMPONENT_SWIZZLE_IDENTITY, // we don't want any swizzling
-				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.a = VK_COMPONENT_SWIZZLE_IDENTITY
-		},
-			.subresourceRange{
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,    // mipmap and layer info (we don't want any here)
-				.baseMipLevel = 0,
-				.levelCount = 1,
-				.baseArrayLayer = 0,
-				.layerCount = 1
-			}
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = vkImage,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.components{
+			.r = VK_COMPONENT_SWIZZLE_IDENTITY, // we don't want any swizzling
+			.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+			.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+			.a = VK_COMPONENT_SWIZZLE_IDENTITY
+	},
+		.subresourceRange{
+			.aspectMask = static_cast<VkImageAspectFlags>(config.aspect),    // mipmap and layer info (we don't want any here)
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1
+		}
 		};
 		VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &vkImageView));
 	}
