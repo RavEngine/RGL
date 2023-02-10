@@ -53,7 +53,7 @@ void CommandBufferMTL::EndRendering(){
 }
 
 void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t offset){
-    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offset atIndex:0];    //TODO: don't hardcode to vertex stage
+    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:0 atIndex:offset];    //TODO: don't hardcode to vertex stage
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
