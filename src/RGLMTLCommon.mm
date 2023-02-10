@@ -2,6 +2,7 @@
 #import <Metal/Metal.h>
 #include "RGLMTL.hpp"
 #include "RGLCommon.hpp"
+#include "MTLRenderPass.hpp"
 
 using namespace RGL;
 
@@ -39,6 +40,10 @@ APPLE_API_TYPE(MTLTextureUsage) rgl2mtlTextureUsage(RGL::TextureUsage usage){
         ret |= MTLTextureUsageRenderTarget;
     }
     return ret;
+}
+
+RGLRenderPassPtr CreateRenderPassMTL(const RenderPassConfig& config){
+    return std::make_shared<RenderPassMTL>(config);
 }
 
 }

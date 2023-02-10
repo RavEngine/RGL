@@ -213,7 +213,7 @@ namespace RGL {
 #endif
 #if RGL_MTL_AVAILABLE
         case API::Metal:
-            DeinitMTL();
+                return CreateRenderPassMTL(config);
             break;
 #endif
         default:
