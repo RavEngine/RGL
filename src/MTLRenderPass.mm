@@ -4,6 +4,7 @@
 #include "MTLRenderPass.hpp"
 #include "RGLCommon.hpp"
 #include "MTLTexture.hpp"
+#include "MTLDevice.hpp"
 
 namespace RGL{
 

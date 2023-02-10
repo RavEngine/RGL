@@ -20,6 +20,7 @@ namespace RGL{
 
     struct RenderPipelineMTL : public IRenderPipeline{
         OBJC_ID(MTLRenderPipelineState) pipelineState;
+        OBJC_ID(MTLDepthStencilState) depthStencilState = nullptr;
         const std::shared_ptr<DeviceMTL> owningDevice;
         RenderPipelineDescriptor settings;
         

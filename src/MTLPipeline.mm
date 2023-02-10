@@ -20,6 +20,19 @@ std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexC
     }
 }
 
+MTLCompareFunction rgl2mtlcomparefunction(DepthCompareFunction fn){
+    switch(fn){
+        case decltype(fn)::Never:           return MTLCompareFunctionNever;
+        case decltype(fn)::Less:            return MTLCompareFunctionLess;
+        case decltype(fn)::Equal:           return MTLCompareFunctionEqual;
+        case decltype(fn)::LessOrEqual:     return MTLCompareFunctionLessEqual;
+        case decltype(fn)::Greater:         return MTLCompareFunctionGreater;
+        case decltype(fn)::NotEqual:        return MTLCompareFunctionNotEqual;
+        case decltype(fn)::GreaterOrEqual:  return MTLCompareFunctionGreaterEqual;
+        case decltype(fn)::Always:          return MTLCompareFunctionAlways;
+    }
+}
+
 void PipelineLayoutMTL::SetLayout(const LayoutConfig& config){
     this->samplerTextures = config.boundTextures;
 }
@@ -75,6 +88,13 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
     pipelineDesc.depthAttachmentPixelFormat = rgl2mtlformat(desc.depthStencilConfig.depthFormat);
     
     MTL_CHECK(pipelineState = [owningDevice->device newRenderPipelineStateWithDescriptor:pipelineDesc error:&err]);
+    
+    if (desc.depthStencilConfig.depthTestEnabled){
+        auto depthDesc = [MTLDepthStencilDescriptor new];
+        depthDesc.depthCompareFunction = rgl2mtlcomparefunction(desc.depthStencilConfig.depthFunction);
+        depthDesc.depthWriteEnabled = desc.depthStencilConfig.depthWriteEnabled;
+        depthStencilState = [owningDevice->device newDepthStencilStateWithDescriptor:depthDesc];
+    }
     
 }
 

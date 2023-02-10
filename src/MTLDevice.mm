@@ -12,6 +12,7 @@
 #include "MTLCommandQueue.hpp"
 #include "MTLTexture.hpp"
 #include "MTLSampler.hpp"
+#include "MTLRenderPass.hpp"
 
 namespace RGL{
 RGLDevicePtr CreateDefaultDeviceMTL(){
