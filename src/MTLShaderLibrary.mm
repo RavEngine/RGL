@@ -25,7 +25,7 @@ ShaderLibraryMTL::ShaderLibraryMTL(decltype(owningDevice) owningDevice, const st
         throw std::runtime_error([errstr UTF8String]);
     }
     
-    function = [library newFunctionWithName:@"transient_fn0"];
+    function = [library newFunctionWithName:@"transient_fn"];
 
 }
 }

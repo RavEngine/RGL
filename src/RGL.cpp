@@ -80,7 +80,7 @@ namespace RGL {
     }
 
 
-    void RGL::Init(const InitOptions& options)
+    void Init(const InitOptions& options)
     {
         if (options.callback) {
             callbackFn = options.callback;
@@ -124,7 +124,7 @@ namespace RGL {
         }
     }
 
-    void RGL::Shutdown() {
+    void Shutdown() {
         switch (RGL::currentAPI) {
 #if RGL_DX12_AVAILABLE
         case API::Direct3D12:
@@ -148,16 +148,16 @@ namespace RGL {
         RGL::currentAPI = API::Uninitialized;
     }
 
-    bool RGL::CanInitAPI(API api)
+    bool CanInitAPI(API api)
     {
         return std::find(std::begin(APIsAvailable), std::end(APIsAvailable), api) != std::end(APIsAvailable);
     }
 
-    API RGL::CurrentAPI() {
+    API CurrentAPI() {
         return RGL::currentAPI;
     }
 
-    const char* RGL::APIToString(API api) {
+    const char* APIToString(API api) {
         switch (api) {
         case API::Metal:
             return "Metal";
@@ -173,7 +173,7 @@ namespace RGL {
         }
     }
 
-    void RGL::LogMessage(MessageSeverity severity, const std::string& str) {
+    void LogMessage(MessageSeverity severity, const std::string& str) {
         callbackFn(severity, str);
 
         // crash the program 
@@ -182,11 +182,11 @@ namespace RGL {
             throw std::runtime_error(str);
         }
     }
-    void RGL::FatalError(const std::string& str) {
+    void FatalError(const std::string& str) {
         LogMessage(MessageSeverity::Fatal, str);
     }
 
-    void RGL::FatalError(const std::wstring& wstr) {
+    void FatalError(const std::wstring& wstr) {
         std::string result;
         result.resize(wstr.size());
 #if _UWP

@@ -34,7 +34,9 @@ void CommandBufferMTL::SetIndexBuffer(RGLBufferPtr buffer) {
 void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
     [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
-    [currentCommandEncoder setDepthStencilState:pipeline->depthStencilState];
+    if (pipeline->depthStencilState){
+        [currentCommandEncoder setDepthStencilState:pipeline->depthStencilState];
+    }
     
     uint32_t index = 0;
     for(const auto& item : pipeline->settings.pipelineLayout->samplerTextures){
