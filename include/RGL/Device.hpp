@@ -6,6 +6,7 @@
 #include <RGL/CommandQueue.hpp>
 #include <RGL/Span.hpp>
 #include <RGL/Types.hpp>
+#include <RGL/ShaderLibrary.hpp>
 
 #undef CreateSemaphore
 
@@ -25,7 +26,7 @@ namespace RGL {
         virtual RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) = 0;
 		virtual RGLShaderLibraryPtr CreateDefaultShaderLibrary() = 0;
 		virtual RGLShaderLibraryPtr CreateShaderLibraryFromBytes(const std::span<uint8_t>) = 0;
-		virtual RGLShaderLibraryPtr CreateShaderLibrarySourceCode(const std::string_view) = 0;
+		virtual RGLShaderLibraryPtr CreateShaderLibrarySourceCode(const std::string_view, const FromSourceConfig& config) = 0;
 		virtual RGLShaderLibraryPtr CreateShaderLibraryFromPath(const std::filesystem::path&) = 0;
 
 		virtual RGLBufferPtr CreateBuffer(const BufferConfig&) = 0;

@@ -57,8 +57,8 @@ RGLShaderLibraryPtr DeviceMTL::CreateShaderLibraryFromBytes(const std::span<uint
     FatalError("Not Implemented");
 }
 
-RGLShaderLibraryPtr DeviceMTL::CreateShaderLibrarySourceCode(const std::string_view) {
-    FatalError("ShaderLibraryMTL");
+RGLShaderLibraryPtr DeviceMTL::CreateShaderLibrarySourceCode(const std::string_view source, const FromSourceConfig& config) {
+    return std::make_shared<ShaderLibraryMTL>(shared_from_this(), source, config);
 }
 
 RGLShaderLibraryPtr DeviceMTL::CreateShaderLibraryFromPath(const std::filesystem::path&) {
