@@ -2,6 +2,7 @@
 #include "VkShaderLibrary.hpp"
 #include "RGLCommon.hpp"
 #include "RGLVk.hpp"
+#include <librglc.hpp>
 #include <fstream>
 
 static std::vector<uint8_t> readFile(const std::filesystem::path& filename) {
@@ -37,9 +38,14 @@ namespace RGL {
 	{
 		ShaderLibraryFromBytes(owningDevice->device,shaderModule, code);
 	}
-	ShaderLibraryVk::ShaderLibraryVk(decltype(owningDevice) device, const std::string_view) : owningDevice(device)
+	ShaderLibraryVk::ShaderLibraryVk(decltype(owningDevice) device, const std::string_view source, const FromSourceConfig& config) : owningDevice(device)
 	{
-		FatalError("Runtime shader compilation is not yet available on Vulkan");
+		auto result = librglc::CompileString(source, librglc::API::Vulkan, static_cast<librglc::ShaderStage>(config.stage), {
+			.outputBinary = true,
+			.entrypointOutputName = "main"
+		});
+		
+		ShaderLibraryFromBytes(owningDevice->device, shaderModule, std::span<uint8_t>(reinterpret_cast<uint8_t*>(result.data()), result.size()));
 	}
 	ShaderLibraryVk::ShaderLibraryVk(decltype(owningDevice) device, const std::filesystem::path& path) : owningDevice(device)
 	{

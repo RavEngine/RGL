@@ -247,9 +247,9 @@ namespace RGL {
         return std::make_shared<ShaderLibraryVk>(shared_from_this(), data);
     }
 
-    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibrarySourceCode(const std::string_view source)
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibrarySourceCode(const std::string_view source, const FromSourceConfig& config)
     {
-        return std::make_shared<ShaderLibraryVk>(shared_from_this(), source);
+        return std::make_shared<ShaderLibraryVk>(shared_from_this(), source, config);
     }
 
     RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibraryFromPath(const std::filesystem::path& path)

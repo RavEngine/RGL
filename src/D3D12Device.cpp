@@ -181,9 +181,9 @@ namespace RGL {
     {
         return std::make_shared<ShaderLibraryD3D12>(bytes);
     }
-    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view sourcecode)
+    RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibrarySourceCode(const std::string_view sourcecode, const FromSourceConfig& config)
     {
-        return std::make_shared<ShaderLibraryD3D12>(sourcecode);
+        return std::make_shared<ShaderLibraryD3D12>(sourcecode, config);
     }
     RGLShaderLibraryPtr RGL::DeviceD3D12::CreateShaderLibraryFromPath(const std::filesystem::path& file)
     {

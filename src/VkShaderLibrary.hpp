@@ -13,7 +13,7 @@ namespace RGL {
 
 		ShaderLibraryVk(decltype(owningDevice));
 		ShaderLibraryVk(decltype(owningDevice), const std::span<uint8_t, std::dynamic_extent>);
-		ShaderLibraryVk(decltype(owningDevice), const std::string_view);
+		ShaderLibraryVk(decltype(owningDevice), const std::string_view, const FromSourceConfig& config);
 		ShaderLibraryVk(decltype(owningDevice), const std::filesystem::path& path);
 
 		virtual ~ShaderLibraryVk();
