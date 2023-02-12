@@ -17,6 +17,7 @@ BufferMTL::BufferMTL(decltype(owningDevice) owningDevice, const BufferConfig& co
     
     MTL_CHECK(buffer = [owningDevice->device newBufferWithLength:config.size_bytes options: mode]);
     data.size = config.size_bytes;
+    stride = config.stride;
 }
 
 void BufferMTL::MapMemory(){
@@ -30,16 +31,20 @@ void BufferMTL::UnmapMemory(){
 #endif
 }
 
-void BufferMTL::SetBufferData(untyped_span data){
+void BufferMTL::SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset){
     MapMemory();
-    UpdateBufferData(data);
+    UpdateBufferData(data, offset);
     UnmapMemory();
 }
 
-void BufferMTL::UpdateBufferData(untyped_span newData){
+void BufferMTL::UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset){
     Assert(data.data != nullptr, "Must call MapMemory before updating a buffer");
-    Assert(newData.size() <= data.size, "Data is too big!");
-    std::memcpy(data.data, newData.data(), newData.size());
+    Assert(newData.size() + offset <= data.size, "Data would exceed end of buffer!");
+    std::memcpy(static_cast<std::byte*>(data.data) + offset, newData.data(), newData.size());
+}
+
+decltype(BufferConfig::size_bytes) BufferMTL::getBufferSize() const{
+    return data.size;
 }
 
 }

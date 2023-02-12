@@ -37,12 +37,14 @@ namespace RGL {
 		Update the contents of this buffer. If memory is not mapped, it will become mapped. The memory remains mapped. Intended to be used with UniformBuffers or other data that changes frequently.
 		@param newData the data to write into the buffer.
 		*/
-		virtual void UpdateBufferData(untyped_span newData) = 0;
+		virtual void UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset = 0) = 0;
 
 		/**
 		Set the contents of this buffer. Intended to be used with VertexBuffers or other data that changes infrequently or never.
 		@param newData the data to write into the buffer.
 		*/
-		virtual void SetBufferData(untyped_span data) = 0;
+		virtual void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) = 0;
+        
+        virtual decltype(BufferConfig::size_bytes) getBufferSize() const = 0;
 	};
 }

@@ -13,6 +13,9 @@ std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexC
         case decltype(format)::Undefined:
             FatalError("'Undefined' verted format passed");
             break;
+        case RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format::R32_Uint:
+            return std::make_pair(MTLVertexFormatUInt, sizeof(uint32_t));
+            break;
         case decltype(format)::R32G32_SignedFloat:
             return std::make_pair(MTLVertexFormatFloat2, sizeof(float)*2);
         case decltype(format)::R32G32B32_SignedFloat:

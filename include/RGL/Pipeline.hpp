@@ -113,7 +113,8 @@ namespace RGL {
 			struct VertexAttributeDesc {
 				uint32_t location, binding, offset;
 				enum class Format {
-					Undefined,
+					Undefined = 0,
+                    R32_Uint = 98,
 					R32G32_SignedFloat = 103,
 					R32G32B32_SignedFloat = 106
 

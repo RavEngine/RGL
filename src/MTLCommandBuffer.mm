@@ -54,8 +54,12 @@ void CommandBufferMTL::EndRendering(){
     [currentCommandEncoder endEncoding];
 }
 
-void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t offset){
-    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:0 atIndex:offset];    //TODO: don't hardcode to vertex stage
+void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer){
+    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:binding];    //TODO: don't hardcode to vertex stage
+}
+
+void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer) {
+    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:0];
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
@@ -73,9 +77,12 @@ void CommandBufferMTL::Draw(uint32_t nVertices, const DrawInstancedConfig& confi
 
 void CommandBufferMTL::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config){
     assert(indexBuffer != nil); // did you forget to call SetIndexBuffer?
-    //TODO: support 16-bit indices
-    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:MTLIndexTypeUInt32 indexBuffer:indexBuffer->buffer indexBufferOffset:config.firstIndex instanceCount:config.nInstances baseVertex:config.startVertex baseInstance:config.firstInstance];
+    auto indexType = MTLIndexTypeUInt32;
+    if (indexBuffer->stride == 2){
+        indexType = MTLIndexTypeUInt16;
+    }
     
+    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:config.firstIndex instanceCount:config.nInstances baseVertex:config.startVertex baseInstance:config.firstInstance];
 }
 
 void CommandBufferMTL::SetViewport(const Viewport & viewport){
@@ -123,3 +130,5 @@ void CommandBufferMTL::SetFragmentTexture(const ITexture* texture, uint32_t inde
 
 }
 #endif
+
+

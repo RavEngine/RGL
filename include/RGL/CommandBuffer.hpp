@@ -62,7 +62,9 @@ namespace RGL {
 
 		virtual void BindPipeline(RGLRenderPipelinePtr) = 0;
 
-		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t offset) = 0;
+		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
+        
+        virtual void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) = 0;
 
         virtual void SetIndexBuffer(RGLBufferPtr buffer) = 0;
         

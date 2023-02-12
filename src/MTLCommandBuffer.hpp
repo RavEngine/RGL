@@ -28,7 +28,8 @@ struct BufferMTL;
         void BeginRendering(RGLRenderPassPtr) final;
         void EndRendering() final;
 
-        void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
+        void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
+        void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
         
         void SetIndexBuffer(RGLBufferPtr buffer) final;
 
