@@ -7,7 +7,6 @@
 namespace RGL {
 
 	BufferVk::BufferVk(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice) {
-        //TODO: use vkmemoryallocator
 
        allocation =  createBuffer(owningDevice.get(), config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer);
 
@@ -19,9 +18,14 @@ namespace RGL {
         vmaFreeMemory(owningDevice->vkallocator, allocation);
     }
 
-    void BufferVk::SetBufferData(untyped_span data) {
-        UpdateBufferData(data);
+    void BufferVk::SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset) {
+        UpdateBufferData(data, offset);
         UnmapMemory();
+    }
+
+    decltype(BufferConfig::size_bytes) BufferVk::getBufferSize() const
+    {
+        return mappedMemory.size;
     }
 
     void BufferVk::MapMemory() {
@@ -32,12 +36,12 @@ namespace RGL {
         mappedMemory.data = nullptr;
     }
 
-    void BufferVk::UpdateBufferData(untyped_span data) {
+    void BufferVk::UpdateBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset) {
         if (!mappedMemory.data) {
             MapMemory();
         }
-        Assert(data.size() <= mappedMemory.size, "Attempting to write more data than the buffer can hold");
-        memcpy(mappedMemory.data, data.data(), data.size());
+        Assert(data.size() + offset <= mappedMemory.size, "Attempting to write more data than the buffer can hold");
+        memcpy(static_cast<std::byte*>(mappedMemory.data) + offset, data.data(), data.size());
     }
 }
 

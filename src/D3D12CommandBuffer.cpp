@@ -132,7 +132,11 @@ namespace RGL {
 			index++;	//TODO: sync with SRVs, this is certainly wrong
 		}
 	}
-	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
+	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
+	{
+		//TODO: bind resource
+	}
+	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
 		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView);
 	}

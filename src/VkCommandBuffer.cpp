@@ -201,10 +201,17 @@ namespace RGL {
 		}
 
 	}
-	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t offset)
+	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
 		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
-		VkDeviceSize offsets[] = {offset };
+		VkDeviceSize offsets[] = { offsetIntoBuffer };
+		vkCmdBindVertexBuffers(commandBuffer, bindingOffset, 1, vertexBuffers, offsets);
+	}
+
+	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
+	{
+		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
+		VkDeviceSize offsets[] = { offsetIntoBuffer };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 	}
 

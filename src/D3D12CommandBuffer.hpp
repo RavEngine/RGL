@@ -33,7 +33,8 @@ namespace RGL {
 
 		void BindPipeline(RGLRenderPipelinePtr) final;
 
-		void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
+		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
+		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
 
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;

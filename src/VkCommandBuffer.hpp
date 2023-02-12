@@ -30,7 +30,8 @@ namespace RGL {
 		void BeginRendering(RGLRenderPassPtr) final;
 		void EndRendering() final;
 
-		void BindBuffer(RGLBufferPtr buffer, uint32_t offset) final;
+		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
+		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
 
 		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages);
 
