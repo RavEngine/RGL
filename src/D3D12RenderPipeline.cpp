@@ -70,6 +70,7 @@ namespace RGL {
             case decltype(item.type)::CombinedImageSampler:
                 nsamplers++;
                 break;
+            case decltype(item.type)::StorageBuffer:    // NOTE: if updating this, make sure to update the rootParameter Init below
             case decltype(item.type)::UniformBuffer:
                 nbuffers++;
                 break;
@@ -110,8 +111,12 @@ namespace RGL {
         // constant / uniform buffer bindings (SRVs)
         uint32_t buffidx = 0;
         for (const auto& item : desc.bindings) {
-            if (item.type == decltype(item.type)::UniformBuffer) {
+            switch (item.type) {
+            case decltype(item.type)::StorageBuffer:
+            case decltype(item.type)::UniformBuffer:
                 rootParameters[buffidx + (nsamplers * 2) + nconstants].InitAsShaderResourceView(item.binding, 0);
+                break;
+
             }
         }
 

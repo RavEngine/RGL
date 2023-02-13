@@ -7,12 +7,11 @@
 namespace RGL{
 	struct SwapchainPresentConfig {
 		uint32_t imageIndex = 0;
-		std::span<RGLSemaphorePtr> waitSemaphores;
 	};
 	struct ISwapchain{
 		virtual ~ISwapchain() {}
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
-		virtual void GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore) = 0;
+		virtual void GetNextImage(uint32_t* index, RGLFencePtr waitFence) = 0;
 		virtual ITexture* ImageAtIndex(uint32_t index) = 0;
 		virtual void Present(const SwapchainPresentConfig&) = 0;
 	};

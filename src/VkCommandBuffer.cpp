@@ -203,9 +203,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
-		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
-		VkDeviceSize offsets[] = { offsetIntoBuffer };
-		vkCmdBindVertexBuffers(commandBuffer, bindingOffset, 1, vertexBuffers, offsets);
+		//TODO: update the bound descriptor set
 	}
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)

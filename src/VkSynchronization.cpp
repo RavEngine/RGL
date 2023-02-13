@@ -28,16 +28,5 @@ namespace RGL {
 	{
 		vkDestroyFence(owningDevice->device, fence, nullptr);
 	}
-	SemaphoreVk::SemaphoreVk(decltype(owningDevice) device) : owningDevice(device)
-	{
-		VkSemaphoreCreateInfo semaphoreInfo{
-			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-		};
-		VK_CHECK(vkCreateSemaphore(owningDevice->device, &semaphoreInfo, nullptr, &semaphore));
-	}
-	SemaphoreVk::~SemaphoreVk()
-	{
-		vkDestroySemaphore(owningDevice->device, semaphore, nullptr);
-	}
 }
 #endif

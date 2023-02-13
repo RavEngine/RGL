@@ -37,7 +37,6 @@ namespace RGL {
 		virtual RGLCommandQueuePtr CreateCommandQueue(QueueType type) = 0;
 
 		virtual RGLFencePtr CreateFence(bool preSignaled) = 0;
-		virtual RGLSemaphorePtr CreateSemaphore() = 0;
 		virtual void BlockUntilIdle() = 0;
 	};
 }

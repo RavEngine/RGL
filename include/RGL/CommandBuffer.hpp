@@ -44,7 +44,6 @@ namespace RGL {
 
 	struct CommitConfig {
 		RGLFencePtr signalFence;
-		std::span<RGLSemaphorePtr> waitSemaphores, signalSemaphores;
 	};
 
 	struct ICommandBuffer {

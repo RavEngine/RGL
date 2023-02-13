@@ -29,7 +29,7 @@ namespace RGL {
 
 		// ISwapchain
 		void Resize(uint32_t width, uint32_t height) final;
-		void GetNextImage(uint32_t* index, RGLSemaphorePtr semaphore) final;
+		void GetNextImage(uint32_t* index, RGLFencePtr waitFence) final;
 		ITexture* ImageAtIndex(uint32_t index) final;
 		void Present(const SwapchainPresentConfig&) final;
 		virtual ~SwapchainD3D12();

@@ -6,10 +6,17 @@
 
 RGL::SwapchainVK::~SwapchainVK(){
     DestroySwapchainIfNeeded();
+    vkDestroySemaphore(owningDevice->device, dummySemaphore, nullptr);
 }
 
 RGL::SwapchainVK::SwapchainVK(decltype(owningSurface) surface, decltype(owningDevice) owningDevice, int width, int height) : owningSurface(surface), owningDevice(owningDevice)
 {
+    VkSemaphoreCreateInfo info{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0
+    };
+    VK_CHECK(vkCreateSemaphore(owningDevice->device, &info, nullptr, &dummySemaphore));
     Resize(width, height);
 }
 
@@ -131,25 +138,20 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
     }
 }
 
-void RGL::SwapchainVK::GetNextImage(uint32_t* index, RGLSemaphorePtr isemaphore)
+void RGL::SwapchainVK::GetNextImage(uint32_t* index, RGLFencePtr waitFence)
 {
-    auto semaphore = std::static_pointer_cast<SemaphoreVk>(isemaphore);
-    vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, semaphore->semaphore, VK_NULL_HANDLE, index);
+    waitFence->Wait();
+    waitFence->Reset();
+    vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, dummySemaphore, VK_NULL_HANDLE, index);
 }
 
 void RGL::SwapchainVK::Present(const SwapchainPresentConfig& config)
 {
-    uint32_t nwait = config.waitSemaphores.size();
-    stackarray(waitSemaphores, VkSemaphore, nwait);
-    for (int i = 0; i < nwait; i++) {
-        waitSemaphores[i] = std::static_pointer_cast<SemaphoreVk>(config.waitSemaphores[i])->semaphore;
-    }
-
     VkSwapchainKHR swapChains[] = { swapChain };
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = nwait,
-        .pWaitSemaphores = waitSemaphores,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
         .swapchainCount = 1,
         .pSwapchains = swapChains,
         .pImageIndices = &(config.imageIndex),

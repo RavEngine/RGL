@@ -7,9 +7,4 @@ namespace RGL {
 		virtual void Reset() = 0;
 		virtual void Signal() = 0;
 	};
-
-	struct ISemaphore {
-
-	};
-
 }

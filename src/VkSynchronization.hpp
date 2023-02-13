@@ -16,11 +16,4 @@ namespace RGL {
 		void Signal() final;
 		virtual ~FenceVk();
 	};
-
-	struct SemaphoreVk : public ISemaphore {
-		VkSemaphore semaphore = VK_NULL_HANDLE;
-		const std::shared_ptr<DeviceVk> owningDevice;
-		SemaphoreVk(decltype(owningDevice) device);
-		virtual ~SemaphoreVk();
-	};
 }

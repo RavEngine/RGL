@@ -220,11 +220,6 @@ namespace RGL {
         return std::make_shared<FenceD3D12>(shared_from_this(), preSignaled);
     }
 
-    RGLSemaphorePtr RGL::DeviceD3D12::CreateSemaphore()
-    {
-        return std::make_shared<SemaphoreD3D12>();
-    }
-
     void RGL::DeviceD3D12::BlockUntilIdle()
     {
         Flush();

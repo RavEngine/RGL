@@ -22,9 +22,4 @@ namespace RGL {
 		void Signal() final;
 		virtual ~FenceD3D12() {}
 	};
-
-	// does nothing because DX12 does not have semaphores
-	struct SemaphoreD3D12 : public ISemaphore {
-
-	};
 }

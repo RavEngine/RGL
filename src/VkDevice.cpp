@@ -285,10 +285,6 @@ namespace RGL {
     {
         return std::make_shared<FenceVk>(shared_from_this(),preSignaled);
     }
-    RGLSemaphorePtr DeviceVk::CreateSemaphore()
-    {
-        return std::make_shared<SemaphoreVk>(shared_from_this());
-    }
     void DeviceVk::BlockUntilIdle()
     {
         vkDeviceWaitIdle(device);
