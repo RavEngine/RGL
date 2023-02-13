@@ -134,10 +134,13 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
-		//TODO: bind resource
+		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
+		//TODO: support offset into buffer
+		commandList->SetGraphicsRootShaderResourceView(bindingOffset + 1, casted->vertexBufferView.BufferLocation);
 	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
+		//TODO: support offset into buffer
 		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView);
 	}
 	void CommandBufferD3D12::SetVertexBytes(const untyped_span data, uint32_t offset)

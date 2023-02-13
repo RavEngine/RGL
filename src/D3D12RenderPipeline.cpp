@@ -62,8 +62,21 @@ namespace RGL {
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
         // create the constants data
         const auto nconstants = desc.constants.size();
-        const auto nsamplers = desc.boundSamplers.size();
-        const auto totalParams = nconstants + (nsamplers * 2);
+
+        uint32_t nsamplers = 0;
+        uint32_t nbuffers = 0;
+        for (const auto& item : desc.bindings) {
+            switch (item.type) {
+            case decltype(item.type)::CombinedImageSampler:
+                nsamplers++;
+                break;
+            case decltype(item.type)::UniformBuffer:
+                nbuffers++;
+                break;
+            }
+        }
+
+        const auto totalParams = nconstants + (nsamplers * 2) + nbuffers;
         stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
         for (int i = 0; i < nconstants; i++) {
             rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -92,6 +105,13 @@ namespace RGL {
                     .OffsetInDescriptorsFromTableStart = 0,
                 };
                 rootParameters[i + 1 + nconstants].InitAsDescriptorTable(1, &range);
+            }
+        }
+        // constant / uniform buffer bindings (SRVs)
+        uint32_t buffidx = 0;
+        for (const auto& item : desc.bindings) {
+            if (item.type == decltype(item.type)::UniformBuffer) {
+                rootParameters[buffidx + (nsamplers * 2) + nconstants].InitAsShaderResourceView(item.binding, 0);
             }
         }
 
