@@ -109,26 +109,20 @@ namespace RGL {
 		commandList->SetPipelineState(pipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(pipeline->pipelineLayout->rootSignature.Get());
 
-		const auto totalDescHeaps = pipeline->pipelineLayout->boundSamplers.size();
-
-		stackarray(descriptorHeaps, ID3D12DescriptorHeap*, totalDescHeaps);
-
-		{
-			uint32_t heapidx = 0;
-			for (const auto& samplerTextureCombo : pipeline->pipelineLayout->boundSamplers) {
-				descriptorHeaps[heapidx] = std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler)->owningDescriptorHeap.Get();
-				//descriptorHeaps[heapidx + 1] = std::static_pointer_cast<TextureD3D12>(samplerTextureCombo.texture)->owningDescriptorHeap.Get();
-				heapidx++;
-			}
-		}
-
-		commandList->SetDescriptorHeaps(totalDescHeaps, descriptorHeaps);
-
 		// bind samplers and textures
 		uint32_t index = 1;
 		for (const auto& samplerTextureCombo : pipeline->pipelineLayout->boundSamplers) {
-			commandList->SetGraphicsRootDescriptorTable(index, std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler)->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-			//commandList->SetGraphicsRootDescriptorTable(index, static_cast<TextureD3D12*>(samplerTextureCombo.texture.get())->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+			auto thisSampler = std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler);
+			auto thisTexture = static_cast<TextureD3D12*>(samplerTextureCombo.texture.get());
+			ID3D12DescriptorHeap* heapsForThis[2]{ 0 };
+			heapsForThis[0] = thisSampler->owningDescriptorHeap.Get();
+			heapsForThis[1] = thisTexture->owningDescriptorHeap.Get();
+			commandList->SetDescriptorHeaps(std::size(heapsForThis), heapsForThis);
+
+			commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+			//commandList->SetGraphicsRootShaderResourceView(index, thisTexture->texture->GetGPUVirtualAddress());
+			commandList->SetGraphicsRootDescriptorTable(index+1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 			index++;	//TODO: sync with SRVs, this is certainly wrong
 		}
 	}

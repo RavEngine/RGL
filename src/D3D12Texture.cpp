@@ -52,7 +52,7 @@ namespace RGL {
 		textureBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		textureBarrier.Transition.pResource = texture.Get();
 		textureBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-		textureBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		textureBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		textureBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		commandList->ResourceBarrier(1, &textureBarrier);
 
@@ -105,6 +105,8 @@ namespace RGL {
 			&allocDesc, &resourceDesc,
 			state, (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL || resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) ? &optimizedClearValue : nullptr,
 			&allocation, IID_PPV_ARGS(&texture));
+
+		texture->SetName(L"Texture Resource");
 
 		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 

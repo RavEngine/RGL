@@ -111,6 +111,7 @@ namespace RGL {
         {
             ComPtr<ID3D12Resource> backBuffer;
             DX_CHECK(swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
+            backBuffer->SetName(L"Swapchain Buffer");
 
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
 
