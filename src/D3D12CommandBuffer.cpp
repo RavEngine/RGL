@@ -108,23 +108,6 @@ namespace RGL {
 		auto pipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
 		commandList->SetPipelineState(pipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(pipeline->pipelineLayout->rootSignature.Get());
-
-		// bind samplers and textures
-		uint32_t index = 1;
-		for (const auto& samplerTextureCombo : pipeline->pipelineLayout->boundSamplers) {
-			auto thisSampler = std::static_pointer_cast<SamplerD3D12>(samplerTextureCombo.sampler);
-			auto thisTexture = static_cast<TextureD3D12*>(samplerTextureCombo.texture.get());
-			ID3D12DescriptorHeap* heapsForThis[2]{ 0 };
-			heapsForThis[0] = thisSampler->owningDescriptorHeap.Get();
-			heapsForThis[1] = thisTexture->owningDescriptorHeap.Get();
-			commandList->SetDescriptorHeaps(std::size(heapsForThis), heapsForThis);
-
-			commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-
-			//commandList->SetGraphicsRootShaderResourceView(index, thisTexture->texture->GetGPUVirtualAddress());
-			commandList->SetGraphicsRootDescriptorTable(index+1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-			index++;	//TODO: sync with SRVs, this is certainly wrong
-		}
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
@@ -154,6 +137,11 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
+		index += 1;
+		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
+		ID3D12DescriptorHeap* heapForThis = thisSampler->owningDescriptorHeap.Get();
+		commandList->SetDescriptorHeaps(1, &heapForThis);
+		commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
@@ -161,6 +149,23 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
+		index += 1;
+		auto thisTexture = static_cast<const TextureD3D12*>(texture);
+		ID3D12DescriptorHeap* heapForThis = thisTexture->owningDescriptorHeap.Get();
+		commandList->SetDescriptorHeaps(1, &heapForThis);
+		// bindings come in pairs (sampler, texture, sampler, texture)
+		commandList->SetGraphicsRootDescriptorTable(index + 1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	}
+	void CommandBufferD3D12::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
+	{
+		index += 1;
+		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
+		auto thisTexture = static_cast<const TextureD3D12*>(texture);
+
+		ID3D12DescriptorHeap* heapForThis[2] = { thisSampler->owningDescriptorHeap.Get(), thisTexture->owningDescriptorHeap.Get() };
+		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
+		commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(index + 1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{

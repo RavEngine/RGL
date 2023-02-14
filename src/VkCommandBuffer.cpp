@@ -6,6 +6,7 @@
 #include "VkTexture.hpp"
 #include "VkBuffer.hpp"
 #include "VkRenderPass.hpp"
+#include "VkSampler.hpp"
 #include <cstring>
 
 namespace RGL {
@@ -203,7 +204,23 @@ namespace RGL {
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
-		//TODO: update the bound descriptor set
+		VkDescriptorBufferInfo bufferInfo{
+		   .buffer = std::static_pointer_cast<BufferVk>(buffer)->buffer,
+		   .offset = offsetIntoBuffer,
+		   .range = VK_WHOLE_SIZE,
+		};
+		VkWriteDescriptorSet writeinfo{
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.dstSet = currentRenderPipeline->pipelineLayout->descriptorSet,
+				.dstBinding = bindingOffset,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+				.pImageInfo = nullptr,
+				.pBufferInfo = &bufferInfo,
+				.pTexelBufferView = nullptr
+		};
+		vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
 	}
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
@@ -250,6 +267,27 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
+	}
+	void CommandBufferVk::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
+	{
+		VkDescriptorImageInfo imginfo{
+					.sampler = std::static_pointer_cast<SamplerVk>(sampler)->sampler,
+					.imageView = static_cast<const TextureVk*>(texture)->vkImageView,
+					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		};
+		VkWriteDescriptorSet writeinfo{
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.dstSet = currentRenderPipeline->pipelineLayout->descriptorSet,
+				.dstBinding = index,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.pImageInfo = &imginfo,
+				.pBufferInfo = nullptr,
+				.pTexelBufferView = nullptr
+		};
+		vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{

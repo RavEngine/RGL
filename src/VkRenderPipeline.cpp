@@ -319,41 +319,6 @@ namespace RGL {
 
     void PipelineLayoutVk::SetLayout(const LayoutConfig& config)
     {
-       /*
-        VkDescriptorBufferInfo bufferInfo{
-           .buffer = std::static_pointer_cast<BufferVk>(config.buffer)->buffer,
-           .offset = config.offset,
-           .range = config.size
-        };*/
-
-        
-        std::vector<VkWriteDescriptorSet> descriptorWrites;
-        std::vector<VkDescriptorImageInfo> imageWrites;
-        imageWrites.reserve(config.boundTextures.size());   // must start with correct size
-        for (const auto& image : config.boundTextures) {
-            auto imgcast = std::static_pointer_cast<TextureVk>(image.texture);
-            auto ptr = &imageWrites.emplace_back(
-                VkDescriptorImageInfo{
-                    .sampler = std::static_pointer_cast<SamplerVk>(image.sampler)->sampler,
-                    .imageView = imgcast->vkImageView,
-                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-
-                }
-            );
-            descriptorWrites.emplace_back(VkWriteDescriptorSet{
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = descriptorSet,
-                .dstBinding = 0,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = ptr,  // optional
-                .pBufferInfo = nullptr,
-                .pTexelBufferView = nullptr
-            });
-        }
-        
-        vkUpdateDescriptorSets(owningDevice->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
         
     }
 }
