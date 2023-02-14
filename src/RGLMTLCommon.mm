@@ -24,7 +24,9 @@ MTLPixelFormat rgl2mtlformat(TextureFormat format){
         case decltype(format)::RGBA8_Uint: return MTLPixelFormatRGBA8Uint;
         case decltype(format)::RGBA8_Unorm: return MTLPixelFormatRGBA8Unorm;
         case decltype(format)::D32SFloat: return MTLPixelFormatDepth32Float;
+#if !TARGET_OS_IPHONE
         case decltype(format)::D24UnormS8Uint: return MTLPixelFormatDepth24Unorm_Stencil8;
+#endif
         default:
             FatalError("Texture format not supported");
     }

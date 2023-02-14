@@ -18,7 +18,7 @@ TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const Text
     auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 1];
     auto usage = rgl2mtlTextureUsage(config.usage);;
     desc.usage = usage;
-    desc.storageMode =  (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil) ? MTLStorageModePrivate :  MTLStorageModeManaged;
+    desc.storageMode =  (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil) ? MTLStorageModePrivate :  MTLStorageModeShared;
     texture = [owningDevice->device newTextureWithDescriptor:desc];
 }
 
