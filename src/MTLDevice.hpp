@@ -34,7 +34,6 @@ namespace RGL{
         RGLCommandQueuePtr CreateCommandQueue(QueueType type) final;
 
         RGLFencePtr CreateFence(bool preSignaled) final;
-        RGLSemaphorePtr CreateSemaphore() final;
         void BlockUntilIdle() final;
         
         virtual ~DeviceMTL(){}

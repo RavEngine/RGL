@@ -11,8 +11,4 @@ struct FenceMTL : public IFence{
     virtual ~FenceMTL(){}
 };
 
-struct SemaphoreMTL : public ISemaphore{
-    
-};
-
 }

@@ -37,12 +37,6 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     if (pipeline->depthStencilState){
         [currentCommandEncoder setDepthStencilState:pipeline->depthStencilState];
     }
-    
-    uint32_t index = 0;
-    for(const auto& item : pipeline->settings.pipelineLayout->samplerTextures){
-        SetFragmentTexture(item.texture.get(), index);
-        SetFragmentSampler(item.sampler, index);
-    }
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){
@@ -132,3 +126,11 @@ void CommandBufferMTL::SetFragmentTexture(const ITexture* texture, uint32_t inde
 #endif
 
 
+
+using namespace RGL;
+
+void CommandBufferMTL::SetCombinedTextureSampler(RGLSamplerPtr sampler, const RGL::ITexture *texture, uint32_t index) { 
+    [currentCommandEncoder setFragmentTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
+    [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
+
+}

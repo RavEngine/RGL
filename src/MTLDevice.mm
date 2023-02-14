@@ -77,10 +77,6 @@ RGLFencePtr DeviceMTL::CreateFence(bool preSignaled) {
     return std::make_shared<FenceMTL>();
 }
 
-RGLSemaphorePtr DeviceMTL::CreateSemaphore() {
-    return std::make_shared<SemaphoreMTL>();
-}
-
 RGLTexturePtr DeviceMTL::CreateTextureWithData(const TextureConfig& config, untyped_span data){
     return std::make_shared<TextureMTL>(shared_from_this(), config, data);
 }
