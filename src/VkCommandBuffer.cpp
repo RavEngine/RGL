@@ -7,6 +7,7 @@
 #include "VkBuffer.hpp"
 #include "VkRenderPass.hpp"
 #include "VkSampler.hpp"
+#include "VkSwapchain.hpp"
 #include <cstring>
 
 namespace RGL {
@@ -123,9 +124,10 @@ namespace RGL {
 			attachmentInfos[i] = makeAttachmentInfo(attachment, renderPass->textures[i]->vkImageView);
 
 			// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
+			auto castedImage = static_cast<TextureVk*>(renderPass->textures[i]);
 			if (attachment.shouldTransition) {
 				encodeResourceTransition(commandBuffer, 
-					static_cast<TextureVk*>(renderPass->textures[i])->vkImage, 
+					castedImage->vkImage,
 					VK_ACCESS_NONE,
 					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 					VK_IMAGE_LAYOUT_UNDEFINED,
@@ -134,6 +136,10 @@ namespace RGL {
 					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 				);
+			}
+
+			if (castedImage->owningSwapchain) {
+				swapchainsToSignal.insert(castedImage->owningSwapchain);
 			}
 
 			i++;
@@ -270,9 +276,10 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
 	{
+		auto castedImage = static_cast<const TextureVk*>(texture);
 		VkDescriptorImageInfo imginfo{
 					.sampler = std::static_pointer_cast<SamplerVk>(sampler)->sampler,
-					.imageView = static_cast<const TextureVk*>(texture)->vkImageView,
+					.imageView = castedImage->vkImageView,
 					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		};
 		VkWriteDescriptorSet writeinfo{
@@ -287,6 +294,9 @@ namespace RGL {
 				.pTexelBufferView = nullptr
 		};
 		vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+		if (castedImage->owningSwapchain) {
+			swapchainsToSignal.insert(castedImage->owningSwapchain);
+		}
 
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
@@ -320,6 +330,7 @@ namespace RGL {
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{
 		owningQueue->Submit(this, config);
+		swapchainsToSignal.clear();
 	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{

@@ -3,6 +3,7 @@
 #include <RGL/CommandBuffer.hpp>
 #include <vulkan/vulkan.h>
 #include "RGLVk.hpp"
+#include <unordered_set>
 
 namespace RGL {
 	struct DeviceVk;
@@ -16,6 +17,8 @@ namespace RGL {
 		
 		const std::shared_ptr<CommandQueueVk> owningQueue;
 		std::shared_ptr<RenderPipelineVk> currentRenderPipeline = nullptr;
+
+		std::unordered_set<struct SwapchainVK*> swapchainsToSignal;
 
 		CommandBufferVk(decltype(owningQueue) owningQueue);
 
