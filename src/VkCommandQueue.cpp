@@ -3,6 +3,7 @@
 #include "VkCommandBuffer.hpp"
 #include "VkDevice.hpp"
 #include "VkSynchronization.hpp"
+#include "VkSwapchain.hpp"
 
 namespace RGL {
     CommandQueueVk::CommandQueueVk(decltype(owningDevice) device) : owningDevice(device)
@@ -12,17 +13,30 @@ namespace RGL {
     }
     void CommandQueueVk::Submit(CommandBufferVk* cb, const CommitConfig& config)
 	{
+        const uint32_t nSwapchains = cb->swapchainsToSignal.size();
+        stackarray(waitSemaphores, VkSemaphore, nSwapchains);
+        stackarray(signalSemaphores, VkSemaphore, nSwapchains);
+        {
+            uint32_t i = 0;
+            for (const auto swapchain : cb->swapchainsToSignal) {
+                waitSemaphores[i] = swapchain->imageAvailableSemaphore;
+                signalSemaphores[i] = swapchain->renderCompleteSemaphore;
+                i++;
+            }
+        }
+       
+
 
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         VkSubmitInfo submitInfo{
            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-           .waitSemaphoreCount = 0,
-           .pWaitSemaphores = nullptr,
+           .waitSemaphoreCount = nSwapchains,
+           .pWaitSemaphores = waitSemaphores,
            .pWaitDstStageMask = waitStages,
            .commandBufferCount = 1,
            .pCommandBuffers = &(cb->commandBuffer),
-           .signalSemaphoreCount = 0,
-           .pSignalSemaphores = nullptr
+           .signalSemaphoreCount = nSwapchains,
+           .pSignalSemaphores = signalSemaphores
         };
         auto fence = std::static_pointer_cast<FenceVk>(config.signalFence);
         VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence->fence));

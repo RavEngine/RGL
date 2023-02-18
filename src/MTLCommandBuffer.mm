@@ -121,16 +121,13 @@ void CommandBufferMTL::SetVertexTexture(const ITexture* texture, uint32_t index)
 void CommandBufferMTL::SetFragmentTexture(const ITexture* texture, uint32_t index){
     [currentCommandEncoder setFragmentTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
 }
-
-}
-#endif
-
-
-
-using namespace RGL;
-
 void CommandBufferMTL::SetCombinedTextureSampler(RGLSamplerPtr sampler, const RGL::ITexture *texture, uint32_t index) { 
     [currentCommandEncoder setFragmentTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 
 }
+}
+#endif
+
+
+

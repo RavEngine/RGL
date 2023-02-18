@@ -6,7 +6,8 @@
 
 RGL::SwapchainVK::~SwapchainVK(){
     DestroySwapchainIfNeeded();
-    vkDestroySemaphore(owningDevice->device, dummySemaphore, nullptr);
+    vkDestroySemaphore(owningDevice->device, imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(owningDevice->device, renderCompleteSemaphore, nullptr);
 }
 
 RGL::SwapchainVK::SwapchainVK(decltype(owningSurface) surface, decltype(owningDevice) owningDevice, int width, int height) : owningSurface(surface), owningDevice(owningDevice)
@@ -16,7 +17,8 @@ RGL::SwapchainVK::SwapchainVK(decltype(owningSurface) surface, decltype(owningDe
         .pNext = nullptr,
         .flags = 0
     };
-    VK_CHECK(vkCreateSemaphore(owningDevice->device, &info, nullptr, &dummySemaphore));
+    VK_CHECK(vkCreateSemaphore(owningDevice->device, &info, nullptr, &imageAvailableSemaphore));
+    VK_CHECK(vkCreateSemaphore(owningDevice->device, &info, nullptr, &renderCompleteSemaphore));
     Resize(width, height);
 }
 
@@ -111,6 +113,7 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
     swapChainImages.resize(imageCount);
     vkGetSwapchainImagesKHR(owningDevice->device, swapChain, &imageCount, swapChainImages.data());
 
+
     // create image views from images
     swapChainImageViews.resize(swapChainImages.size());
     for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -134,15 +137,14 @@ void RGL::SwapchainVK::Resize(uint32_t width, uint32_t height)
             }
         };
         VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &swapChainImageViews[i]));
-        RGLTextureResources.emplace_back(swapChainImageViews[i], swapChainImages[i], Dimension{ width,height });
+        auto& texture = RGLTextureResources.emplace_back(swapChainImageViews[i], swapChainImages[i], Dimension{ width,height });
+        texture.owningSwapchain = this;
     }
 }
 
-void RGL::SwapchainVK::GetNextImage(uint32_t* index, RGLFencePtr waitFence)
+void RGL::SwapchainVK::GetNextImage(uint32_t* index)
 {
-    waitFence->Wait();
-    waitFence->Reset();
-    vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, dummySemaphore, VK_NULL_HANDLE, index);
+    vkAcquireNextImageKHR(owningDevice->device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, index);
 }
 
 void RGL::SwapchainVK::Present(const SwapchainPresentConfig& config)
@@ -150,8 +152,8 @@ void RGL::SwapchainVK::Present(const SwapchainPresentConfig& config)
     VkSwapchainKHR swapChains[] = { swapChain };
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &renderCompleteSemaphore,
         .swapchainCount = 1,
         .pSwapchains = swapChains,
         .pImageIndices = &(config.imageIndex),

@@ -152,9 +152,8 @@ namespace RGL {
             buffer.size = Dimension{ width,height };
         }
 	}
-	void SwapchainD3D12::GetNextImage(uint32_t* index, RGLFencePtr waitFence)
+	void SwapchainD3D12::GetNextImage(uint32_t* index)
 	{
-        waitFence->Wait();
         *index = swapchain->GetCurrentBackBufferIndex();
 	}
 	ITexture* SwapchainD3D12::ImageAtIndex(uint32_t index)

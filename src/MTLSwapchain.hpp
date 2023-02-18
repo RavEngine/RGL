@@ -13,7 +13,7 @@ namespace RGL{
         }
 		virtual ~SwapchainMTL() {}
 		void Resize(uint32_t width, uint32_t height) final;
-        void GetNextImage(uint32_t* index, RGLFencePtr fence) final;
+        void GetNextImage(uint32_t* index) final;
         ITexture* ImageAtIndex(uint32_t index) final;
         void Present(const SwapchainPresentConfig&) final;
         
