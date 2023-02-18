@@ -91,6 +91,32 @@ namespace RGL {
 		PatchList
 	};
 
+    enum class BlendFactor : uint8_t {
+        Zero =0,
+        One = 1,
+        SourceColor = 2,
+        OneMinusSourceColor = 3,
+        DestColor = 4,
+        OneMinusDestColor = 5,
+        SourceAlpha = 6,
+        OneMinusSourceAlpha = 7,
+        DestAlpha = 8,
+        OneMinusDestAlpha = 9,
+        ConstantColor = 10,
+        OneMinusConstantColor = 11,
+        ConstantAlpha = 12,
+        OneMinusConstantAlpha,
+        SourceAlphaSaturate,
+        Source1Color,
+        OneMinusSource1Color,
+        Source1Alpha,
+        OneMinusSource1Alpha
+    };
+
+    enum class BlendOperation : uint8_t {
+        Add, Subtract, ReverseSubtract, Min, Max
+    };
+
 	struct RenderPipelineDescriptor {
 		struct ShaderStageDesc {
 			enum class Type : uint8_t {
@@ -183,34 +209,12 @@ namespace RGL {
 			bool logicalOpEnabled : 1 = false;
 			struct ColorAttachmentConfig {
 				TextureFormat format;
-				enum class BlendFactor : uint8_t {
-					Zero =0, 
-					One = 1, 
-					SourceColor = 2, 
-					OneMinusSourceColor = 3, 
-					DestColor = 4, 
-					OneMinusDestColor = 5, 
-					SourceAlpha = 6, 
-					OneMinusSourceAlpha = 7, 
-					DestAlpha = 8, 
-					OneMinusDestAlpha = 9, 
-					ConstantColor = 10, 
-					OneMinusConstantColor = 11, 
-					ConstantAlpha = 12, 
-					OneMinusConstantAlpha, 
-					SourceAlphaSaturate,
-					Source1Color, 
-					OneMinusSource1Color, 
-					Source1Alpha, 
-					OneMinusSource1Alpha
-				} sourceColorBlendFactor = BlendFactor::One,
+				BlendFactor sourceColorBlendFactor = BlendFactor::One,
 					destinationColorBlendFactor = BlendFactor::Zero,
 					sourceAlphaBlendFactor = BlendFactor::One,
 					destinationAlphaBlendFactor = BlendFactor::Zero;
 
-				enum class BlendOperation : uint8_t {
-					Add, Subtract, ReverseSubtract, Min, Max
-				} colorBlendOperation = BlendOperation::Add, alphaBlendOperation = BlendOperation::Add;
+				BlendOperation colorBlendOperation = BlendOperation::Add, alphaBlendOperation = BlendOperation::Add;
 
 				enum class ColorWriteMask : uint8_t{
 					Red		= 0b0001,

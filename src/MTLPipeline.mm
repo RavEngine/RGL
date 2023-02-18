@@ -23,6 +23,42 @@ std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexC
     }
 }
 
+MTLBlendOperation rgl2mtlblend(decltype(RenderPipelineDescriptor::ColorBlendConfig::ColorAttachmentConfig::colorBlendOperation) config){
+    switch(config){
+        case decltype(config)::Add:             return MTLBlendOperationAdd;
+        case decltype(config)::Subtract:        return MTLBlendOperationSubtract;
+        case decltype(config)::ReverseSubtract: return MTLBlendOperationReverseSubtract;
+        case decltype(config)::Min:             return MTLBlendOperationMin;
+        case decltype(config)::Max:             return MTLBlendOperationMax;
+        default:
+            FatalError("Invalid blend operation");
+    }
+}
+
+MTLBlendFactor rgl2mtlfactor(decltype(RenderPipelineDescriptor::ColorBlendConfig::ColorAttachmentConfig::sourceColorBlendFactor) config){
+    switch(config){
+        case decltype(config)::Zero:                    return MTLBlendFactorZero;
+        case decltype(config)::One:                     return MTLBlendFactorOne;
+        case decltype(config)::SourceColor:             return MTLBlendFactorSourceColor;
+        case decltype(config)::OneMinusSourceColor:     return MTLBlendFactorOneMinusSourceColor;
+        case decltype(config)::DestColor:               return MTLBlendFactorDestinationColor;
+        case decltype(config)::OneMinusDestColor:       return MTLBlendFactorOneMinusDestinationColor;
+        case decltype(config)::SourceAlpha:             return MTLBlendFactorSourceAlpha;
+        case decltype(config)::OneMinusSourceAlpha:     return MTLBlendFactorOneMinusSourceAlpha;
+        case decltype(config)::DestAlpha:               return MTLBlendFactorDestinationAlpha;
+        case decltype(config)::OneMinusDestAlpha:       return MTLBlendFactorOneMinusDestinationAlpha;
+        case decltype(config)::ConstantColor:           return MTLBlendFactorBlendColor;
+        case decltype(config)::OneMinusConstantColor:   return MTLBlendFactorOneMinusBlendColor;
+        case decltype(config)::ConstantAlpha:           return MTLBlendFactorBlendAlpha;
+        case decltype(config)::OneMinusConstantAlpha:   return MTLBlendFactorOneMinusBlendAlpha;
+        case decltype(config)::SourceAlphaSaturate:     return MTLBlendFactorSourceAlphaSaturated;
+        case decltype(config)::Source1Color:            return MTLBlendFactorSource1Color;
+        case decltype(config)::OneMinusSource1Color:    return MTLBlendFactorOneMinusSource1Color;
+        case decltype(config)::Source1Alpha:            return MTLBlendFactorSource1Alpha;
+        case decltype(config)::OneMinusSource1Alpha:    return MTLBlendFactorOneMinusSource1Alpha;
+    }
+}
+
 MTLCompareFunction rgl2mtlcomparefunction(DepthCompareFunction fn){
     switch(fn){
         case decltype(fn)::Never:           return MTLCompareFunctionNever;
@@ -81,14 +117,24 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
         vertexDescriptor.layouts[0].stride = totalStride;
         [pipelineDesc setVertexDescriptor:vertexDescriptor];
     }
-            
-    
+
     for(int i = 0; i < desc.colorBlendConfig.attachments.size(); i++){
         auto& attachment = desc.colorBlendConfig.attachments[i];
-        [pipelineDesc.colorAttachments[i] setPixelFormat:rgl2mtlformat(attachment.format)];
+        auto attachmentDesc = pipelineDesc.colorAttachments[i];
+        [attachmentDesc setPixelFormat:rgl2mtlformat(attachment.format)];
+        
+        [attachmentDesc setBlendingEnabled:attachment.blendEnabled];
+        [attachmentDesc setRgbBlendOperation:rgl2mtlblend(attachment.colorBlendOperation)];
+        [attachmentDesc setAlphaBlendOperation:rgl2mtlblend(attachment.alphaBlendOperation)];
+        
+        [attachmentDesc setSourceRGBBlendFactor:rgl2mtlfactor(attachment.sourceColorBlendFactor)];
+        [attachmentDesc setSourceAlphaBlendFactor:rgl2mtlfactor(attachment.sourceAlphaBlendFactor)];
+        [attachmentDesc setDestinationRGBBlendFactor:rgl2mtlfactor(attachment.destinationColorBlendFactor)];
+        [attachmentDesc setDestinationAlphaBlendFactor:rgl2mtlfactor(attachment.destinationAlphaBlendFactor)];
     }
     
     pipelineDesc.depthAttachmentPixelFormat = rgl2mtlformat(desc.depthStencilConfig.depthFormat);
+    pipelineDesc.stencilAttachmentPixelFormat = rgl2mtlformat(desc.depthStencilConfig.stencilFormat);
     
     MTL_CHECK(pipelineState = [owningDevice->device newRenderPipelineStateWithDescriptor:pipelineDesc error:&err]);
     
