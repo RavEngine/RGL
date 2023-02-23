@@ -5,7 +5,7 @@
 #include "D3D12Sampler.hpp"
 
 namespace RGL {
-    DXGI_FORMAT rgl2dxgiformat(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format) {
+    DXGI_FORMAT rgl2dxgiformat(RGL::VertexAttributeFormat format) {
         switch (format) {
         case decltype(format)::R32G32B32_SignedFloat:   return DXGI_FORMAT_R32G32B32_FLOAT;
         case decltype(format)::R32G32_SignedFloat:      return DXGI_FORMAT_R32G32_FLOAT;
@@ -182,10 +182,10 @@ namespace RGL {
         std::shared_ptr<ShaderLibraryD3D12> vertFunc, fragFunc;
         for (const auto& func : desc.stages) {
             switch (func.type) {
-            case RenderPipelineDescriptor::ShaderStageDesc::Type::Vertex:
+            case RGL::ShaderStageDesc::Type::Vertex:
                 vertFunc = std::static_pointer_cast<decltype(vertFunc)::element_type>(func.shaderModule);
                 break;
-            case RenderPipelineDescriptor::ShaderStageDesc::Type::Fragment:
+            case RGL::ShaderStageDesc::Type::Fragment:
                 fragFunc = std::static_pointer_cast<decltype(vertFunc)::element_type>(func.shaderModule);
                 break;
             default:
@@ -200,7 +200,7 @@ namespace RGL {
 
         Assert(nattachments < __crt_countof(pipelineStateDesc.RTVFormats), "Too many attachments!");
         for (int i = 0; i < nattachments; i++) {
-            pipelineStateDesc.RTVFormats[0] = rgl2dxgiformat_texture(desc.colorBlendConfig.attachments[i].format);
+            pipelineStateDesc.RTVFormats[i] = rgl2dxgiformat_texture(desc.colorBlendConfig.attachments[i].format);
         }
 
         CD3DX12_RASTERIZER_DESC rasterizerDesc{ D3D12_DEFAULT };

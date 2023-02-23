@@ -7,7 +7,7 @@
 #include "VkTexture.hpp"
 
 namespace RGL {
-    VkShaderStageFlagBits RGL2VKshader(RenderPipelineDescriptor::ShaderStageDesc::Type type) {
+    VkShaderStageFlagBits RGL2VKshader(RGL::ShaderStageDesc::Type type) {
         switch (type) {
             case decltype(type)::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
             case decltype(type)::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
