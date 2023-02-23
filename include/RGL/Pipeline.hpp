@@ -117,13 +117,26 @@ namespace RGL {
         Add, Subtract, ReverseSubtract, Min, Max
     };
 
+    struct ShaderStageDesc {
+        enum class Type : uint8_t {
+            Vertex, Fragment, Compute
+        } type;
+        RGLShaderLibraryPtr shaderModule;
+    };
+
+    enum class VertexAttributeFormat {
+        Undefined = 0,
+        R32_Uint = 98,
+        R32G32_SignedFloat = 103,
+        R32G32B32_SignedFloat = 106
+    };
+
+    enum class WindingOrder : uint8_t {
+        Clockwise, Counterclockwise
+    };
+
 	struct RenderPipelineDescriptor {
-		struct ShaderStageDesc {
-			enum class Type : uint8_t {
-				Vertex, Fragment, Compute
-			} type;
-			RGLShaderLibraryPtr shaderModule;
-		};
+		
 		std::vector<ShaderStageDesc> stages;
 
 		// vertex info
@@ -138,13 +151,7 @@ namespace RGL {
 
 			struct VertexAttributeDesc {
 				uint32_t location, binding, offset;
-				enum class Format {
-					Undefined = 0,
-                    R32_Uint = 98,
-					R32G32_SignedFloat = 103,
-					R32G32B32_SignedFloat = 106
-
-				} format;
+				VertexAttributeFormat format;
 			};
 			std::vector<VertexAttributeDesc> attributeDescs;
 
@@ -182,9 +189,7 @@ namespace RGL {
 				Both = Front | Back
 			} cullMode = CullMode::Back;
 
-			enum class WindingOrder : uint8_t {
-				Clockwise, Counterclockwise
-			} windingOrder : 1 = WindingOrder::Counterclockwise;
+			WindingOrder windingOrder : 1 = WindingOrder::Counterclockwise;
 
 			struct DepthBias {
 				float clamp = 0, constantFactor = 0, slopeFactor = 0;

@@ -8,12 +8,12 @@
 
 namespace RGL{
 
-std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format format){
+std::pair<MTLVertexFormat,uint32_t>  rgl2mtlvx(VertexAttributeFormat format){
     switch(format){
         case decltype(format)::Undefined:
             FatalError("'Undefined' verted format passed");
             break;
-        case RenderPipelineDescriptor::VertexConfig::VertexAttributeDesc::Format::R32_Uint:
+        case decltype(format)::R32_Uint:
             return std::make_pair(MTLVertexFormatUInt, sizeof(uint32_t));
             break;
         case decltype(format)::R32G32_SignedFloat:
