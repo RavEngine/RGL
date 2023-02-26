@@ -2,7 +2,7 @@
 
 #include <RGL/Types.hpp>
 #include "RGLCommon.hpp"
-#include "TextureFormat.hpp"
+#include <RGL/TextureFormat.hpp>
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 #include <cassert>

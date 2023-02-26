@@ -2,7 +2,7 @@
 #include "RGLVk.hpp"
 #include "VkRenderPass.hpp"
 #include "RGLCommon.hpp"
-#include "TextureFormat.hpp"
+#include <RGL/TextureFormat.hpp>
 #include "VkDevice.hpp"
 #include <stdexcept>
 #include <cstring>
