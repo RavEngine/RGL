@@ -4,7 +4,10 @@
 #include "RGLD3D12.hpp"
 #include <d3d12.h>
 #include <RGL/Span.hpp>
-#include <D3D12MemAlloc.h>
+
+namespace D3D12MA {
+	struct Allocation;
+}
 
 namespace RGL {
 	struct DeviceD3D12;
