@@ -56,6 +56,15 @@ namespace RGL {
         return commandList;
     }
 
+    QueueData CommandQueueD3D12::GetQueueData()
+    {
+        return {
+            .d3d12Data = {
+                .commandQueue = m_d3d12CommandQueue.Get()
+            }
+        };
+    }
+
 
     uint64_t CommandQueueD3D12::ExecuteCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList)
     {

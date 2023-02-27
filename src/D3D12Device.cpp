@@ -210,6 +210,15 @@ namespace RGL {
         return std::make_shared<SamplerD3D12>(shared_from_this(),config);
     }
 
+    DeviceData DeviceD3D12::GetDeviceData()
+    {
+        return {
+            .d3d12Data = {
+                .device = device.Get()
+            }
+        };
+    }
+
     RGLCommandQueuePtr RGL::DeviceD3D12::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueD3D12>(device, type);

@@ -49,6 +49,14 @@ namespace RGL {
     {
         vkQueueWaitIdle(queue);
     }
+    QueueData CommandQueueVk::GetQueueData()
+    {
+        return {
+            .vkData{
+
+            }
+        };
+    }
 }
 
 #endif

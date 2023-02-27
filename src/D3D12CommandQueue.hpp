@@ -43,6 +43,8 @@ namespace RGL {
         void WaitUntilCompleted() final {
             Flush();
         }
+
+        QueueData GetQueueData() final;
 	};
 
 }

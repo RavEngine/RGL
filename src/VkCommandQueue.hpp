@@ -23,6 +23,8 @@ namespace RGL {
         RGLCommandBufferPtr CreateCommandBuffer() final;
 
 		void WaitUntilCompleted() final;
+
+		QueueData GetQueueData() final;
 	};
 
 }

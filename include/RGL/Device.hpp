@@ -10,7 +10,18 @@
 
 #undef CreateSemaphore
 
+struct ID3D12Device;
+
 namespace RGL {
+
+	union DeviceData {
+		struct {
+			ID3D12Device* device;
+		} d3d12Data;
+		struct {
+			void* device;
+		} vkData;
+	};
 
 	struct IDevice {
 		virtual ~IDevice() {}
@@ -35,6 +46,8 @@ namespace RGL {
         virtual RGLSamplerPtr CreateSampler(const SamplerConfig&) = 0;
 
 		virtual RGLCommandQueuePtr CreateCommandQueue(QueueType type) = 0;
+
+		virtual DeviceData GetDeviceData() = 0;
 
 		virtual RGLFencePtr CreateFence(bool preSignaled) = 0;
 		virtual void BlockUntilIdle() = 0;

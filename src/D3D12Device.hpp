@@ -47,6 +47,8 @@ namespace RGL {
 
 		RGLSamplerPtr CreateSampler(const SamplerConfig&) final;
 
+		DeviceData GetDeviceData() final;
+
 		RGLCommandQueuePtr CreateCommandQueue(QueueType type) final;
 		RGLFencePtr CreateFence(bool preSignaled) final;
 		void BlockUntilIdle() final;
