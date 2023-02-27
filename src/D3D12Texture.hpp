@@ -10,6 +10,7 @@ namespace D3D12MA {
 }
 
 namespace RGL {
+	struct IDevice;
 	struct DeviceD3D12;
 	struct TextureD3D12 : public ITexture {
 		friend class SwapchainD3D12;
@@ -21,11 +22,14 @@ namespace RGL {
 		D3D12MA::Allocation* allocation = nullptr;
 
 		TextureD3D12(decltype(texture) image, const Dimension& size, decltype(owningDescriptorHeap), decltype(descriptorHeapOffset), decltype(owningDevice));
+		TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> device);	// for externally-managed rendertargets
 		TextureD3D12(decltype(owningDevice), const TextureConfig&, untyped_span bytes);
 		TextureD3D12(decltype(owningDevice), const TextureConfig&);
 
 
 		Dimension GetSize() const final;
 		virtual ~TextureD3D12();
+	private:
+		void CreateHeapAndSRV(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const D3D12_DESCRIPTOR_HEAP_TYPE& type, const bool& canBeShadervisible, const DXGI_FORMAT& format, const RGL::TextureConfig& config);
 	};
 }

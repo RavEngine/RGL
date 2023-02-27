@@ -10,6 +10,14 @@ namespace RGL {
 	TextureD3D12::TextureD3D12(decltype(texture) image, const Dimension& size, decltype(owningDescriptorHeap) heap, decltype(descriptorHeapOffset) offset, decltype(owningDevice) device) : texture(image), ITexture(size), owningDescriptorHeap(heap), descriptorHeapOffset(offset), owningDevice(device)
 	{
 	}
+	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
+	{
+		// make the heap and SRV 
+		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
+		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+		CreateHeapAndSRV(owningDevice, type, false, rgl2dxgiformat_texture(config.format), config);
+	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
 		auto commandList = owningDevice->internalQueue->CreateCommandList();
@@ -113,6 +121,10 @@ namespace RGL {
 
 		const bool canBeShadervisible = !(resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET));
 
+		CreateHeapAndSRV(owningDevice, type, canBeShadervisible, format, config);
+	}
+	void TextureD3D12::CreateHeapAndSRV(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const D3D12_DESCRIPTOR_HEAP_TYPE& type, const bool& canBeShadervisible, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
+	{
 		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, type, 1, canBeShadervisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 
 		auto descHandle = owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -126,7 +138,7 @@ namespace RGL {
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MipLevels = config.mipLevels;
 
-			
+
 			owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, descHandle);
 		}
 		else if (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV) {

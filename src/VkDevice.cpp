@@ -281,7 +281,11 @@ namespace RGL {
     {
         return {
             .vkData = {
-                .device = &device
+                .device = &device,
+                .physicalDevice = &physicalDevice,
+                .instance = &instance,
+                .queueFamilyIndex = indices.graphicsFamily.value(),
+                .queueIndex = 0
             }
         };
     }

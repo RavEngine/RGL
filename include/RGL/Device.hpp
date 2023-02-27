@@ -20,6 +20,9 @@ namespace RGL {
 		} d3d12Data;
 		struct {
 			void* device;
+			void* physicalDevice;
+			void* instance;
+			uint32_t queueFamilyIndex, queueIndex;
 		} vkData;
 	};
 
