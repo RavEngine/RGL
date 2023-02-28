@@ -14,9 +14,19 @@ namespace RGL {
 	{
 		// make the heap and SRV 
 		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
-		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		auto format = rgl2dxgiformat_texture(config.format);
+		CreateHeapAndSRV(owningDevice, type, false, format, config);
 
-		CreateHeapAndSRV(owningDevice, type, false, rgl2dxgiformat_texture(config.format), config);
+		if (!isDS) {
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+			D3D12_RENDER_TARGET_VIEW_DESC desc{
+				.Format = format,
+				.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+			};
+			owningDevice->device->CreateRenderTargetView(image.Get(), &desc, rtvHandle);
+		}
+		
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
@@ -117,11 +127,20 @@ namespace RGL {
 
 		texture->SetName(L"Texture Resource");
 
-		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		const D3D12_DESCRIPTOR_HEAP_TYPE type = (isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		const bool canBeShadervisible = !(resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET));
 
 		CreateHeapAndSRV(owningDevice, type, canBeShadervisible, format, config);
+
+		if (!isDS && config.usage & RGL::TextureUsage::ColorAttachment) {
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+			D3D12_RENDER_TARGET_VIEW_DESC desc{
+				.Format = format,
+				.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+			};
+			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, rtvHandle);
+		}
 	}
 	void TextureD3D12::CreateHeapAndSRV(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const D3D12_DESCRIPTOR_HEAP_TYPE& type, const bool& canBeShadervisible, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
 	{
