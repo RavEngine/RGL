@@ -19,6 +19,9 @@ namespace RGL {
 		struct {
 			
 		} vkData;
+        struct {
+            
+        } mtlData;
 	};
 
 	struct ICommandQueue {

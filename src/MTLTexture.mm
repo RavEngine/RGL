@@ -11,6 +11,11 @@ TextureMTL::TextureMTL(decltype(drawable) texture, const Dimension& size) : draw
     
 }
 
+TextureMTL::~TextureMTL(){
+//    [drawable release];
+//    [texture release];
+}
+
 TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config) : TextureMTL(nullptr, {config.width,config.height})
 {
     MTLPixelFormat format = rgl2mtlformat(config.format);

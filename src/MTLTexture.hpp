@@ -14,6 +14,7 @@ struct TextureMTL : public ITexture{
     
     // default constructor, don't explicity use
     TextureMTL() : ITexture({0,0}){}
+    virtual ~TextureMTL();
     
     TextureMTL(decltype(drawable), const Dimension&);
     TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config, const untyped_span);

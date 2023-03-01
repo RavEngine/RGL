@@ -24,6 +24,9 @@ namespace RGL {
 			void* instance;
 			uint32_t queueFamilyIndex, queueIndex;
 		} vkData;
+        struct {
+            void* device;
+        } mtlData;
 	};
 
 	struct IDevice {

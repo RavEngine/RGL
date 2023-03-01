@@ -19,7 +19,7 @@ RGLSurfacePtr CreateMTLSurfaceFromLayer(CAMetalLayer* layer){
 RGLSurfacePtr RGL::CreateMTLSurfaceFromPlatformHandle(void* pointer, bool createSurfaceObject){
 	if (createSurfaceObject){
 #if TARGET_OS_OSX
-		NSWindow* window = (NSWindow*)(pointer);
+        NSWindow* window = (__bridge NSWindow*)(pointer);
 		NSView *contentView = [window contentView];
 		[contentView setWantsLayer:YES];
 		CAMetalLayer *res = [CAMetalLayer layer];

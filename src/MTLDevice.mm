@@ -93,6 +93,16 @@ void DeviceMTL::BlockUntilIdle() {
     
 }
 
+RGL::DeviceData DeviceMTL::GetDeviceData() {
+    return {
+        .mtlData{
+            .device = nullptr
+        }
+    };
+}
+
 }
 
 #endif
+
+

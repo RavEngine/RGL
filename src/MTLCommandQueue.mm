@@ -17,6 +17,13 @@ RGLCommandBufferPtr CommandQueueMTL::CreateCommandBuffer(){
 void CommandQueueMTL::WaitUntilCompleted(){
     // currently does nothing
 }
+
+QueueData CommandQueueMTL::GetQueueData() {
+    return {
+        
+    };
+}
+
 }
 
 #endif
