@@ -226,7 +226,15 @@ namespace RGL {
 				.pBufferInfo = &bufferInfo,
 				.pTexelBufferView = nullptr
 		};
-		vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+		vkCmdPushDescriptorSetKHR(
+			commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			currentRenderPipeline->pipelineLayout->layout,
+			0,
+			1,
+			&writeinfo
+		);
+		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
 	}
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
@@ -293,7 +301,16 @@ namespace RGL {
 				.pBufferInfo = nullptr,
 				.pTexelBufferView = nullptr
 		};
-		vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+		vkCmdPushDescriptorSetKHR(
+			commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			currentRenderPipeline->pipelineLayout->layout,
+			0,
+			1,
+			&writeinfo
+		);
+
+		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
 		if (castedImage->owningSwapchain) {
 			swapchainsToSignal.insert(castedImage->owningSwapchain);
 		}

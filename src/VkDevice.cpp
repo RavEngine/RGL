@@ -21,7 +21,8 @@ namespace RGL {
            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
            VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME,
            VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-           VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
+           VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+           VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
@@ -84,8 +85,15 @@ namespace RGL {
 
         constexpr auto isDeviceSuitable = [](const VkPhysicalDevice device) -> bool {
             // look for all the features we want
-            VkPhysicalDeviceProperties deviceProperties;
-            vkGetPhysicalDeviceProperties(device, &deviceProperties);
+            VkPhysicalDevicePushDescriptorPropertiesKHR devicePushDescriptors{
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES_KHR,
+                .pNext = nullptr
+            };
+
+            VkPhysicalDeviceProperties2 deviceProperties{
+                .pNext = &devicePushDescriptors,
+            };
+            vkGetPhysicalDeviceProperties2(device, &deviceProperties);
 
             VkPhysicalDeviceFeatures deviceFeatures;
             vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
@@ -103,7 +111,7 @@ namespace RGL {
 
             // right now we don't care so pick any gpu
             // in the future implement a scoring system to pick the best device
-            return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && queueFamilyData.isComplete() && extensionsSupported;
+            return deviceProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && queueFamilyData.isComplete() && extensionsSupported;
         };
         for (const auto& device : devices) {
             if (isDeviceSuitable(device)) {
