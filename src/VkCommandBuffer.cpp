@@ -330,9 +330,9 @@ namespace RGL {
 	{
 		VkViewport vp{
 			.x = viewport.x,
-			.y = viewport.y,
+			.y = viewport.height - viewport.y,
 			.width = viewport.width,
-			.height = viewport.height, // make Vulkan a Y-up system
+			.height = -viewport.height, // make Vulkan a Y-up system
 			.minDepth = viewport.minDepth,
 			.maxDepth = viewport.maxDepth
 		};
