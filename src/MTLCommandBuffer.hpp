@@ -15,6 +15,7 @@ struct BufferMTL;
         OBJC_ID(MTLRenderCommandEncoder) currentCommandEncoder = nullptr;
         
         std::shared_ptr<BufferMTL> indexBuffer;
+        std::shared_ptr<BufferMTL> vertexBuffer;
         
         const std::shared_ptr<CommandQueueMTL> owningQueue;
         CommandBufferMTL(decltype(owningQueue));

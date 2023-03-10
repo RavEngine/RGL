@@ -17,6 +17,8 @@ CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQu
 void CommandBufferMTL::Reset(){
     currentCommandEncoder = nullptr;
     currentCommandBuffer = nullptr;
+    vertexBuffer = nullptr;
+    indexBuffer = nullptr;
 }
 
 void CommandBufferMTL::Begin(){
@@ -53,7 +55,8 @@ void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_
 }
 
 void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer) {
-    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:0];
+    vertexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
+    [currentCommandEncoder setVertexBuffer:vertexBuffer->buffer offset:offsetIntoBuffer * vertexBuffer->stride atIndex:0];
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
@@ -66,7 +69,7 @@ void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset
 }
 
 void CommandBufferMTL::Draw(uint32_t nVertices, const DrawInstancedConfig& config){
-    [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:config.startVertex vertexCount:nVertices instanceCount:config.nInstances baseInstance:config.firstInstance];
+    [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:config.startVertex * vertexBuffer->stride vertexCount:nVertices instanceCount:config.nInstances baseInstance:config.firstInstance];
 }
 
 void CommandBufferMTL::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config){
@@ -76,7 +79,7 @@ void CommandBufferMTL::DrawIndexed(uint32_t nIndices, const DrawIndexedInstanced
         indexType = MTLIndexTypeUInt16;
     }
     
-    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:config.firstIndex instanceCount:config.nInstances baseVertex:config.startVertex baseInstance:config.firstInstance];
+    [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:nIndices indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:config.firstIndex * indexBuffer->stride instanceCount:config.nInstances baseVertex:config.startVertex * vertexBuffer->stride baseInstance:config.firstInstance];
 }
 
 void CommandBufferMTL::SetViewport(const Viewport & viewport){
