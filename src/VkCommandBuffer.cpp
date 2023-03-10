@@ -240,9 +240,10 @@ namespace RGL {
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
-		VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVk>(buffer)->buffer };
-		VkDeviceSize offsets[] = { offsetIntoBuffer };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
+		VkBuffer vertexBuffers[] = { vkbuffer->buffer };
+		VkDeviceSize offsets[] = { offsetIntoBuffer * vkbuffer->stride };
+		vkCmdBindVertexBuffers(commandBuffer, 0, std::size(vertexBuffers), vertexBuffers, offsets);
 	}
 
 	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages)
