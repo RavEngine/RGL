@@ -11,6 +11,7 @@ namespace RGL {
        allocation =  createBuffer(owningDevice.get(), config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer);
 
         mappedMemory.size = config.size_bytes;
+        stride = config.stride;
 	}
 
     BufferVk::~BufferVk() {

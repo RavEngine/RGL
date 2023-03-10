@@ -267,8 +267,9 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
-		//TODO: support 16 bit index buffer
-		vkCmdBindIndexBuffer(commandBuffer, std::static_pointer_cast<BufferVk>(buffer)->buffer, 0, VK_INDEX_TYPE_UINT32);
+		const auto casted = std::static_pointer_cast<BufferVk>(buffer);
+		const auto size_type = casted->stride == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+		vkCmdBindIndexBuffer(commandBuffer, casted->buffer, 0, size_type);
 	}
 	void CommandBufferVk::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{

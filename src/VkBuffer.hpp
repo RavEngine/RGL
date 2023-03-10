@@ -15,6 +15,7 @@ namespace RGL {
 		VmaAllocation allocation = VK_NULL_HANDLE;
 
 		MutableSpan mappedMemory;
+		size_t stride = 0;
 
 		BufferVk(decltype(owningDevice), const BufferConfig&);
 		virtual ~BufferVk();
