@@ -211,9 +211,10 @@ namespace RGL {
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
+		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
 		VkDescriptorBufferInfo bufferInfo{
-		   .buffer = std::static_pointer_cast<BufferVk>(buffer)->buffer,
-		   .offset = offsetIntoBuffer,
+		   .buffer = vkbuffer->buffer,
+		   .offset = offsetIntoBuffer * vkbuffer->stride,
 		   .range = VK_WHOLE_SIZE,
 		};
 		VkWriteDescriptorSet writeinfo{
