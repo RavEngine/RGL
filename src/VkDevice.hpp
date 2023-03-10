@@ -25,6 +25,7 @@ namespace RGL {
 		VkQueue presentQueue = VK_NULL_HANDLE;	// do not need to be destroyed
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		VmaAllocator vkallocator;
+		PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;	// device-tied extension function
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);

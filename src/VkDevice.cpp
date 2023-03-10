@@ -16,7 +16,6 @@
 #include <vulkan/vulkan.h>
 
 namespace RGL {
-
     constexpr static const char* const deviceExtensions[] = {
            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
            VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME,
@@ -91,6 +90,7 @@ namespace RGL {
             };
 
             VkPhysicalDeviceProperties2 deviceProperties{
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
                 .pNext = &devicePushDescriptors,
             };
             vkGetPhysicalDeviceProperties2(device, &deviceProperties);
@@ -180,6 +180,11 @@ namespace RGL {
             deviceCreateInfo.ppEnabledLayerNames = validationLayers;
         }
         VK_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
+
+        vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSetKHR");
+        if (!vkCmdPushDescriptorSetKHR) {
+           FatalError("Could not get a valid function pointer for vkCmdPushDescriptorSetKHR");
+        }
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
         VK_VALID(presentQueue);

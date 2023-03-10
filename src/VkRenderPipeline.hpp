@@ -10,7 +10,6 @@ namespace RGL {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		VkPipelineLayout layout = VK_NULL_HANDLE;
 		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-		VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
 		PipelineLayoutVk(decltype(owningDevice), const PipelineLayoutDescriptor&);

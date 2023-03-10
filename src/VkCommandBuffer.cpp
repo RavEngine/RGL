@@ -92,8 +92,9 @@ namespace RGL {
 		// drawing commands
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 
+		/*
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout->layout, 0, 1, &pipeline->pipelineLayout->descriptorSet, 0, nullptr);
-
+		*/
 		currentRenderPipeline = pipeline;
 
 	}
@@ -226,7 +227,7 @@ namespace RGL {
 				.pBufferInfo = &bufferInfo,
 				.pTexelBufferView = nullptr
 		};
-		vkCmdPushDescriptorSetKHR(
+		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
 			commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			currentRenderPipeline->pipelineLayout->layout,
@@ -301,7 +302,7 @@ namespace RGL {
 				.pBufferInfo = nullptr,
 				.pTexelBufferView = nullptr
 		};
-		vkCmdPushDescriptorSetKHR(
+		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
 			commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			currentRenderPipeline->pipelineLayout->layout,

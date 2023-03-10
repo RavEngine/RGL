@@ -249,6 +249,7 @@ namespace RGL {
       
         VkDescriptorSetLayoutCreateInfo layoutInfo{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,   		// Setting this flag tells the descriptor set layouts that no actual descriptor sets are allocated but instead pushed at command buffer creation time
             .bindingCount = static_cast<uint32_t>(layoutbindings.size()),
             .pBindings = layoutbindings.data()
         };
@@ -269,50 +270,17 @@ namespace RGL {
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .flags = 0,
             .setLayoutCount = 1,    // the rest are optional
             .pSetLayouts = &descriptorSetLayout,
             .pushConstantRangeCount = static_cast<uint32_t>(nconstants),
             .pPushConstantRanges = pushconstants
         };
         VK_CHECK(vkCreatePipelineLayout(owningDevice->device, &pipelineLayoutInfo, nullptr, &layout));
-
-        // create descriptor pool
-        // TODO: set this based on what's actually in the descriptor set
-        VkDescriptorPoolSize poolSizes[] = {
-            {
-                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-            },
-            {
-                .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = 1,
-            },
-            {
-                .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
-                .descriptorCount = 1,
-            }
-        };
-        VkDescriptorPoolCreateInfo poolInfo{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = 1,       // this 1 is replaced with the maximum number of frames in flight
-            .poolSizeCount = std::size(poolSizes),
-            .pPoolSizes = poolSizes,
-        };
-        VK_CHECK(vkCreateDescriptorPool(owningDevice->device, &poolInfo, nullptr, &descriptorPool));
-
-        // create descriptor set
-        VkDescriptorSetAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .descriptorPool = descriptorPool,
-        .descriptorSetCount = 1,    // if multiple frames are in flight, set this to the max number of frames
-        .pSetLayouts = &descriptorSetLayout, // for multiple, supply a pointer with N identical copies of descriptorSetLayout
-        };
-        VK_CHECK(vkAllocateDescriptorSets(owningDevice->device, &allocInfo, &descriptorSet));
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()
     {
-        vkDestroyDescriptorPool(owningDevice->device, descriptorPool, nullptr);
         vkDestroyDescriptorSetLayout(owningDevice->device, descriptorSetLayout, nullptr);
         vkDestroyPipelineLayout(owningDevice->device, layout, nullptr);
     }
