@@ -8,8 +8,28 @@
 #include "MTLBuffer.hpp"
 #include "MTLSampler.hpp"
 #include "MTLRenderPass.hpp"
+#include "RGLCommon.hpp"
 
 namespace RGL{
+
+MTLWinding rgl2mtlwinding(RGL::WindingOrder order){
+    switch (order){
+        case decltype(order)::Clockwise: return MTLWindingClockwise;
+        case decltype(order)::Counterclockwise: return MTLWindingCounterClockwise;
+    }
+}
+
+MTLCullMode rgl2mtlcullmode(RGL::CullMode mode){
+    switch (mode){
+        case decltype(mode)::None: return MTLCullModeNone;
+        case decltype(mode)::Front: return MTLCullModeFront;
+        case decltype(mode)::Back: return MTLCullModeBack;
+        case decltype(mode)::Both:
+        default:
+            FatalError("Invalid cullmode");
+    }
+}
+
 CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQueue(owningQueue){
     
 }
@@ -39,6 +59,8 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     if (pipeline->depthStencilState){
         [currentCommandEncoder setDepthStencilState:pipeline->depthStencilState];
     }
+    [currentCommandEncoder setFrontFacingWinding:rgl2mtlwinding(pipeline->settings.rasterizerConfig.windingOrder)];
+    [currentCommandEncoder setCullMode:rgl2mtlcullmode(pipeline->settings.rasterizerConfig.cullMode)];
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){

@@ -135,6 +135,13 @@ namespace RGL {
         Clockwise, Counterclockwise
     };
 
+    enum class CullMode : uint8_t {
+        None = 0,
+        Front = 0b01,
+        Back = 0b10,
+        Both = Front | Back
+    };
+
 	struct RenderPipelineDescriptor {
 		
 		std::vector<ShaderStageDesc> stages;
@@ -182,12 +189,7 @@ namespace RGL {
 			};
 			constexpr static PolygonOverride polygonOverride = PolygonOverride::None;	// not yet modifiable
 
-			enum class CullMode : uint8_t {
-				None = 0,
-				Front = 0b01,
-				Back = 0b10,
-				Both = Front | Back
-			} cullMode = CullMode::Back;
+			CullMode cullMode = CullMode::Back;
 
 			WindingOrder windingOrder : 1 = WindingOrder::Counterclockwise;
 
