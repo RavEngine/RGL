@@ -8,14 +8,9 @@ namespace RGL{
     struct DeviceMTL;
     
     struct PipelineLayoutMTL : public IPipelineLayout{
-        
-        std::vector<LayoutConfig::TextureAndSampler> samplerTextures;
-        
+                
         PipelineLayoutDescriptor settings;
-        PipelineLayoutMTL(const decltype(settings)& settings) : settings(settings){}
-        
-        void SetLayout(const LayoutConfig& config) final;
-        
+        PipelineLayoutMTL(const decltype(settings)& settings) : settings(settings){}        
     };
 
     struct RenderPipelineMTL : public IRenderPipeline{

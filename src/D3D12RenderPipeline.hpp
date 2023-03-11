@@ -13,9 +13,6 @@ namespace RGL {
 		ComPtr<ID3D12RootSignature> rootSignature;
 
 		PipelineLayoutD3D12(decltype(owningDevice), const PipelineLayoutDescriptor&);
-		void SetLayout(const LayoutConfig& config) final;
-
-		std::vector<LayoutConfig::TextureAndSampler> boundSamplers;
 	};
 
 	struct RenderPipelineD3D12 : public IRenderPipeline {

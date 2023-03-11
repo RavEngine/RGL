@@ -15,7 +15,7 @@ namespace RGL {
         }
     }
 
-    D3D12_CULL_MODE rgl2d3d12cull(RGL::RenderPipelineDescriptor::RasterizerConfig::CullMode cull) {
+    D3D12_CULL_MODE rgl2d3d12cull(RGL::CullMode cull) {
         switch (cull) {
         case decltype(cull)::None:
             return D3D12_CULL_MODE_NONE;
@@ -157,10 +157,6 @@ namespace RGL {
         // Create the root signature.
         DX_CHECK(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 	}
-    void PipelineLayoutD3D12::SetLayout(const LayoutConfig& config)
-    {
-        boundSamplers = config.boundTextures;
-    }
 
 
     RenderPipelineD3D12::RenderPipelineD3D12(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice), pipelineLayout(std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout))

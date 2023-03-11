@@ -14,9 +14,6 @@ namespace RGL {
 
 		PipelineLayoutVk(decltype(owningDevice), const PipelineLayoutDescriptor&);
 		virtual ~PipelineLayoutVk();
-
-		// IPipelineLayout
-		void SetLayout(const LayoutConfig& config) final;
 	};
 
 	struct RenderPipelineVk : public IRenderPipeline {

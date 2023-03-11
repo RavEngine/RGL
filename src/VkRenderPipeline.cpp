@@ -17,6 +17,15 @@ namespace RGL {
         }
     }
 
+    VkFrontFace RGL2VkFrontFace(RGL::WindingOrder windingOrder) {
+        switch (windingOrder) {
+        case decltype(windingOrder)::Clockwise: return VK_FRONT_FACE_CLOCKWISE;
+        case decltype(windingOrder)::Counterclockwise: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        default:
+            FatalError("Invalid cull mode");
+        } 
+    }
+
     VkPrimitiveTopology RGL2VkTopology(PrimitiveTopology top) {
         switch (top) {
             case decltype(top)::PointList: return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
@@ -142,7 +151,7 @@ namespace RGL {
             .rasterizerDiscardEnable = desc.rasterizerConfig.rasterizerDiscardEnable, // if true, output to the framebuffer is disabled
             .polygonMode = RGLK2VkPolygon(desc.rasterizerConfig.polygonOverride),        // lines, points, fill (anything other than fill requires a GPU feature)
             .cullMode = static_cast<VkCullModeFlags>(desc.rasterizerConfig.cullMode),      // front vs backface culling
-            .frontFace = static_cast<VkFrontFace>(desc.rasterizerConfig.windingOrder),   // CW vs CCW 
+            .frontFace = RGL2VkFrontFace(desc.rasterizerConfig.windingOrder),   // CW vs CCW 
             .depthBiasEnable = desc.rasterizerConfig.depthBias.enable,            // depth bias is useful for shadow maps
             .depthBiasConstantFactor = desc.rasterizerConfig.depthBias.constantFactor,    // the next 3 are optional
             .depthBiasClamp = desc.rasterizerConfig.depthBias.clamp,
@@ -294,11 +303,6 @@ namespace RGL {
     {
         vkDestroyDescriptorSetLayout(owningDevice->device, descriptorSetLayout, nullptr);
         vkDestroyPipelineLayout(owningDevice->device, layout, nullptr);
-    }
-
-    void PipelineLayoutVk::SetLayout(const LayoutConfig& config)
-    {
-        
     }
 }
 

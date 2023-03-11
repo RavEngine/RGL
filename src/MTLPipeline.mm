@@ -72,10 +72,6 @@ MTLCompareFunction rgl2mtlcomparefunction(DepthCompareFunction fn){
     }
 }
 
-void PipelineLayoutMTL::SetLayout(const LayoutConfig& config){
-    this->samplerTextures = config.boundTextures;
-}
-
 RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice), settings(desc){
     auto pipelineDesc = [MTLRenderPipelineDescriptor new];
     

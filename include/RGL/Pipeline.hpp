@@ -82,7 +82,6 @@ namespace RGL {
 	};
 
 	struct IPipelineLayout {
-		virtual void SetLayout(const LayoutConfig& config) = 0;
 	};
 
 	enum class PrimitiveTopology : uint8_t {
