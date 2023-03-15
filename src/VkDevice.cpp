@@ -16,6 +16,15 @@
 #include <vulkan/vulkan.h>
 
 namespace RGL {
+
+    template<typename T>
+    void loadVulkanFunction(VkDevice device, T& ptr, const char* fnname) {
+        ptr = (std::remove_reference_t<decltype(ptr)>) vkGetDeviceProcAddr(device, fnname);
+        if (!ptr) {
+            FatalError("Cannot get Vulkan function pointer");
+        }
+    }
+
     constexpr static const char* const deviceExtensions[] = {
            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
            VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME,
@@ -166,13 +175,16 @@ namespace RGL {
             FatalError("Cannot init - dynamic rendering is not supported");
         }
 
+        std::vector<const char*> runtimeExtensions{std::begin(deviceExtensions),std::end(deviceExtensions)};
+        runtimeExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+
         VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .pNext = &deviceFeatures2,
             .queueCreateInfoCount = static_cast<decltype(VkDeviceCreateInfo::queueCreateInfoCount)>(queueCreateInfos.size()),
             .pQueueCreateInfos = queueCreateInfos.data(),      // could pass an array here if we were making more than one queue
-            .enabledExtensionCount = std::size(deviceExtensions),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
-            .ppEnabledExtensionNames = deviceExtensions,
+            .enabledExtensionCount = static_cast<uint32_t>(runtimeExtensions.size()),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
+            .ppEnabledExtensionNames = runtimeExtensions.data(),
             .pEnabledFeatures = nullptr,        // because we are using deviceFeatures2
         };
         if constexpr (enableValidationLayers) {
@@ -181,10 +193,9 @@ namespace RGL {
         }
         VK_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
 
-        vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSetKHR");
-        if (!vkCmdPushDescriptorSetKHR) {
-           FatalError("Could not get a valid function pointer for vkCmdPushDescriptorSetKHR");
-        }
+        // load extra functions
+        loadVulkanFunction(device, vkCmdPushDescriptorSetKHR, "vkCmdPushDescriptorSetKHR");
+        loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
         VK_VALID(presentQueue);
@@ -211,6 +222,19 @@ namespace RGL {
         };
 
         VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
+    }
+
+    void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
+    {
+        VkDebugMarkerObjectNameInfoEXT objectName{
+           .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
+           .pNext = nullptr,
+           .objectType = type,
+           .object = reinterpret_cast<uint64_t>(resource),
+           .pObjectName = debugName
+        };
+
+        VK_CHECK(this->rgl_vkDebugMarkerSetObjectNameEXT(this->device, &objectName));
     }
 
     RGL::DeviceVk::~DeviceVk() {

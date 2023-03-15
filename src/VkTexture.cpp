@@ -92,7 +92,6 @@ namespace RGL {
 	}
 	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureVk(owningDevice, config)
 	{
-
 		// allocate a staging buffer for the texture
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
 		auto allocation = createBuffer(owningDevice.get(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer);
@@ -181,6 +180,11 @@ namespace RGL {
 		}
 		};
 		VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &vkImageView));
+
+		if (config.debugName) {
+			owningDevice->SetDebugNameForResource(vkImage, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, config.debugName);
+		}
+
 	}
 	Dimension TextureVk::GetSize() const
 	{

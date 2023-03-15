@@ -26,6 +26,7 @@ namespace RGL {
 		TextureType imageType = decltype(imageType)::T2D;
 		TextureFormat format;
 		TilingMode mode = decltype(mode)::Optimal;
+		const char* debugName = nullptr;
 	};
 
 	class ITexture {

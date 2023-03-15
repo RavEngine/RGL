@@ -26,9 +26,12 @@ namespace RGL {
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		VmaAllocator vkallocator;
 		PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;	// device-tied extension function
+		PFN_vkDebugMarkerSetObjectNameEXT rgl_vkDebugMarkerSetObjectNameEXT;
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
+
+		void SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName);
 
 		// IDevice
 		std::string GetBrandString() final;
