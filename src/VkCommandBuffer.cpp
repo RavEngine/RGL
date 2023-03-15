@@ -28,6 +28,31 @@ namespace RGL {
 		}
 	}
 
+	VkImageLayout rgl2vkImageLayout(RGL::ResourceLayout layout) {
+		switch (layout) {
+		case decltype(layout)::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+		case decltype(layout)::General: return VK_IMAGE_LAYOUT_GENERAL;
+		case decltype(layout)::ColorAttachmentOptimal: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::DepthStencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		case decltype(layout)::DepthStencilAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::ShaderReadOnlyOptimal: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		case decltype(layout)::TransferSourceOptimal: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		case decltype(layout)::TransferDestinationOptimal: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		case decltype(layout)::Reinitialized: return VK_IMAGE_LAYOUT_PREINITIALIZED;
+		case decltype(layout)::DepthReadOnlyStencilAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::DepthAttachmentStencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+		case decltype(layout)::DepthAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::DepthReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+		case decltype(layout)::StencilAttachmentOptimal: return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::StencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+		case decltype(layout)::ReadOnlyOptimal: return VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+		case decltype(layout)::AttachmentOptimal: return VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+		case decltype(layout)::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		default:
+			FatalError("layout is not supported");
+		}
+	}
+
 	void encodeResourceTransition(VkCommandBuffer commandBuffer, VkImage image, 
 		decltype(VkImageMemoryBarrier::srcAccessMask) srcAccessMask,
 		decltype(VkImageMemoryBarrier::dstAccessMask) dstAccessMask,
@@ -126,13 +151,14 @@ namespace RGL {
 
 			// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
 			auto castedImage = static_cast<TextureVk*>(renderPass->textures[i]);
-			if (attachment.shouldTransition) {
+			if (attachment.preTransition) {
+				const auto& transitionData = attachment.preTransition.value();
 				encodeResourceTransition(commandBuffer, 
 					castedImage->vkImage,
 					VK_ACCESS_NONE,
 					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					rgl2vkImageLayout(transitionData.beforeLayout),
+					rgl2vkImageLayout(transitionData.afterLayout),
 					VK_IMAGE_ASPECT_COLOR_BIT,
 					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
@@ -190,7 +216,8 @@ namespace RGL {
 		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
 		uint32_t i = 0;
 		for (const auto& attachment : currentRenderPass->config.attachments) {
-			if (attachment.shouldTransition) {
+			if (attachment.postTransition) {
+				const auto& transitionData = attachment.postTransition.value();
 				// the swapchain image is not in the correct format for presentation now
 				// so it needs to be transitioned 
 
@@ -198,8 +225,8 @@ namespace RGL {
 					static_cast<TextureVk*>(currentRenderPass->textures[i])->vkImage,
 					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 					VK_ACCESS_NONE,
-					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+					rgl2vkImageLayout(transitionData.beforeLayout),
+					rgl2vkImageLayout(transitionData.afterLayout),
 					VK_IMAGE_ASPECT_COLOR_BIT,
 					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT

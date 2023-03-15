@@ -58,7 +58,8 @@ namespace RGL {
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
 
-			if (attachment.shouldTransition) {
+			if (attachment.preTransition) {
+				//TODO: support the values set in attachment transition info
 				TransitionResource(commandList, tx->texture,
 					D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			}
@@ -77,7 +78,8 @@ namespace RGL {
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
-				if (currentRenderPass->config.depthAttachment->shouldTransition) {
+				//TODO: support the values set in attachment transition info
+				if (currentRenderPass->config.depthAttachment->preTransition) {
 					TransitionResource(commandList, tx->texture,
 						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				}
@@ -95,9 +97,22 @@ namespace RGL {
 		uint32_t i = 0;
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
-			if (attachment.shouldTransition) {
+			if (attachment.postTransition) {
+				//TODO: support the values set in attachment transition info
 				TransitionResource(commandList, tx->texture,
 					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+			}
+		}
+
+		//depth stencil
+		{
+			if (currentRenderPass->depthTexture) {
+				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
+				if (currentRenderPass->config.depthAttachment->postTransition) {
+					//TODO: support the values set in attachment transition info
+					TransitionResource(commandList, tx->texture,
+						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				}
 			}
 		}
 
