@@ -12,6 +12,7 @@
 #include "D3D12Texture.hpp"
 #include "D3D12Sampler.hpp"
 #include <D3D12MemAlloc.h>
+#include <DescriptorHeap.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -138,6 +139,15 @@ namespace RGL {
         }*/
 
         DX_CHECK(D3D12MA::CreateAllocator(&desc, &allocator));
+        
+        // create the descriptor heaps
+        // these will be the only descriptor heaps
+        // because it is more performant to have a single heap and suballocate it
+
+        RTVHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+        DSVHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+        CBV_SRV_UAVHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+        SamplerHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
     }
 
     DeviceD3D12::~DeviceD3D12() {

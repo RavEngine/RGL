@@ -2,6 +2,7 @@
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
 #include <RGL/Pipeline.hpp>
+#include "D3D12DynamicDescriptorPile.hpp"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
@@ -12,17 +13,24 @@ namespace D3D12MA {
 	struct Allocator;
 }
 
+
 namespace RGL {
 
 	struct CommandQueueD3D12;
 
 	struct DeviceD3D12 : public IDevice, public std::enable_shared_from_this<DeviceD3D12>{
+
 		Microsoft::WRL::ComPtr<ID3D12Device2> device;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter;
 		std::shared_ptr<CommandQueueD3D12> internalQueue;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> internalCommandList;
 		Microsoft::WRL::ComPtr<D3D12MA::Allocator> allocator;
 		UINT g_RTVDescriptorHeapSize = 0;
+
+		//TODO: make these vectors of descriptorpiles
+		// where new ones are created when they fill up 
+
+		std::optional<D3D12DynamicDescriptorPile> RTVHeap, DSVHeap, CBV_SRV_UAVHeap, SamplerHeap;
 
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();

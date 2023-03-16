@@ -78,14 +78,17 @@ endif()
 
 if(MSVC AND NOT RGL_DISABLE_DX)
 	add_subdirectory(deps/DirectX-Headers EXCLUDE_FROM_ALL)
-	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib" "D3D12MemoryAllocator")
+	set(DX12_LIBRARIES "d3d12.lib" "DirectX-Headers" "DirectX-Guids" "dxgi.lib" "d3dcompiler.lib" "D3D12MemoryAllocator" "DirectXTK12")
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=1)
 
-	set_target_properties("DirectX-Guids" PROPERTIES 
-		FOLDER "RGL/Libraries"
-	)
 	set(RGL_DX12_AVAILABLE ON CACHE INTERNAL "RGL DX12")
 	add_subdirectory("deps/D3D12MemoryAllocator" EXCLUDE_FROM_ALL)
+	set(BUILD_XAUDIO_WIN10 OFF CACHE INTERNAL "")
+	add_subdirectory("deps/DirectXTK12" EXCLUDE_FROM_ALL)
+
+	set_target_properties("DirectX-Guids"  "DirectXTK12"  PROPERTIES 
+		FOLDER "RGL/Libraries"
+	)
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=0)
 	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")
