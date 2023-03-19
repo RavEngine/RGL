@@ -2,7 +2,7 @@
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
 #include <RGL/Pipeline.hpp>
-#include "D3D12DynamicDescriptorPile.hpp"
+#include "D3D12DynamicDescriptorHeap.hpp"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
@@ -30,7 +30,7 @@ namespace RGL {
 		//TODO: make these vectors of descriptorpiles
 		// where new ones are created when they fill up 
 
-		std::optional<D3D12DynamicDescriptorPile> RTVHeap, DSVHeap, CBV_SRV_UAVHeap, SamplerHeap;
+		std::optional<D3D12DynamicDescriptorHeap> RTVHeap, DSVHeap, CBV_SRV_UAVHeap, SamplerHeap;
 
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();

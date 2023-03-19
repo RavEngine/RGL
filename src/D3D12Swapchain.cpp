@@ -85,41 +85,46 @@ namespace RGL {
         return dxgiSwapChain4;
     }
 
-
-
     SwapchainD3D12::SwapchainD3D12(decltype(owningDevice) device, std::shared_ptr<SurfaceD3D12> surface, int width, int height, std::shared_ptr<CommandQueueD3D12> presentQueue) : owningDevice(device)
     {
         backbufferTextures.reserve(g_NumFrames);
         swapchain = CreateSwapChain(surface->windowHandle, presentQueue->GetD3D12CommandQueue(), width, height, g_NumFrames);
         device->internalQueue->Flush();
-        m_RTVDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, g_NumFrames);
-        UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
+        UpdateRenderTargetViews(owningDevice->device, swapchain, owningDevice->RTVHeap.value());
         tearingSupported = CheckTearingSupport();
     }
 
-    void SwapchainD3D12::UpdateRenderTargetViews(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapChain, ComPtr<ID3D12DescriptorHeap> descriptorHeap)
+    void SwapchainD3D12::UpdateRenderTargetViews(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapChain, D3D12DynamicDescriptorHeap& descriptorHeap)
     {
         auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
+        // deallocate resources
         DXGI_SWAP_CHAIN_DESC1 desc;
         swapChain->GetDesc1(&desc);
         backbufferTextures.clear();
+        if (initialized) {
+            for (const auto index : rtvIndices) {
+                descriptorHeap.DeallocateSingle(index);
+            }
+        }
 
         for (int i = 0; i < g_NumFrames; ++i)
         {
+
+            auto idx = rtvIndices[i] = descriptorHeap.AllocateSingle();
+
             ComPtr<ID3D12Resource> backBuffer;
             DX_CHECK(swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
             backBuffer->SetName(L"Swapchain Buffer");
 
-            device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
+            auto handle = descriptorHeap.GetCpuHandle(idx);
+
+            device->CreateRenderTargetView(backBuffer.Get(), nullptr, handle);
 
             backbuffers[i] = backBuffer;
-            backbufferTextures.emplace_back(backBuffer,Dimension{desc.Width,desc.Height},m_RTVDescriptorHeap,i, owningDevice);
-
-            rtvHandle.Offset(rtvDescriptorSize);
+            backbufferTextures.emplace_back(backBuffer, Dimension{ desc.Width,desc.Height }, descriptorHeap.Heap(), i, owningDevice);
         }
+        initialized = true;
     }
 
     void SwapchainD3D12::Resize(uint32_t width, uint32_t height)
@@ -147,7 +152,7 @@ namespace RGL {
         DX_CHECK(swapchain->ResizeBuffers(g_NumFrames, width, height,
             swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
 
-        UpdateRenderTargetViews(owningDevice->device, swapchain, m_RTVDescriptorHeap);
+        UpdateRenderTargetViews(owningDevice->device, swapchain, owningDevice->RTVHeap.value());
         for (auto& buffer : backbufferTextures) {
             buffer.size = Dimension{ width,height };
         }
