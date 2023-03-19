@@ -122,7 +122,7 @@ namespace RGL {
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, handle);
 
             backbuffers[i] = backBuffer;
-            backbufferTextures.emplace_back(backBuffer, Dimension{ desc.Width,desc.Height }, descriptorHeap.Heap(), i, owningDevice);
+            backbufferTextures.emplace_back(backBuffer, Dimension{ desc.Width,desc.Height }, i, owningDevice);
         }
         initialized = true;
     }

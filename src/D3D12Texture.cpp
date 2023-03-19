@@ -7,26 +7,17 @@
 
 namespace RGL {
 
-	TextureD3D12::TextureD3D12(decltype(texture) image, const Dimension& size, decltype(owningDescriptorHeap) heap, decltype(descriptorHeapOffset) offset, decltype(owningDevice) device) : texture(image), ITexture(size), owningDescriptorHeap(heap), descriptorHeapOffset(offset), owningDevice(device)
+	TextureD3D12::TextureD3D12(decltype(texture) image, const Dimension& size, decltype(rtvIDX) offset, decltype(owningDevice) device) : texture(image), ITexture(size), rtvIDX(offset), owningDevice(device)
 	{
+
 	}
 	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
 	{
 		// make the heap and SRV 
 		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
-		const auto type = isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		bool canBeshadervisible = config.usage & TextureUsage::Sampled;
 		auto format = rgl2dxgiformat_texture(config.format);
-		CreateHeapAndSRV(owningDevice, type, false, format, config);
-
-		if (!isDS) {
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-			D3D12_RENDER_TARGET_VIEW_DESC desc{
-				.Format = format,
-				.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
-			};
-			owningDevice->device->CreateRenderTargetView(image.Get(), &desc, rtvHandle);
-		}
-		
+		PlaceInHeaps(isDS, owningDevice, format, config, canBeshadervisible);
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
@@ -127,47 +118,43 @@ namespace RGL {
 
 		texture->SetName(L"Texture Resource");
 
-		const D3D12_DESCRIPTOR_HEAP_TYPE type = (isDS ? D3D12_DESCRIPTOR_HEAP_TYPE_DSV : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		const bool canBeShadervisible = !(resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET));
 
-		CreateHeapAndSRV(owningDevice, type, canBeShadervisible, format, config);
-
-		if (!isDS && config.usage & RGL::TextureUsage::ColorAttachment) {
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		// add the resource to the appropriate heaps
+		PlaceInHeaps(isDS, owningDevice, format, config, canBeShadervisible);
+	}
+	void TextureD3D12::PlaceInHeaps(const bool& isDS, const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config, const bool& canBeShadervisible)
+	{
+		if (isDS) {
+			dsvIDX = owningDevice->DSVHeap->AllocateSingle();
+			D3D12_DEPTH_STENCIL_VIEW_DESC desc{
+				.Format = format,
+				.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
+			};
+			auto handle = owningDevice->DSVHeap->GetCpuHandle(dsvIDX);
+			owningDevice->device->CreateDepthStencilView(texture.Get(), &desc, handle);
+		}
+		if (config.aspect & TextureUsage::ColorAttachment) {
+			rtvIDX = owningDevice->RTVHeap->AllocateSingle();
 			D3D12_RENDER_TARGET_VIEW_DESC desc{
 				.Format = format,
 				.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
 			};
-			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, rtvHandle);
+			auto handle = owningDevice->RTVHeap->GetCpuHandle(rtvIDX);
+			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, handle);
 		}
-	}
-	void TextureD3D12::CreateHeapAndSRV(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const D3D12_DESCRIPTOR_HEAP_TYPE& type, const bool& canBeShadervisible, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
-	{
-		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, type, 1, canBeShadervisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 
-		auto descHandle = owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-
-		// create the correct type of resource view
-		if (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) {
-			// create the resource view
+		if (canBeShadervisible) {
+			srvIDX = owningDevice->CBV_SRV_UAVHeap->AllocateSingle();
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srvDesc.Format = format;
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MipLevels = config.mipLevels;
 
-
-			owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, descHandle);
-		}
-		else if (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV) {
-			D3D12_DEPTH_STENCIL_VIEW_DESC dsv = {};
-			dsv.Format = rgl2dxgiformat_texture(config.format);
-			dsv.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-			dsv.Texture2D.MipSlice = 0;
-			dsv.Flags = D3D12_DSV_FLAG_NONE;
-
-			owningDevice->device->CreateDepthStencilView(texture.Get(), &dsv, descHandle);
+			auto handle = owningDevice->CBV_SRV_UAVHeap->GetCpuHandle(srvIDX);
+			owningDevice->device->CreateShaderResourceView(texture.Get(), &srvDesc, handle);
 		}
 	}
 	Dimension TextureD3D12::GetSize() const
@@ -178,6 +165,16 @@ namespace RGL {
 	{
 		if (allocation) {
 			allocation->Release();
+		}
+		// release descriptors
+		if (rtvAllocated()) {
+			owningDevice->RTVHeap->DeallocateSingle(rtvIDX);
+		}
+		if (srvAllocated()) {
+			owningDevice->CBV_SRV_UAVHeap->DeallocateSingle(srvIDX);
+		}
+		if (dsvAllocated()) {
+			owningDevice->DSVHeap->DeallocateSingle(dsvIDX);
 		}
 	}
 }

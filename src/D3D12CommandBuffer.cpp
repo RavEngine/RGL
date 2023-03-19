@@ -63,8 +63,10 @@ namespace RGL {
 				TransitionResource(commandList, tx->texture,
 					D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			}
-			auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-				tx->descriptorHeapOffset, tx->owningDevice->g_RTVDescriptorHeapSize);
+			Assert(tx->rtvAllocated(),"This texture was not allocated as a render target!");
+			
+			auto rtv = tx->owningDevice->RTVHeap->GetCpuHandle(tx->rtvIDX);
+
 			commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
 
 			rtvs[i] = rtv;
@@ -83,7 +85,8 @@ namespace RGL {
 					TransitionResource(commandList, tx->texture,
 						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				}
-				dsv = tx->owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
+				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
 				dsvptr = &dsv;
 				commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
 			}
@@ -166,21 +169,22 @@ namespace RGL {
 	{
 		index += 1;
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
-		ID3D12DescriptorHeap* heapForThis = thisTexture->owningDescriptorHeap.Get();
-		commandList->SetDescriptorHeaps(1, &heapForThis);
+		auto& heapForThis = thisTexture->owningDevice->CBV_SRV_UAVHeap.value();
+		auto ptr = heapForThis.Heap();
+		commandList->SetDescriptorHeaps(1, &ptr);
 		// bindings come in pairs (sampler, texture, sampler, texture)
-		commandList->SetGraphicsRootDescriptorTable(index + 1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(index + 1, heapForThis.GetGpuHandle(thisTexture->srvIDX));
 	}
 	void CommandBufferD3D12::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
 	{
 		index += 1;
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
-
-		ID3D12DescriptorHeap* heapForThis[2] = { thisSampler->owningDescriptorHeap.Get(), thisTexture->owningDescriptorHeap.Get() };
+		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
+		ID3D12DescriptorHeap* heapForThis[2] = { thisSampler->owningDescriptorHeap.Get(), srvheap->Heap() };
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
 		commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		commandList->SetGraphicsRootDescriptorTable(index + 1, thisTexture->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(index + 1, srvheap->GetGpuHandle(thisTexture->srvIDX));
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
