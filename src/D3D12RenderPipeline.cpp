@@ -3,6 +3,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12ShaderLibrary.hpp"
 #include "D3D12Sampler.hpp"
+#include <list>
 
 namespace RGL {
     DXGI_FORMAT rgl2dxgiformat(RGL::VertexAttributeFormat format) {
@@ -65,48 +66,45 @@ namespace RGL {
         const auto nconstants = desc.constants.size();
 
         uint32_t nsamplers = 0;
-        uint32_t nbuffers = 0;
         for (const auto& item : desc.bindings) {
             switch (item.type) {
             case decltype(item.type)::CombinedImageSampler:
                 nsamplers++;
                 break;
-            case decltype(item.type)::StorageBuffer:    // NOTE: if updating this, make sure to update the rootParameter Init below
-            case decltype(item.type)::UniformBuffer:
-                nbuffers++;
-                break;
             }
         }
 
-        const auto totalParams = nconstants + (nsamplers * 2) + nbuffers;
-        stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
-        for (int i = 0; i < nconstants; i++) {
-            rootParameters[i].InitAsConstants(desc.constants[i].size_bytes / sizeof(int), desc.constants[i].n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
+        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
+        std::list< D3D12_DESCRIPTOR_RANGE1> ranges; // stable memory location is necessary
+        //stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
+        for (const auto& constant : desc.constants) {
+            rootParameters.emplace_back().InitAsConstants(constant.size_bytes / sizeof(int), constant.n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
         //TODO: check 
-        for (int i = 0; i < nsamplers * 2; i+=2) {
+        for (int i = 0; i < nsamplers; i++) {
             // sampler
             {
-                D3D12_DESCRIPTOR_RANGE1 range{
+               
+                auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                     .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                     .NumDescriptors = 1,
-                    .BaseShaderRegister = 0,
+                    .BaseShaderRegister = UINT(i),
                     .RegisterSpace = 0,
-                    .OffsetInDescriptorsFromTableStart = 0,
-                };
-                rootParameters[i + nconstants].InitAsDescriptorTable(1, &range);
+                    .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
+                });
+                rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
             }
 
             // SRV
             {
-                D3D12_DESCRIPTOR_RANGE1 range{
+                auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                     .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                     .NumDescriptors = 1,
-                    .BaseShaderRegister = 0,
+                    .BaseShaderRegister = UINT(i),
                     .RegisterSpace = 0,
-                    .OffsetInDescriptorsFromTableStart = 0,
-                };
-                rootParameters[i + 1 + nconstants].InitAsDescriptorTable(1, &range);
+                    .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
+                });
+                rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
             }
         }
         // constant / uniform buffer bindings (SRVs)
@@ -115,12 +113,12 @@ namespace RGL {
             switch (item.type) {
             case decltype(item.type)::StorageBuffer:
             case decltype(item.type)::UniformBuffer:
-                rootParameters[buffidx + (nsamplers * 2) + nconstants].InitAsShaderResourceView(item.binding, 0);
+                rootParameters.emplace_back().InitAsShaderResourceView(item.binding, 0);
                 break;
 
             }
         }
-
+#if 0
         stackarray(samplerStates, D3D12_STATIC_SAMPLER_DESC, nsamplers);
         {
             uint32_t i = 0;
@@ -144,18 +142,23 @@ namespace RGL {
                 };
             }
         }
-
+#endif
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-        rootSignatureDescription.Init_1_1(totalParams, rootParameters, 0, nullptr, rootSignatureFlags);
+        rootSignatureDescription.Init_1_1(rootParameters.size(), rootParameters.data(), 0, nullptr, rootSignatureFlags);
 
         // Serialize the root signature.
         // it becomes a binary object which can be used to create the actual root signature
         ComPtr<ID3DBlob> rootSignatureBlob;
         ComPtr<ID3DBlob> errorBlob;
-        DX_CHECK(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription, featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        try {
+            DX_CHECK(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription, featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        }
+        catch (std::exception& e) {
+            FatalError(std::format("{}", (char*)errorBlob->GetBufferPointer()));
+        }
         // Create the root signature.
-        DX_CHECK(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+            DX_CHECK(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 	}
 
 
