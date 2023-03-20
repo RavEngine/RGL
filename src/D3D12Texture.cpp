@@ -14,10 +14,9 @@ namespace RGL {
 	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
 	{
 		// make the heap and SRV 
-		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
 		bool canBeshadervisible = config.usage & TextureUsage::Sampled;
 		auto format = rgl2dxgiformat_texture(config.format);
-		PlaceInHeaps(isDS, owningDevice, format, config, canBeshadervisible);
+		PlaceInHeaps(owningDevice, format, config);
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
@@ -91,7 +90,16 @@ namespace RGL {
 		resourceDesc.SampleDesc.Count = 1;
 		resourceDesc.SampleDesc.Quality = 0;
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resourceDesc.Flags = isDS ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
+		resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		if (isDS) {
+			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		}
+
+		if (config.usage & TextureUsage::ColorAttachment) {
+			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		}
+
 
 		D3D12MA::ALLOCATION_DESC allocDesc = {};
 		allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
@@ -118,14 +126,13 @@ namespace RGL {
 
 		texture->SetName(L"Texture Resource");
 
-
-		const bool canBeShadervisible = !(resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET));
-
 		// add the resource to the appropriate heaps
-		PlaceInHeaps(isDS, owningDevice, format, config, canBeShadervisible);
+		PlaceInHeaps(owningDevice, format, config);
 	}
-	void TextureD3D12::PlaceInHeaps(const bool& isDS, const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config, const bool& canBeShadervisible)
+	void TextureD3D12::PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
 	{
+		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
+
 		if (isDS) {
 			dsvIDX = owningDevice->DSVHeap->AllocateSingle();
 			D3D12_DEPTH_STENCIL_VIEW_DESC desc{
@@ -135,7 +142,7 @@ namespace RGL {
 			auto handle = owningDevice->DSVHeap->GetCpuHandle(dsvIDX);
 			owningDevice->device->CreateDepthStencilView(texture.Get(), &desc, handle);
 		}
-		if (config.aspect & TextureUsage::ColorAttachment) {
+		if (config.usage & TextureUsage::ColorAttachment) {
 			rtvIDX = owningDevice->RTVHeap->AllocateSingle();
 			D3D12_RENDER_TARGET_VIEW_DESC desc{
 				.Format = format,
@@ -144,7 +151,7 @@ namespace RGL {
 			auto handle = owningDevice->RTVHeap->GetCpuHandle(rtvIDX);
 			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, handle);
 		}
-
+		bool canBeShadervisible = config.usage & TextureUsage::Sampled;
 		if (canBeShadervisible) {
 			srvIDX = owningDevice->CBV_SRV_UAVHeap->AllocateSingle();
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};

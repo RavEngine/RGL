@@ -144,14 +144,17 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::EndRendering()
 	{
-		uint32_t i = 0;
-		for (const auto& attachment : currentRenderPass->config.attachments) {
-			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
-			if (attachment.postTransition) {
-				const auto fromState = rgl2d3d12resourcestate(attachment.postTransition->beforeLayout);
-				const auto toState = rgl2d3d12resourcestate(attachment.postTransition->afterLayout);
-				TransitionResource(commandList, tx->texture,
-					fromState, toState);
+		{
+			uint32_t i = 0;
+			for (const auto& attachment : currentRenderPass->config.attachments) {
+				auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
+				if (attachment.postTransition) {
+					const auto fromState = rgl2d3d12resourcestate(attachment.postTransition->beforeLayout);
+					const auto toState = rgl2d3d12resourcestate(attachment.postTransition->afterLayout);
+					TransitionResource(commandList, tx->texture,
+						fromState, toState);
+				}
+				i++;
 			}
 		}
 

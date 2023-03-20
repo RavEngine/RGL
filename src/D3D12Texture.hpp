@@ -39,7 +39,7 @@ namespace RGL {
 		TextureD3D12(decltype(owningDevice), const TextureConfig&, untyped_span bytes);
 		TextureD3D12(decltype(owningDevice), const TextureConfig&);
 
-		void PlaceInHeaps(const bool& isDS, const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config, const bool& canBeShadervisible);
+		void PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config);
 
 
 		Dimension GetSize() const final;
