@@ -197,7 +197,7 @@ namespace RGL {
 
         pipelineStateDesc.NumRenderTargets = static_cast<UINT>(nattachments);
 
-        Assert(nattachments < __crt_countof(pipelineStateDesc.RTVFormats), "Too many attachments!");
+        Assert(nattachments < std::size(pipelineStateDesc.RTVFormats), "Too many attachments!");
         for (int i = 0; i < nattachments; i++) {
             pipelineStateDesc.RTVFormats[i] = rgl2dxgiformat_texture(desc.colorBlendConfig.attachments[i].format);
         }

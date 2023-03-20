@@ -206,9 +206,11 @@ namespace RGL {
 	{
 		index += 1;
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
-		ID3D12DescriptorHeap* heapForThis = thisSampler->owningDescriptorHeap.Get();
+		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
+		ID3D12DescriptorHeap* heapForThis = samplerHeap->Heap();
+		auto handle = samplerHeap->GetGpuHandle(thisSampler->descriptorIndex);
 		commandList->SetDescriptorHeaps(1, &heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(index, handle);
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
@@ -230,9 +232,10 @@ namespace RGL {
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
-		ID3D12DescriptorHeap* heapForThis[2] = { thisSampler->owningDescriptorHeap.Get(), srvheap->Heap() };
+		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
+		ID3D12DescriptorHeap* heapForThis[2] = { samplerHeap->Heap(), srvheap->Heap()};
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(index, thisSampler->owningDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(index, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
 		commandList->SetGraphicsRootDescriptorTable(index + 1, srvheap->GetGpuHandle(thisTexture->srvIDX));
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)

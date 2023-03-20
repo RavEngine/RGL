@@ -6,12 +6,11 @@
 #undef max
 
 namespace RGL {
-	SamplerD3D12::SamplerD3D12(decltype(owningDevice) owningDevice, const SamplerConfig& config) : owningDevice(owningDevice)
+	SamplerD3D12::SamplerD3D12(decltype(owningDevice) owningDevice, const SamplerConfig& config) : owningDevice(owningDevice),
+		descriptorIndex(owningDevice->SamplerHeap->AllocateSingle())
 	{
-		owningDescriptorHeap = CreateDescriptorHeap(owningDevice->device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-		descHandle = {
-				owningDescriptorHeap->GetCPUDescriptorHandleForHeapStart()
-		};
+
+		auto handle = owningDevice->SamplerHeap->GetCpuHandle(descriptorIndex);
 
 		 samplerDesc = {
 			.Filter = D3D12_FILTER_ANISOTROPIC,
@@ -27,7 +26,11 @@ namespace RGL {
 
 		};
 
-		owningDevice->device->CreateSampler(&samplerDesc, descHandle);
+		owningDevice->device->CreateSampler(&samplerDesc, handle);
+	}
+	SamplerD3D12::~SamplerD3D12()
+	{
+		owningDevice->SamplerHeap->DeallocateSingle(descriptorIndex);
 	}
 }
 #endif
