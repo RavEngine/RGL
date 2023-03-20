@@ -20,6 +20,51 @@ namespace RGL {
 		commandList->ResourceBarrier(1, &barrier);
 	}
 
+	D3D12_RESOURCE_STATES rgl2d3d12resourcestate(RGL::ResourceLayout layout) {
+		switch (layout) {
+			case decltype(layout)::Undefined:
+			case decltype(layout)::General: 
+			case decltype(layout)::Reinitialized:
+				return D3D12_RESOURCE_STATE_COMMON;
+
+			case decltype(layout)::ColorAttachmentOptimal: 
+			case decltype(layout)::DepthStencilAttachmentOptimal:
+			case decltype(layout)::DepthAttachmentOptimal:
+			case decltype(layout)::StencilAttachmentOptimal:
+			case decltype(layout)::AttachmentOptimal:
+				return D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+			case decltype(layout)::DepthStencilReadOnlyOptimal: 
+				return D3D12_RESOURCE_STATE_DEPTH_READ;
+
+			case decltype(layout)::ShaderReadOnlyOptimal: 
+				return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+			case decltype(layout)::TransferSourceOptimal: 
+				return D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+			case decltype(layout)::TransferDestinationOptimal: 
+				return D3D12_RESOURCE_STATE_COPY_DEST;
+
+			case decltype(layout)::DepthReadOnlyStencilAttachmentOptimal: 
+			case decltype(layout)::DepthAttachmentStencilReadOnlyOptimal:
+				return D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+			case decltype(layout)::DepthReadOnlyOptimal: 
+			case decltype(layout)::StencilReadOnlyOptimal:
+				return D3D12_RESOURCE_STATE_DEPTH_READ;
+
+			case decltype(layout)::ReadOnlyOptimal:
+				return D3D12_RESOURCE_STATE_GENERIC_READ;
+
+			case decltype(layout)::Present: 
+				return D3D12_RESOURCE_STATE_PRESENT;
+
+			default:
+				FatalError("layout is not supported");
+		}
+	}
+
 
 	CommandBufferD3D12::CommandBufferD3D12(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
@@ -59,9 +104,10 @@ namespace RGL {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
 
 			if (attachment.preTransition) {
-				//TODO: support the values set in attachment transition info
+				const auto fromState = rgl2d3d12resourcestate(attachment.preTransition->beforeLayout);
+				const auto toState = rgl2d3d12resourcestate(attachment.preTransition->afterLayout);
 				TransitionResource(commandList, tx->texture,
-					D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+					fromState, toState);
 			}
 			Assert(tx->rtvAllocated(),"This texture was not allocated as a render target!");
 			
@@ -80,8 +126,9 @@ namespace RGL {
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
-				//TODO: support the values set in attachment transition info
 				if (currentRenderPass->config.depthAttachment->preTransition) {
+					const auto fromState = rgl2d3d12resourcestate(currentRenderPass->config.depthAttachment->preTransition->beforeLayout);
+					const auto toState = rgl2d3d12resourcestate(currentRenderPass->config.depthAttachment->preTransition->afterLayout);
 					TransitionResource(commandList, tx->texture,
 						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				}
@@ -101,9 +148,10 @@ namespace RGL {
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
 			if (attachment.postTransition) {
-				//TODO: support the values set in attachment transition info
+				const auto fromState = rgl2d3d12resourcestate(attachment.postTransition->beforeLayout);
+				const auto toState = rgl2d3d12resourcestate(attachment.postTransition->afterLayout);
 				TransitionResource(commandList, tx->texture,
-					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+					fromState, toState);
 			}
 		}
 
@@ -112,9 +160,10 @@ namespace RGL {
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
 				if (currentRenderPass->config.depthAttachment->postTransition) {
-					//TODO: support the values set in attachment transition info
+					const auto fromState = rgl2d3d12resourcestate(currentRenderPass->config.depthAttachment->postTransition->beforeLayout);
+					const auto toState = rgl2d3d12resourcestate(currentRenderPass->config.depthAttachment->postTransition->afterLayout);
 					TransitionResource(commandList, tx->texture,
-						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+						fromState, toState);
 				}
 			}
 		}
