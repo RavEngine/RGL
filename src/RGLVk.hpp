@@ -50,4 +50,6 @@ namespace RGL {
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device, VkCommandPool commandPool);
 
 	RGLRenderPassPtr CreateRenderPassVk(const RenderPassConfig& config);
+
+	VkImageLayout rgl2vkImageLayout(RGL::ResourceLayout layout);
 }

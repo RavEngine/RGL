@@ -92,12 +92,22 @@ namespace RGL {
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
+
+		D3D12_CLEAR_VALUE optimizedClearValue = {
+			.Format = resourceDesc.Format,
+		};
+
+		D3D12_RESOURCE_STATES initialState = rgl2d3d12resourcestate(config.initialLayout);
 		if (isDS) {
 			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+			optimizedClearValue.DepthStencil = { 1,0 };
+			initialState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 
 		if (config.usage & TextureUsage::ColorAttachment) {
 			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			std::fill(optimizedClearValue.Color, optimizedClearValue.Color + std::size(optimizedClearValue.Color), 0);
+			//initialState |= D3D12_RESOURCE_STATE_RENDER_TARGET;
 		}
 
 
@@ -105,27 +115,14 @@ namespace RGL {
 		allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		// allocate the resource
-		
-		const auto state = isDS ? D3D12_RESOURCE_STATE_DEPTH_WRITE : (D3D12_RESOURCE_STATE_COPY_DEST);
-
-		D3D12_CLEAR_VALUE optimizedClearValue = {
-			.Format = resourceDesc.Format,
-		};
-
-		if (isDS) {
-			optimizedClearValue.DepthStencil = { 1,0 };
-		}
-		else {
-			std::fill(optimizedClearValue.Color, optimizedClearValue.Color + std::size(optimizedClearValue.Color), 0);
-		}
 
 		HRESULT hr = owningDevice->allocator->CreateResource(
 			&allocDesc, &resourceDesc,
-			state, (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL || resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) ? &optimizedClearValue : nullptr,
+			initialState, (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL || resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) ? &optimizedClearValue : nullptr,
 			&allocation, IID_PPV_ARGS(&texture));
 
 		std::wstring wide;
-		wide.resize(strlen(config.debugName));
+		wide.resize(config.debugName == nullptr? 0 : strlen(config.debugName));
 		MultiByteToWideChar(CP_UTF8, 0, config.debugName, -1, wide.data(), wide.size());
 		texture->SetName(wide.data());
 

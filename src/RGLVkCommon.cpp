@@ -284,6 +284,31 @@ namespace RGL {
             FatalError("Texture format is not supported");
         }
     }
+
+    VkImageLayout rgl2vkImageLayout(RGL::ResourceLayout layout) {
+        switch (layout) {
+        case decltype(layout)::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+        case decltype(layout)::General: return VK_IMAGE_LAYOUT_GENERAL;
+        case decltype(layout)::ColorAttachmentOptimal: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::DepthStencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        case decltype(layout)::DepthStencilAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::ShaderReadOnlyOptimal: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        case decltype(layout)::TransferSourceOptimal: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        case decltype(layout)::TransferDestinationOptimal: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        case decltype(layout)::Reinitialized: return VK_IMAGE_LAYOUT_PREINITIALIZED;
+        case decltype(layout)::DepthReadOnlyStencilAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::DepthAttachmentStencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+        case decltype(layout)::DepthAttachmentOptimal: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::DepthReadOnlyOptimal: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+        case decltype(layout)::StencilAttachmentOptimal: return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::StencilReadOnlyOptimal: return VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+        case decltype(layout)::ReadOnlyOptimal: return VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+        case decltype(layout)::AttachmentOptimal: return VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+        case decltype(layout)::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        default:
+            FatalError("layout is not supported");
+        }
+    }
 }
 
 #endif

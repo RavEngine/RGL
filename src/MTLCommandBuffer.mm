@@ -151,6 +151,9 @@ void CommandBufferMTL::SetCombinedTextureSampler(RGLSamplerPtr sampler, const RG
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 
 }
+void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final{
+    // no effect on Metal
+}
 }
 #endif
 

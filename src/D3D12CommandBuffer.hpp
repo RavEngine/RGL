@@ -56,6 +56,8 @@ namespace RGL {
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Scissor&) final;
 
+		void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
+
 		// submit onto the queue that created this command buffer
 		void Commit(const CommitConfig&) final;
 

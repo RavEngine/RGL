@@ -54,6 +54,8 @@ namespace RGL {
 		void Draw(uint32_t nVertices, const DrawInstancedConfig & = {}) final;
 		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;
 
+		void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
+
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Scissor&) final;
 

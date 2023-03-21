@@ -140,7 +140,7 @@ namespace RGL {
 			.tiling = VK_IMAGE_TILING_OPTIMAL,
 			.usage = static_cast<VkImageUsageFlags>(config.usage),
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.initialLayout = rgl2vkImageLayout(config.initialLayout),
 		};
 
 		//TODO: replace this with VMA

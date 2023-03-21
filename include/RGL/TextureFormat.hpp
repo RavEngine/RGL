@@ -2,6 +2,28 @@
 #include <cstdint>
 
 namespace RGL {
+    enum class ResourceLayout : uint8_t {
+        Undefined = 0,
+        General = 1,
+        ColorAttachmentOptimal = 2,
+        DepthStencilAttachmentOptimal = 3,
+        DepthStencilReadOnlyOptimal = 4,
+        ShaderReadOnlyOptimal = 5,
+        TransferSourceOptimal = 6,
+        TransferDestinationOptimal,
+        Reinitialized,
+        DepthReadOnlyStencilAttachmentOptimal,
+        DepthAttachmentStencilReadOnlyOptimal,
+        DepthAttachmentOptimal,
+        DepthReadOnlyOptimal,
+        StencilAttachmentOptimal,
+        StencilReadOnlyOptimal,
+        ReadOnlyOptimal,
+        AttachmentOptimal,
+        Present
+    };
+
+
 	enum class TextureFormat {
 		Undefined,
 		BGRA8_Unorm,

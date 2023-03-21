@@ -51,6 +51,8 @@ struct BufferMTL;
         void SetViewport(const Viewport&) final;
         void SetScissor(const Scissor&) final;
 
+        void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
+
         void Commit(const CommitConfig&) final;
         
         virtual ~CommandBufferMTL(){}
