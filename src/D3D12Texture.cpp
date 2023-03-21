@@ -124,7 +124,10 @@ namespace RGL {
 			state, (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL || resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) ? &optimizedClearValue : nullptr,
 			&allocation, IID_PPV_ARGS(&texture));
 
-		texture->SetName(L"Texture Resource");
+		std::wstring wide;
+		wide.resize(strlen(config.debugName));
+		MultiByteToWideChar(CP_UTF8, 0, config.debugName, -1, wide.data(), wide.size());
+		texture->SetName(wide.data());
 
 		// add the resource to the appropriate heaps
 		PlaceInHeaps(owningDevice, format, config);

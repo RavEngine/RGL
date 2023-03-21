@@ -78,7 +78,7 @@ namespace RGL {
             commandList.Get()
         };
 
-        m_d3d12CommandQueue->ExecuteCommandLists(1, ppCommandLists);
+        m_d3d12CommandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
         uint64_t fenceValue = Signal();
 
 

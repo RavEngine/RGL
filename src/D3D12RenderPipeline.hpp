@@ -11,6 +11,7 @@ namespace RGL {
 	struct PipelineLayoutD3D12 : public IPipelineLayout {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 		ComPtr<ID3D12RootSignature> rootSignature;
+		const PipelineLayoutDescriptor config;
 
 		PipelineLayoutD3D12(decltype(owningDevice), const PipelineLayoutDescriptor&);
 	};

@@ -46,7 +46,7 @@ namespace RGL {
     }
 
 
-	PipelineLayoutD3D12::PipelineLayoutD3D12(decltype(owningDevice) owningDevice, const PipelineLayoutDescriptor& desc) : owningDevice(owningDevice)
+	PipelineLayoutD3D12::PipelineLayoutD3D12(decltype(owningDevice) owningDevice, const PipelineLayoutDescriptor& desc) : owningDevice(owningDevice), config(desc)
 	{
         auto device = owningDevice->device;
 
@@ -81,14 +81,14 @@ namespace RGL {
             rootParameters.emplace_back().InitAsConstants(constant.size_bytes / sizeof(int), constant.n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
         //TODO: check 
-        for (int i = 0; i < nsamplers; i++) {
+        for (UINT i = 0; i < nsamplers; i++) {
             // sampler
             {
                
                 auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                     .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                     .NumDescriptors = 1,
-                    .BaseShaderRegister = UINT(i),
+                    .BaseShaderRegister = i,
                     .RegisterSpace = 0,
                     .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                 });
@@ -100,7 +100,7 @@ namespace RGL {
                 auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                     .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                     .NumDescriptors = 1,
-                    .BaseShaderRegister = UINT(i),
+                    .BaseShaderRegister = i,
                     .RegisterSpace = 0,
                     .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                 });

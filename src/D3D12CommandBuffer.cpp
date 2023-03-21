@@ -38,7 +38,7 @@ namespace RGL {
 				return D3D12_RESOURCE_STATE_DEPTH_READ;
 
 			case decltype(layout)::ShaderReadOnlyOptimal: 
-				return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
 			case decltype(layout)::TransferSourceOptimal: 
 				return D3D12_RESOURCE_STATE_COPY_SOURCE;
@@ -172,12 +172,13 @@ namespace RGL {
 		}
 
 		currentRenderPass = nullptr;
+		currentRenderPipeline = nullptr;
 	}
 	void CommandBufferD3D12::BindPipeline(RGLRenderPipelinePtr in_pipeline)
 	{
-		auto pipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
-		commandList->SetPipelineState(pipeline->pipelineState.Get());
-		commandList->SetGraphicsRootSignature(pipeline->pipelineLayout->rootSignature.Get());
+		currentRenderPipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
+		commandList->SetPipelineState(currentRenderPipeline->pipelineState.Get());
+		commandList->SetGraphicsRootSignature(currentRenderPipeline->pipelineLayout->rootSignature.Get());
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
@@ -231,7 +232,15 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
 	{
-		index += 1;
+		// combined image samplers are indexed in pairs (sampler, texture) starting after the constants
+		// the index is into the descriptor table array
+		// example (if offset is 1):
+		// 0 -> (1,2)
+		// 1 -> (3,4)
+		// 2 -> (5,6)
+		// etc
+		index *= 2;
+		index += currentRenderPipeline->pipelineLayout->config.constants.size();
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;

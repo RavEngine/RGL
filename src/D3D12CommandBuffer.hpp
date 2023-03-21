@@ -14,6 +14,7 @@ namespace RGL {
 		const std::shared_ptr<CommandQueueD3D12> owningQueue;
 
 		std::shared_ptr<struct RenderPassD3D12> currentRenderPass;
+		std::shared_ptr<struct RenderPipelineD3D12> currentRenderPipeline;
 
 		bool ended = false;
 
