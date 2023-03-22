@@ -103,7 +103,8 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
-
+		// d3d does not make a distinction
+		SetVertexBytes(data, offset);
 	}
 	void CommandBufferD3D12::SetIndexBuffer(RGLBufferPtr buffer)
 	{
