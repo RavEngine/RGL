@@ -50,6 +50,20 @@ namespace RGL {
         }
     }
 
+    VkShaderStageFlags rgl2vkstageflags(RGL::StageVisibility stage) {
+        VkShaderStageFlags retval = 0;
+        if (stage & RGL::StageVisibility::Vertex) {
+            retval |= VK_SHADER_STAGE_VERTEX_BIT;
+        }
+        if (stage & RGL::StageVisibility::Fragment) {
+            retval |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+        if (stage & RGL::StageVisibility::Compute) {
+            retval |= VK_SHADER_STAGE_COMPUTE_BIT;
+        }
+        return retval;
+    }
+
 	RenderPipelineVk::RenderPipelineVk(decltype(owningDevice) device, const RenderPipelineDescriptor& desc) : owningDevice(device), pipelineLayout(std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout))
 	{
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -284,7 +298,7 @@ namespace RGL {
         for (int i = 0; i < nconstants; i++) {
             pushconstants[i].offset = desc.constants[i].n_register;
             pushconstants[i].size = desc.constants[i].size_bytes;
-            pushconstants[i].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;  //TODO: make configurable
+            pushconstants[i].stageFlags = rgl2vkstageflags(desc.constants[i].visibility);
         }
 
 

@@ -31,6 +31,12 @@ namespace RGL {
 		DecrementWrap = 7,
 	};
 
+	enum StageVisibility : uint8_t {
+		Vertex		= 1,
+		Fragment	= 1 << 1,
+		Compute		= 1 << 2,
+	};
+
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
@@ -52,14 +58,15 @@ namespace RGL {
 		struct ConstantConfig {
 			size_t size_bytes;
 			uint8_t n_register = 0;
+			StageVisibility visibility;
 
-			ConstantConfig(decltype(size_bytes) sb, decltype(n_register) nr) : size_bytes(sb), n_register(nr) {}
-
-			template<typename T>
-			ConstantConfig(const T& value, decltype(n_register) nr) : ConstantConfig(sizeof(T), (nr)) {}
+			ConstantConfig(decltype(size_bytes) sb, decltype(n_register) nr, StageVisibility visibility) : size_bytes(sb), n_register(nr), visibility(visibility){}
 
 			template<typename T>
-			ConstantConfig(decltype(n_register) nr) : ConstantConfig(sizeof(T), (nr)) {}
+			ConstantConfig(const T& value, decltype(n_register) nr, StageVisibility visibility) : ConstantConfig(sizeof(T), (nr), visibility) {}
+
+			template<typename T>
+			ConstantConfig(decltype(n_register) nr, StageVisibility visibility) : ConstantConfig(sizeof(T), (nr), visibility) {}
 
 		};
 		std::vector<ConstantConfig> constants;
