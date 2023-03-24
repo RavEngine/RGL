@@ -69,7 +69,9 @@ namespace RGL {
 				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
 				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
 				dsvptr = &dsv;
-				commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
+				if (currentRenderPass->config.depthAttachment->loadOp == LoadAccessOperation::Clear) {
+					commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
+				}
 			}
 		}
 
