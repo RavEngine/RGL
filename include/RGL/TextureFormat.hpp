@@ -30,7 +30,9 @@ namespace RGL {
         RGBA8_Uint,
         RGBA8_Unorm,
         RGBA16_Unorm,
-        RGBA32_Float,
+        RGBA16_Snorm,
+        RGBA16_Sfloat,
+        RGBA32_Sfloat,
 
 		D32SFloat,			// 32 bit float
 		D24UnormS8Uint,		// 24 bit depth, 8 bit stencil
