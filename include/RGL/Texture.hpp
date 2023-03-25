@@ -28,6 +28,7 @@ namespace RGL {
 		TilingMode mode = decltype(mode)::Optimal;
 		ResourceLayout initialLayout = ResourceLayout::Undefined;
 		const char* debugName = nullptr;
+		bool readbackEnabled = false;
 	};
 
 	class ITexture {
