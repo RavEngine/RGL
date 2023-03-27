@@ -143,22 +143,16 @@ namespace RGL {
 			.initialLayout = rgl2vkImageLayout(config.initialLayout),
 		};
 
-		//TODO: replace this with VMA
 
 		VK_CHECK(vkCreateImage(owningDevice->device, &imageInfo, nullptr, &vkImage));
 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(owningDevice->device, vkImage, &memRequirements);
+		VmaAllocationCreateInfo allocCreateInfo{};
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+			VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-		VkMemoryAllocateInfo allocInfo{
-			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-			.allocationSize = memRequirements.size,
-			.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, owningDevice->physicalDevice)
-		};
-
-		VK_CHECK(vkAllocateMemory(owningDevice->device, &allocInfo, nullptr, &textureImageMem));
-
-		vkBindImageMemory(owningDevice->device, vkImage, textureImageMem, 0);
+		VmaAllocationInfo allocInfo;
+		vmaCreateImage(owningDevice->vkallocator, &imageInfo, &allocCreateInfo, &vkImage, &alloc, &allocInfo);	// also binds memory
 
 		VkImageViewCreateInfo createInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -195,7 +189,8 @@ namespace RGL {
 		if (owning) {
 			vkDestroyImage(owningDevice->device, vkImage, nullptr);
 			vkDestroyImageView(owningDevice->device, vkImageView, nullptr);
-			vkFreeMemory(owningDevice->device, textureImageMem, nullptr);
+			vmaFreeMemory(owningDevice->vkallocator, alloc);
+			alloc = VK_NULL_HANDLE;
 		}
 	}
 }
