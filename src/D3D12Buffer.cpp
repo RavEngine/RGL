@@ -16,7 +16,7 @@ namespace RGL {
             break;
         case decltype(config.type)::IndexBuffer:
             indexBufferView.SizeInBytes = config.size_bytes;
-            indexBufferView.Format = decltype(indexBufferView.Format)::DXGI_FORMAT_R32_UINT;   //TODO: support 16-bit index buffer
+            indexBufferView.Format = config.stride == sizeof(uint16_t) ? decltype(indexBufferView.Format)::DXGI_FORMAT_R16_UINT : decltype(indexBufferView.Format)::DXGI_FORMAT_R32_UINT;
             break;
         default:
             FatalError("current buffer type is not supported");
