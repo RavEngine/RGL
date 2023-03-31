@@ -310,6 +310,34 @@ namespace RGL {
 			position == TransitionPosition::Top? VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
 		);
 	}
+	void CommandBufferVk::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr destBuffer)
+	{
+		auto casted = static_cast<TextureVk*>(sourceTexture);
+		auto castedDest = std::static_pointer_cast<BufferVk>(destBuffer);
+		VkBufferImageCopy region{
+			.bufferOffset = 0,
+			.bufferRowLength = 0,
+			.bufferImageHeight = 0,
+			.imageSubresource = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.mipLevel = 0,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			},
+			.imageOffset = {
+				.x = sourceRect.offset[0],
+				.y = sourceRect.offset[1],
+				.z = 0
+			},
+			.imageExtent = {
+				.width = sourceRect.extent[0],
+				.height = sourceRect.extent[1],
+				.depth = 1
+			}	
+		};
+
+		vkCmdCopyImageToBuffer(commandBuffer, casted->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
+	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{
 		VkViewport vp{
@@ -322,7 +350,7 @@ namespace RGL {
 		};
 		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
 	}
-	void CommandBufferVk::SetScissor(const Scissor& scissorin)
+	void CommandBufferVk::SetScissor(const Rect& scissorin)
 	{
 		VkRect2D scissor{
 		.offset = {scissorin.offset[0], scissorin.offset[1]},

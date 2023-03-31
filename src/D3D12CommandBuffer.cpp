@@ -181,10 +181,34 @@ namespace RGL {
 
 		commandList->RSSetViewports(1, &m_Viewport);
 	}
-	void CommandBufferD3D12::SetScissor(const Scissor& scissor)
+	void CommandBufferD3D12::SetScissor(const Rect& scissor)
 	{
 		D3D12_RECT m_ScissorRect{ CD3DX12_RECT(scissor.offset[0], scissor.offset[1], scissor.extent[0], scissor.extent[1])};
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
+	}
+	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
+	{
+		auto casted = static_cast<TextureD3D12*>(sourceTexture);
+		auto castedDest = std::static_pointer_cast<BufferD3D12>(desetBuffer);
+		D3D12_TEXTURE_COPY_LOCATION destination{
+			.pResource = castedDest->buffer.Get(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT
+		};
+
+		D3D12_RESOURCE_DESC srcDesc = casted->texture->GetDesc();
+		castedDest->owningDevice->device->GetCopyableFootprints(
+			&srcDesc, 0, 1, 0,
+			&destination.PlacedFootprint,
+			NULL, NULL, NULL
+		);
+
+		D3D12_TEXTURE_COPY_LOCATION source{
+			.pResource = casted->texture.Get(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+			.SubresourceIndex = 0,
+		};
+
+		commandList->CopyTextureRegion(&destination, 0, 0, 0, &source, NULL);
 	}
 	void CommandBufferD3D12::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{

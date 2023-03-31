@@ -36,7 +36,7 @@ namespace RGL {
 			minDepth = 0, 
 			maxDepth = 1;
 	};
-	struct Scissor {
+	struct Rect {
 		std::array<int32_t, 2> offset{ 0,0 };
 		std::array<uint32_t, 2> extent{ 0,0, };
 	};
@@ -84,7 +84,9 @@ namespace RGL {
         virtual void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) = 0;
 
 		virtual void SetViewport(const Viewport&) = 0;
-		virtual void SetScissor(const Scissor&) = 0;
+		virtual void SetScissor(const Rect&) = 0;
+
+		virtual void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) = 0;
 
 		// submit onto the queue that created this command buffer
 		virtual void Commit(const CommitConfig&) = 0;
