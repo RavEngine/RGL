@@ -30,7 +30,6 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::Begin()
 	{
-		//TODO: read from the renderpipeline instead of hardcoding this
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 	void CommandBufferD3D12::End()

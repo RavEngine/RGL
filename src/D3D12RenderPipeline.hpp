@@ -20,7 +20,6 @@ namespace RGL {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 		ComPtr<ID3D12PipelineState> pipelineState;
 		const std::shared_ptr<PipelineLayoutD3D12> pipelineLayout;
-
 		RenderPipelineD3D12(decltype(owningDevice), const RenderPipelineDescriptor&);
 	};
 }

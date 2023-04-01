@@ -45,6 +45,16 @@ namespace RGL {
         }
     }
 
+    D3D12_FILL_MODE rgl2d3d12FillMode(RGL::PolygonOverride mode) {
+        switch (mode) {
+        case decltype(mode)::Fill:
+            return D3D12_FILL_MODE_SOLID;
+        case decltype(mode)::Line:
+            return D3D12_FILL_MODE_WIREFRAME;
+        default:
+            FatalError("Unsupported fill mode");
+        }
+    }
 
 	PipelineLayoutD3D12::PipelineLayoutD3D12(decltype(owningDevice) owningDevice, const PipelineLayoutDescriptor& desc) : owningDevice(owningDevice), config(desc)
 	{
@@ -165,7 +175,6 @@ namespace RGL {
     RenderPipelineD3D12::RenderPipelineD3D12(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice), pipelineLayout(std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout))
     {
         auto device = owningDevice->device;
-
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc{};
         
         const auto nattributes = desc.vertexConfig.attributeDescs.size();
@@ -205,6 +214,7 @@ namespace RGL {
         CD3DX12_RASTERIZER_DESC rasterizerDesc{ D3D12_DEFAULT };
         rasterizerDesc.CullMode = rgl2d3d12cull(desc.rasterizerConfig.cullMode);
         rasterizerDesc.FrontCounterClockwise = desc.rasterizerConfig.windingOrder == decltype(desc.rasterizerConfig.windingOrder)::Counterclockwise;
+        rasterizerDesc.FillMode = rgl2d3d12FillMode(desc.rasterizerConfig.polygonOverride);
 
         CD3DX12_DEPTH_STENCIL_DESC depthStencilDesc{ D3D12_DEFAULT };
         depthStencilDesc.DepthEnable = desc.depthStencilConfig.depthTestEnabled;

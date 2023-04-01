@@ -42,11 +42,11 @@ namespace RGL {
         }
     }
 
-    VkPolygonMode RGLK2VkPolygon(RenderPipelineDescriptor::RasterizerConfig::PolygonOverride override) {
+    VkPolygonMode RGLK2VkPolygon(PolygonOverride override) {
         switch (override) {
-            case decltype(override)::None: return VK_POLYGON_MODE_FILL;
-            case decltype(override)::Lines: return VK_POLYGON_MODE_LINE;
-            case decltype(override)::Points: return VK_POLYGON_MODE_POINT;
+            case decltype(override)::Fill: return VK_POLYGON_MODE_FILL;
+            case decltype(override)::Line: return VK_POLYGON_MODE_LINE;
+            case decltype(override)::Point: return VK_POLYGON_MODE_POINT;
         }
     }
 

@@ -36,6 +36,9 @@ namespace RGL {
 		Fragment	= 1 << 1,
 		Compute		= 1 << 2,
 	};
+	enum class PolygonOverride : uint8_t {
+		Fill, Line, Point,							// lines, points, or use the existing config
+	};
 
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
@@ -190,10 +193,7 @@ namespace RGL {
 			bool depthClampEnable : 1 = false;				 // if set to true, fragments out of range will be clamped instead of clipped, which we rarely want (example: shadow volumes, no need for end caps)
 			bool rasterizerDiscardEnable : 1 = false;		// if true, output to the framebuffer is disabled
 
-			enum class PolygonOverride : uint8_t {
-				None, Points, Lines							// lines, points, or use the existing config
-			};
-			constexpr static PolygonOverride polygonOverride = PolygonOverride::None;	// not yet modifiable
+			PolygonOverride polygonOverride = PolygonOverride::Fill;
 
 			CullMode cullMode = CullMode::Back;
 
