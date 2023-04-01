@@ -20,6 +20,7 @@ namespace RGL{
         void UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset = 0) ;
         void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) ;
         decltype(BufferConfig::size_bytes) getBufferSize() const final;
+        void* GetMappedDataPtr() final;
         virtual ~BufferMTL(){}
     };
 }

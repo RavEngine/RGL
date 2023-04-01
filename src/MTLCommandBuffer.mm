@@ -117,7 +117,7 @@ void CommandBufferMTL::SetViewport(const Viewport & viewport){
     [currentCommandEncoder setViewport:vp];
 }
 
-void CommandBufferMTL::SetScissor(const Scissor & scissor){
+void CommandBufferMTL::SetScissor(const Rect & scissor){
     MTLScissorRect sr{
         .x = static_cast<NSUInteger>(scissor.offset[0]),
         .y = static_cast<NSUInteger>(scissor.offset[1]),
@@ -151,11 +151,13 @@ void CommandBufferMTL::SetCombinedTextureSampler(RGLSamplerPtr sampler, const RG
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 
 }
-void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final{
+
+void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr desetBuffer) {
+    //[currentCommandEncoder ]
+}
+
+void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {
     // no effect on Metal
 }
 }
 #endif
-
-
-

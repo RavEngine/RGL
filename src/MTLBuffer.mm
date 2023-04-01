@@ -47,5 +47,8 @@ decltype(BufferConfig::size_bytes) BufferMTL::getBufferSize() const{
     return data.size;
 }
 
+void* BufferMTL::GetMappedDataPtr() {
+    return data.data;
+}
 }
 #endif

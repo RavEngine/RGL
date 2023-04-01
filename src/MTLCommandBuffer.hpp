@@ -49,7 +49,9 @@ struct BufferMTL;
         void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) final;
 
         void SetViewport(const Viewport&) final;
-        void SetScissor(const Scissor&) final;
+        void SetScissor(const Rect&) final;
+        
+        void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) final;
 
         void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
 

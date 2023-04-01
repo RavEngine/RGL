@@ -25,7 +25,10 @@ MTLPixelFormat rgl2mtlformat(TextureFormat format){
         case decltype(format)::RGBA8_Unorm: return MTLPixelFormatRGBA8Unorm;
         case decltype(format)::D32SFloat: return MTLPixelFormatDepth32Float;
         case decltype(format)::RGBA16_Unorm: return MTLPixelFormatRGBA16Unorm;
-        case decltype(format)::RGBA32_Float: return MTLPixelFormatRGBA32Float;
+        case decltype(format)::RGBA32_Sfloat: return MTLPixelFormatRGBA32Float;
+        case decltype(format)::RGBA16_Snorm: return MTLPixelFormatRGBA16Snorm;
+        case decltype(format)::RGBA16_Sfloat: return MTLPixelFormatRGBA16Float;
+        case decltype(format)::R32_Uint: return MTLPixelFormatR32Uint;
 #if !TARGET_OS_IPHONE
         case decltype(format)::D24UnormS8Uint: return MTLPixelFormatDepth24Unorm_Stencil8;
 #endif
