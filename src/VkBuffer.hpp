@@ -25,5 +25,7 @@ namespace RGL {
 		void UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset = 0) final;
 		void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) final;
 		decltype(BufferConfig::size_bytes) getBufferSize() const final;
+
+		void* GetMappedDataPtr() final;
 	};
 }

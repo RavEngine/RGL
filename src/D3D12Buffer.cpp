@@ -71,6 +71,10 @@ namespace RGL {
     {
         return mappedMemory.size;
     }
+    void* BufferD3D12::GetMappedDataPtr()
+    {
+        return mappedMemory.data;
+    }
 }
 #endif
 

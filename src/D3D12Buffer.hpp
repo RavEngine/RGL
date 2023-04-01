@@ -44,6 +44,7 @@ namespace RGL {
 
 		decltype(BufferConfig::size_bytes) getBufferSize() const;
 
+		void* GetMappedDataPtr() final;
 
 		virtual ~BufferD3D12() {}
 	};

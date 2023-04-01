@@ -7,14 +7,34 @@
 namespace RGL {
 
 	BufferVk::BufferVk(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice) {
+        
+        VkMemoryPropertyFlags memprop = 0;
+        switch (config.access) {
+        case decltype(config.access)::Private:
+            memprop = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            break;
+        case decltype(config.access)::Shared:
+            memprop = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            break;
+        default:
+            FatalError("Unsupported access");
+        }
 
-       allocation =  createBuffer(owningDevice.get(), config.size_bytes, static_cast<VkBufferUsageFlags>(config.type), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer);
+        auto usage = static_cast<VkBufferUsageFlags>(config.type);
+        if ((config.options & RGL::BufferFlags::TransferDestination) != RGL::BufferFlags::None) {
+            usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        }
+
+        allocation = createBuffer(owningDevice.get(), config.size_bytes, usage, memprop, buffer);
 
         mappedMemory.size = config.size_bytes;
         stride = config.stride;
 	}
 
     BufferVk::~BufferVk() {
+        if (mappedMemory.data != nullptr) {
+            UnmapMemory();
+        }
         vkDestroyBuffer(owningDevice->device, buffer, nullptr);
         vmaFreeMemory(owningDevice->vkallocator, allocation);
     }
@@ -27,6 +47,11 @@ namespace RGL {
     decltype(BufferConfig::size_bytes) BufferVk::getBufferSize() const
     {
         return mappedMemory.size;
+    }
+
+    void* BufferVk::GetMappedDataPtr()
+    {
+        return mappedMemory.data;
     }
 
     void BufferVk::MapMemory() {

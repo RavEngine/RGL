@@ -3,6 +3,35 @@
 
 namespace RGL {
 
+	enum class BufferFlags : int {
+		None = 0,
+		TransferDestination = 1 << 0,
+		TransferSource = 1 << 1
+	};
+	inline BufferFlags operator|(BufferFlags x, BufferFlags y) {
+		return BufferFlags{ std::underlying_type_t<BufferFlags>(x) | std::underlying_type_t<BufferFlags>(y) };
+	}
+	inline BufferFlags operator&(BufferFlags x, BufferFlags y) {
+		return BufferFlags{ std::underlying_type_t<BufferFlags>(x) & std::underlying_type_t<BufferFlags>(y) };
+	}
+
+	inline BufferFlags& operator|=(BufferFlags& x, BufferFlags y)
+	{
+		x = x | y;
+		return x;
+	}
+	inline BufferFlags& operator&=(BufferFlags& x, BufferFlags y)
+	{
+		x = x & y;
+		return x;
+	}
+
+
+	enum class BufferAccess : uint8_t {
+		Private,
+		Shared
+	};
+
 	struct BufferConfig {
 		uint32_t size_bytes = 0;
 		uint32_t stride = 0;
@@ -13,13 +42,17 @@ namespace RGL {
 			VertexBuffer = 0x00000080,
 			IndirectBuffer = 0x00000100
 		} type;
-		BufferConfig(decltype(size_bytes) size, decltype(type) type, decltype(stride) stride) : size_bytes(size), type(type), stride(stride) {}
+
+		BufferAccess access;
+		BufferFlags options;
+
+		BufferConfig(decltype(size_bytes) size, decltype(type) type, decltype(stride) stride, decltype(access) access, decltype(options) options = decltype(options)::None) : size_bytes(size), type(type), stride(stride), access(access), options(options) {}
 
 		template<typename T>
-		BufferConfig(decltype(type) type, decltype(stride) stride) : size_bytes(sizeof(T)), type(type), stride(stride) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride, decltype(access) access, decltype(options) options = decltype(options)::None) : BufferConfig(sizeof(T),type,stride, access, options){}
 
 		template<typename T>
-		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t) : size_bytes(sizeof(T)), type(type), stride(stride) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t, decltype(access) access, decltype(options) options = decltype(options)::None) : BufferConfig(sizeof(T), type,stride,access,options){}
 	};
 
 	struct IBuffer {
@@ -46,5 +79,7 @@ namespace RGL {
 		virtual void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) = 0;
         
         virtual decltype(BufferConfig::size_bytes) getBufferSize() const = 0;
+
+		virtual void* GetMappedDataPtr() = 0;
 	};
 }
