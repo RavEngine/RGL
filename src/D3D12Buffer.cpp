@@ -21,14 +21,19 @@ namespace RGL {
         default:
             FatalError("current buffer type is not supported");
         };
-
         auto v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto t = CD3DX12_RESOURCE_DESC::Buffer(config.size_bytes, D3D12_RESOURCE_FLAG_NONE);
+        auto state = D3D12_RESOURCE_STATE_GENERIC_READ;
+
+        if ((config.options & decltype(config.options)::TransferDestination) != decltype(config.options)::None) {
+            state = D3D12_RESOURCE_STATE_COPY_DEST;
+            v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+        }
         DX_CHECK(device->device->CreateCommittedResource(
             &v,
             D3D12_HEAP_FLAG_NONE,
             &t,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
+            state,
             nullptr,
             IID_PPV_ARGS(&buffer)));
 

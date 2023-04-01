@@ -202,13 +202,26 @@ namespace RGL {
 			NULL, NULL, NULL
 		);
 
+		// set bounds
+		destination.PlacedFootprint.Footprint.Width = sourceRect.extent[0];
+		destination.PlacedFootprint.Footprint.Height = sourceRect.extent[1];
+
 		D3D12_TEXTURE_COPY_LOCATION source{
 			.pResource = casted->texture.Get(),
 			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
 			.SubresourceIndex = 0,
 		};
 
-		commandList->CopyTextureRegion(&destination, 0, 0, 0, &source, NULL);
+		D3D12_BOX srcBox{
+			.left = static_cast<UINT>(sourceRect.offset[0]),
+			.top = static_cast<UINT>(sourceRect.offset[1]),
+			.front = 0,
+			.right = static_cast<UINT>(sourceRect.offset[0] + sourceRect.extent[0]),
+			.bottom = static_cast<UINT>(sourceRect.offset[1] + sourceRect.extent[1]),
+			.back = 1,
+		};
+
+		commandList->CopyTextureRegion(&destination, 0, 0, 0, &source, &srcBox);
 	}
 	void CommandBufferD3D12::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
