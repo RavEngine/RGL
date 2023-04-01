@@ -18,7 +18,7 @@ namespace RGL{
         OBJC_ID(MTLDepthStencilState) depthStencilState = nullptr;
         const std::shared_ptr<DeviceMTL> owningDevice;
         RenderPipelineDescriptor settings;
-        
+        APPLE_API_TYPE(MTLTriangleFillMode) currentFillMode;
         RenderPipelineMTL(decltype(owningDevice), const RenderPipelineDescriptor&);
     };
 

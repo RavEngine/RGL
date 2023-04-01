@@ -11,7 +11,7 @@ namespace RGL{
         const std::shared_ptr<DeviceMTL> owningDevice;
         MutableSpan data;
         uint32_t stride = 0;
-        
+        uint32_t mode;
         BufferMTL(decltype(owningDevice), const BufferConfig&);
         
         //IBuffer

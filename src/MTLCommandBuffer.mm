@@ -8,6 +8,7 @@
 #include "MTLBuffer.hpp"
 #include "MTLSampler.hpp"
 #include "MTLRenderPass.hpp"
+#include "MTLDevice.hpp"
 #include "RGLCommon.hpp"
 
 namespace RGL{
@@ -30,8 +31,75 @@ MTLCullMode rgl2mtlcullmode(RGL::CullMode mode){
     }
 }
 
+uint32_t bytesPerPixel(MTLPixelFormat format){
+    switch (format){
+        case MTLPixelFormatInvalid:
+            return 0;
+        case MTLPixelFormatA8Unorm:
+        case MTLPixelFormatR8Unorm:
+        case MTLPixelFormatR8Snorm:
+        case MTLPixelFormatR8Uint:
+        case MTLPixelFormatR8Sint:
+        case MTLPixelFormatR8Unorm_sRGB:
+        case MTLPixelFormatStencil8:
+            return 1;
+        case MTLPixelFormatR16Unorm:
+        case MTLPixelFormatR16Snorm:
+        case MTLPixelFormatR16Uint:
+        case MTLPixelFormatR16Sint:
+        case MTLPixelFormatR16Float:
+            return 2;
+        case MTLPixelFormatRG8Unorm:
+        case MTLPixelFormatRG8Unorm_sRGB:
+        case MTLPixelFormatRG8Snorm:
+        case MTLPixelFormatRG8Uint:
+        case MTLPixelFormatRG8Sint:
+            return 1 * 2;
+        case MTLPixelFormatR32Uint:
+        case MTLPixelFormatR32Sint:
+        case MTLPixelFormatR32Float:
+        case MTLPixelFormatDepth32Float:
+            return 4;
+        case MTLPixelFormatRG16Unorm:
+        case MTLPixelFormatRG16Snorm:
+        case MTLPixelFormatRG16Uint:
+        case MTLPixelFormatRG16Sint:
+        case MTLPixelFormatRG16Float:
+            return 2 * 2;
+        case MTLPixelFormatRGBA8Unorm:
+        case MTLPixelFormatRGBA8Unorm_sRGB:
+        case MTLPixelFormatRGBA8Snorm:
+        case MTLPixelFormatRGBA8Uint:
+        case MTLPixelFormatRGBA8Sint:
+        case MTLPixelFormatBGRA8Unorm_sRGB:
+            return 1 * 4;
+        case MTLPixelFormatRG32Uint:
+        case MTLPixelFormatRG32Sint:
+        case MTLPixelFormatRG32Float:
+            return 4 * 2;
+        case MTLPixelFormatRGBA16Unorm:
+        case MTLPixelFormatRGBA16Snorm:
+        case MTLPixelFormatRGBA16Uint:
+        case MTLPixelFormatRGBA16Sint:
+        case MTLPixelFormatRGBA16Float:
+            return 2 * 4;
+        case MTLPixelFormatRGBA32Uint:
+        case MTLPixelFormatRGBA32Sint:
+        case MTLPixelFormatRGBA32Float:
+            return 4 * 4;
+        case MTLPixelFormatDepth16Unorm:
+            return 2;
+        case MTLPixelFormatDepth24Unorm_Stencil8:
+        case MTLPixelFormatDepth32Float_Stencil8:
+            return 4;
+        default:
+            FatalError("Unsupported pixel format");
+    }
+}
+
 CommandBufferMTL::CommandBufferMTL(decltype(owningQueue) owningQueue) : owningQueue(owningQueue){
-    
+    auto dummydepthdesc = [MTLDepthStencilDescriptor new];
+    noDepthStencil = [owningQueue->owningDevice->device newDepthStencilStateWithDescriptor:dummydepthdesc];
 }
 
 void CommandBufferMTL::Reset(){
@@ -59,8 +127,12 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     if (pipeline->depthStencilState){
         [currentCommandEncoder setDepthStencilState:pipeline->depthStencilState];
     }
+    else{
+        [currentCommandEncoder setDepthStencilState:noDepthStencil];
+    }
     [currentCommandEncoder setFrontFacingWinding:rgl2mtlwinding(pipeline->settings.rasterizerConfig.windingOrder)];
     [currentCommandEncoder setCullMode:rgl2mtlcullmode(pipeline->settings.rasterizerConfig.cullMode)];
+    [currentCommandEncoder setTriangleFillMode:pipeline->currentFillMode];
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){
@@ -152,8 +224,25 @@ void CommandBufferMTL::SetCombinedTextureSampler(RGLSamplerPtr sampler, const RG
 
 }
 
-void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr desetBuffer) {
-    //[currentCommandEncoder ]
+void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr destBuffer) {
+    auto blitencoder = [currentCommandBuffer blitCommandEncoder];
+    auto castedTexture = static_cast<TextureMTL*>(sourceTexture);
+    auto castedBuffer = std::static_pointer_cast<BufferMTL>(destBuffer);
+    
+    auto bytesPerRow = bytesPerPixel([castedTexture->texture pixelFormat]);
+    bytesPerRow *= castedTexture->GetSize().width;
+    
+    [blitencoder copyFromTexture:castedTexture->texture
+                     sourceSlice:0
+                     sourceLevel:0
+                    sourceOrigin:MTLOriginMake(sourceRect.offset[0], sourceRect.offset[1], 0)
+                      sourceSize:MTLSizeMake(sourceRect.extent[0], sourceRect.extent[1], 1)
+                        toBuffer:castedBuffer->buffer
+               destinationOffset:0
+          destinationBytesPerRow:bytesPerRow
+        destinationBytesPerImage:0];
+
+    [blitencoder endEncoding];
 }
 
 void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {

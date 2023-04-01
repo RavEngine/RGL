@@ -13,6 +13,7 @@ struct BufferMTL;
     struct CommandBufferMTL : public ICommandBuffer{
         OBJC_ID(MTLCommandBuffer) currentCommandBuffer = nullptr;
         OBJC_ID(MTLRenderCommandEncoder) currentCommandEncoder = nullptr;
+        OBJC_ID(MTLDepthStencilState) noDepthStencil = nullptr;
         
         std::shared_ptr<BufferMTL> indexBuffer;
         std::shared_ptr<BufferMTL> vertexBuffer;

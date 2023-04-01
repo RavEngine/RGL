@@ -72,8 +72,21 @@ MTLCompareFunction rgl2mtlcomparefunction(DepthCompareFunction fn){
     }
 }
 
+MTLTriangleFillMode rgl2MTLTriangleFillMode(RGL::PolygonOverride mode){
+    switch(mode){
+        case PolygonOverride::Fill:
+            return MTLTriangleFillModeFill;
+        case PolygonOverride::Line:
+            return MTLTriangleFillModeLines;
+        default:
+            FatalError("Unsupported fill mode");
+    }
+}
+
 RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const RenderPipelineDescriptor& desc) : owningDevice(owningDevice), settings(desc){
     auto pipelineDesc = [MTLRenderPipelineDescriptor new];
+    
+    currentFillMode = rgl2MTLTriangleFillMode(desc.rasterizerConfig.polygonOverride);
     
     id<MTLFunction> vertFunc = nullptr, fragFunc = nullptr;
     for(const auto stage : desc.stages){
