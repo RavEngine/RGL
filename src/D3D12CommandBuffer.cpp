@@ -182,7 +182,13 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetScissor(const Rect& scissor)
 	{
-		D3D12_RECT m_ScissorRect{ CD3DX12_RECT(scissor.offset[0], scissor.offset[1], scissor.extent[0], scissor.extent[1])};
+		D3D12_RECT m_ScissorRect{ CD3DX12_RECT{
+			scissor.offset[0], 
+			scissor.offset[1], 
+			static_cast<LONG>(scissor.offset[0] + scissor.extent[0]), 
+			static_cast<LONG>(scissor.offset[1] + scissor.extent[1])
+		}};
+
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
 	}
 	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
