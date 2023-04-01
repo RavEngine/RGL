@@ -89,7 +89,9 @@ uint32_t bytesPerPixel(MTLPixelFormat format){
             return 4 * 4;
         case MTLPixelFormatDepth16Unorm:
             return 2;
+#if !TARGET_OS_IPHONE
         case MTLPixelFormatDepth24Unorm_Stencil8:
+#endif
         case MTLPixelFormatDepth32Float_Stencil8:
             return 4;
         default:
