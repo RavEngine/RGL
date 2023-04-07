@@ -13,6 +13,7 @@
 #include "MTLTexture.hpp"
 #include "MTLSampler.hpp"
 #include "MTLRenderPass.hpp"
+#include "MTLComputePipeline.hpp"
 
 namespace RGL{
 RGLDevicePtr CreateDefaultDeviceMTL(){
@@ -44,6 +45,9 @@ RGLRenderPipelinePtr DeviceMTL::CreateRenderPipeline(const RenderPipelineDescrip
     return std::make_shared<RenderPipelineMTL>(shared_from_this(), desc);
 }
 
+RGLComputePipelinePtr DeviceMTL::CreateComputePipeline(const RGL::ComputePipelineDescriptor& desc) {
+    return std::make_shared<ComputePipelineMTL>(shared_from_this(), desc);
+}
 
 RGLShaderLibraryPtr DeviceMTL::CreateDefaultShaderLibrary() {
     FatalError("CreateDefaultShaderLibrary not implemented");
@@ -104,5 +108,8 @@ RGL::DeviceData DeviceMTL::GetDeviceData() {
 }
 
 #endif
+
+
+
 
 

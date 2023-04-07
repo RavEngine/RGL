@@ -51,6 +51,7 @@ namespace RGL {
     struct CommandQueueMTL;
     struct CommandBufferMTL;
     struct RenderPassMTL;
+    struct ComputePipelineMTL;
 }
 
 using RGLDevicePtr = std::shared_ptr<RGL::DeviceMTL>;
@@ -67,6 +68,8 @@ using RGLSamplerPtr = std::shared_ptr<RGL::SamplerMTL>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueMTL>;
 using RGLCommandBufferPtr = std::shared_ptr<RGL::CommandBufferMTL>;
 using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassMTL>;
+using RGLComputePipelinePtr = std::shared_ptr<RGL::ComputePipelineMTL>;
+
 #elif RGL_VK_AVAILABLE
 namespace RGL {
 	struct SwapchainVK;

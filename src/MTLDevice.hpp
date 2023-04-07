@@ -19,6 +19,7 @@ namespace RGL{
 
         RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
         RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) final;
+        RGLComputePipelinePtr CreateComputePipeline(const struct ComputePipelineDescriptor&) final;
 
         RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) final;
         RGLShaderLibraryPtr CreateDefaultShaderLibrary() final;
