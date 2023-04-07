@@ -7,15 +7,6 @@
 #include "VkTexture.hpp"
 
 namespace RGL {
-    VkShaderStageFlagBits RGL2VKshader(RGL::ShaderStageDesc::Type type) {
-        switch (type) {
-            case decltype(type)::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-            case decltype(type)::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-            case decltype(type)::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-            default:
-                FatalError("Invalid shader type");
-        }
-    }
 
     VkFrontFace RGL2VkFrontFace(RGL::WindingOrder windingOrder) {
         switch (windingOrder) {
@@ -274,7 +265,7 @@ namespace RGL {
                 VkDescriptorSetLayoutBinding {
                   .binding = binding.binding,   // see vertex shader
                   .descriptorType = static_cast<VkDescriptorType>(binding.type),
-                  .descriptorCount = binding.descriptorCount,
+                  .descriptorCount = 1,
                   .stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags),
                   .pImmutableSamplers = (binding.type == decltype(binding.type)::Sampler) ? &std::static_pointer_cast<SamplerVk>(desc.boundSamplers[lastBoundSampler++])->sampler : nullptr       // used for image samplers
                 }

@@ -11,6 +11,7 @@
 #include "D3D12RenderPipeline.hpp"
 #include "D3D12Texture.hpp"
 #include "D3D12Sampler.hpp"
+#include "D3D12ComputePipeline.hpp"
 #include <D3D12MemAlloc.h>
 #include <DescriptorHeap.h>
 
@@ -177,6 +178,10 @@ namespace RGL {
     RGLRenderPipelinePtr RGL::DeviceD3D12::CreateRenderPipeline(const RenderPipelineDescriptor& desc)
     {
         return std::make_shared<RenderPipelineD3D12>(shared_from_this(), desc);
+    }
+    RGLComputePipelinePtr DeviceD3D12::CreateComputePipeline(const ComputePipelineDescriptor& desc)
+    {
+        return std::make_shared<ComputePipelineD3D12>(shared_from_this(), desc);
     }
     RGLShaderLibraryPtr DeviceD3D12::CreateShaderLibraryFromName(const std::string_view& name)
     {

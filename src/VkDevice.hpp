@@ -38,6 +38,7 @@ namespace RGL {
 		RGLSwapchainPtr CreateSwapchain(RGLSurfacePtr, RGLCommandQueuePtr, int width, int height) final;
 		RGLPipelineLayoutPtr CreatePipelineLayout(const PipelineLayoutDescriptor&) final;
 		RGLRenderPipelinePtr CreateRenderPipeline(const RenderPipelineDescriptor&) final;
+		RGLComputePipelinePtr CreateComputePipeline(const ComputePipelineDescriptor&) final;
 
 		RGLShaderLibraryPtr CreateShaderLibraryFromName(const std::string_view& name) final;
 		RGLShaderLibraryPtr CreateDefaultShaderLibrary() final;

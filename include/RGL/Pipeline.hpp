@@ -46,7 +46,6 @@ namespace RGL {
 			enum class Type : uint8_t {
 				Sampler, CombinedImageSampler, SampledImage, StorageImage, UniformTexelBuffer, StorageTexelBuffer, UniformBuffer, StorageBuffer, UniformBufferDynamic, StorageBufferDynamic, InputAttachment
 			} type;
-			uint32_t descriptorCount = 0;
 			enum class StageFlags {
 				Vertex = 0x00000001,
 				Fragment = 0x00000010,
@@ -263,7 +262,16 @@ namespace RGL {
 		RGLPipelineLayoutPtr pipelineLayout;
 	};
 
+	struct ComputePipelineDescriptor {
+		ShaderStageDesc stage;
+		RGLPipelineLayoutPtr pipelineLayout;
+	};
+
 	struct IRenderPipeline {
+
+	};
+
+	struct IComputePipeline {
 
 	};
 }

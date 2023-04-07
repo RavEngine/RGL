@@ -10,6 +10,7 @@ namespace RGL {
         mappedMemory.size = config.size_bytes;
         switch (config.type) {
         case decltype(config.type)::StorageBuffer:
+        case decltype(config.type)::IndirectBuffer:
         case decltype(config.type)::VertexBuffer:
             vertexBufferView.SizeInBytes = config.size_bytes;
             vertexBufferView.StrideInBytes = config.stride;

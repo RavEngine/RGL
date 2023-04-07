@@ -14,6 +14,7 @@
         #include <RGL/../../src/VkSurface.hpp>
         #include <RGL/../../src/VkSynchronization.hpp>
         #include <RGL/../../src/VkTexture.hpp>
+        #include <RGL/../../src/VkComputePipeline.hpp>
     #elif RGL_DX12_AVAILABLE
         #include <RGL/../../src/D3D12Device.hpp>
         #include <RGL/../../src/D3D12Swapchain.hpp>

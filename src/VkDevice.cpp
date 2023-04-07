@@ -10,6 +10,7 @@
 #include "VkSynchronization.hpp"
 #include "VkTexture.hpp"
 #include "VkSampler.hpp"
+#include "VkComputePipeline.hpp"
 #include <vector>
 #include <stdexcept>
 #include <set>
@@ -62,7 +63,7 @@ namespace RGL {
 
         int i = 0;
         for (const auto& queueFamily : queueFamilies) {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
                 indices.graphicsFamily = i;
                 indices.presentFamily = i;  // note: to do this properly, one should use vkGetPhysicalDeviceSurfaceSupportKHR and check surface support, but we don't have a surface
                 // in general graphics queues are able to present. if the use has different needs, they should not use the default device.
@@ -266,6 +267,11 @@ namespace RGL {
         return std::make_shared<RenderPipelineVk>(
             shared_from_this(),
             config);
+    }
+
+    RGLComputePipelinePtr DeviceVk::CreateComputePipeline(const ComputePipelineDescriptor& desc)
+    {
+        return std::make_shared<ComputePipelineVk>(shared_from_this(), desc);
     }
 
     RGLShaderLibraryPtr DeviceVk::CreateShaderLibraryFromName(const std::string_view& name)

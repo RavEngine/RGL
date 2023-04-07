@@ -28,6 +28,7 @@ namespace RGL {
 	struct ICommandQueue;
 	struct ISwapchain;
     struct IRenderPass;
+	struct IComputePipeline;
 }
 
 #if RGL_SINGLE_BACKEND
@@ -99,7 +100,7 @@ using RGLTexturePtr = std::shared_ptr<RGL::TextureVk>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerVk>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueVk>;
 using RGLCommandBufferPtr = std::shared_ptr<RGL::CommandBufferVk>;
-
+using RGLComputePipelinePtr = std::shared_ptr<RGL::ComputePipelineVk>;
 #elif RGL_DX12_AVAILABLE
 namespace RGL {
 	struct SwapchainD3D12;
@@ -118,6 +119,7 @@ namespace RGL {
 	struct DeviceD3D12;
 	struct CommandQueueD3D12;
 	struct CommandBufferD3D12;
+	struct ComputePipelineD3D12;
 }
 
 using RGLDevicePtr = std::shared_ptr<RGL::DeviceD3D12>;
@@ -134,6 +136,7 @@ using RGLSamplerPtr = std::shared_ptr<RGL::SamplerD3D12>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueD3D12>;
 using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassD3D12>;
+using RGLComputePipelinePtr = std::shared_ptr<RGL::ComputePipelineD3D12>;
 #endif
 
 #else
@@ -151,5 +154,6 @@ using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassD3D12>;
 	using RGLCommandBufferPtr = std::shared_ptr<RGL::ICommandBuffer>;
 	using RGLSwapchainPtr = std::shared_ptr<RGL::ISwapchain>;
     using RGLRenderPassPtr = std::shared_ptr<RGL::IRenderPass>;
+	using RGLComputePipelinePtr = std::shared_ptr<RGL::IComputePipeline>;
 #endif
 

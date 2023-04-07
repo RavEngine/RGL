@@ -53,6 +53,8 @@ namespace RGL {
 
 		virtual RGLCommandQueuePtr CreateCommandQueue(QueueType type) = 0;
 
+		virtual RGLComputePipelinePtr CreateComputePipeline(const struct ComputePipelineDescriptor&) = 0;
+
 		virtual DeviceData GetDeviceData() = 0;
 
 		virtual RGLFencePtr CreateFence(bool preSignaled) = 0;

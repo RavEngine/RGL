@@ -315,6 +315,16 @@ namespace RGL {
             FatalError("layout is not supported");
         }
     }
+
+    VkShaderStageFlagBits RGL2VKshader(RGL::ShaderStageDesc::Type type) {
+        switch (type) {
+        case decltype(type)::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+        case decltype(type)::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case decltype(type)::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+        default:
+            FatalError("Invalid shader type");
+        }
+    }
 }
 
 #endif

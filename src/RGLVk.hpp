@@ -3,6 +3,7 @@
 #include <RGL/Types.hpp>
 #include "RGLCommon.hpp"
 #include <RGL/TextureFormat.hpp>
+#include <RGL/Pipeline.hpp>
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 #include <cassert>
@@ -52,4 +53,6 @@ namespace RGL {
 	RGLRenderPassPtr CreateRenderPassVk(const RenderPassConfig& config);
 
 	VkImageLayout rgl2vkImageLayout(RGL::ResourceLayout layout);
+
+	VkShaderStageFlagBits RGL2VKshader(RGL::ShaderStageDesc::Type type);
 }
