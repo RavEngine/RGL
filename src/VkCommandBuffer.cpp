@@ -8,6 +8,7 @@
 #include "VkRenderPass.hpp"
 #include "VkSampler.hpp"
 #include "VkSwapchain.hpp"
+#include "VkComputePipeline.hpp"
 #include <cstring>
 
 namespace RGL {
@@ -84,7 +85,7 @@ namespace RGL {
 	{		
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
 	}
-	void CommandBufferVk::BindPipeline(RGLRenderPipelinePtr generic_pipeline)
+	void CommandBufferVk::BindRenderPipeline(RGLRenderPipelinePtr generic_pipeline)
 	{
 		auto pipeline = std::static_pointer_cast<RenderPipelineVk>(generic_pipeline);
 		
@@ -176,6 +177,18 @@ namespace RGL {
 	{
 		vkCmdEndRendering(commandBuffer);
 		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
+	}
+	void CommandBufferVk::BeginCompute(RGLComputePipelinePtr inPipeline)
+	{
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, std::static_pointer_cast<ComputePipelineVk>(inPipeline)->computePipeline);
+	}
+	void CommandBufferVk::EndCompute()
+	{
+
+	}
+	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ)
+	{
+		vkCmdDispatch(commandBuffer, threadsX, threadsY, threadsZ);
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{

@@ -5,12 +5,12 @@
 #include "D3D12RenderPipeline.hpp"
 
 namespace RGL {
-	ComputePipelineD3D12::ComputePipelineD3D12(const decltype(owningDevice) owningDevice, const ComputePipelineDescriptor& desc) : owningDevice(owningDevice)
+	ComputePipelineD3D12::ComputePipelineD3D12(const decltype(owningDevice) owningDevice, const ComputePipelineDescriptor& desc) : owningDevice(owningDevice), pipelineLayout(std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout))
 	{
 		auto device = owningDevice->device;
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDesc{
-			.pRootSignature = std::static_pointer_cast<PipelineLayoutD3D12>(desc.pipelineLayout)->rootSignature.Get(),
+			.pRootSignature = pipelineLayout->rootSignature.Get(),
 			.CS = desc.stage.shaderModule.get(),
 			.CachedPSO = nullptr,
 		};

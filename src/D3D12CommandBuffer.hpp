@@ -15,6 +15,7 @@ namespace RGL {
 
 		std::shared_ptr<struct RenderPassD3D12> currentRenderPass;
 		std::shared_ptr<struct RenderPipelineD3D12> currentRenderPipeline;
+		std::shared_ptr<struct ComputePipelineD3D12> currentComputePipeline;
 
 		bool ended = false;
 
@@ -32,7 +33,10 @@ namespace RGL {
 		void BeginRendering(RGLRenderPassPtr) final;
 		void EndRendering() final;
 
-		void BindPipeline(RGLRenderPipelinePtr) final;
+		void BindRenderPipeline(RGLRenderPipelinePtr) final;
+		void BeginCompute(RGLComputePipelinePtr) final;
+		void EndCompute() final;
+		void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
 
 		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
 		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;

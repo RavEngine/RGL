@@ -10,7 +10,7 @@ namespace RGL {
 	}
 	ShaderLibraryD3D12::ShaderLibraryD3D12(const std::span<uint8_t, std::dynamic_extent> bytes)
 	{
-		FatalError("Not implemented");
+		InitFromBytes(bytes);
 	}
 	ShaderLibraryD3D12::ShaderLibraryD3D12(const std::string_view source, const FromSourceConfig& config)
 	{

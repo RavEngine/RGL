@@ -7,9 +7,10 @@
 
 namespace RGL {
 	struct DeviceD3D12;
-
+	struct PipelineLayoutD3D12;
 	struct ComputePipelineD3D12 : public IComputePipeline {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
+		const std::shared_ptr<PipelineLayoutD3D12> pipelineLayout;
 		ComPtr<ID3D12PipelineState> pipelineState;
 		ComputePipelineD3D12(const decltype(owningDevice) owningDevice, const ComputePipelineDescriptor& desc);
 

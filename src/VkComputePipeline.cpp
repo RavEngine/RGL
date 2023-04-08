@@ -14,11 +14,11 @@ namespace RGL {
             .pName = "main"
         };
 
-
+        auto pipelineLayout = std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout);
         VkComputePipelineCreateInfo pipelineInfo{
             .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
             .stage = shaderStages,
-            .layout = std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout)->layout,
+            .layout = pipelineLayout->layout,
         };
 
         VK_CHECK(vkCreateComputePipelines(owningDevice->device, VK_NULL_HANDLE, 1,&pipelineInfo,nullptr,&computePipeline));

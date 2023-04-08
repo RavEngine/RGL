@@ -9,6 +9,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Sampler.hpp"
 #include "D3D12RenderPass.hpp"
+#include "D3D12ComputePipeline.hpp"
 
 namespace RGL {
 
@@ -82,11 +83,25 @@ namespace RGL {
 		currentRenderPass = nullptr;
 		currentRenderPipeline = nullptr;
 	}
-	void CommandBufferD3D12::BindPipeline(RGLRenderPipelinePtr in_pipeline)
+	void CommandBufferD3D12::BindRenderPipeline(RGLRenderPipelinePtr in_pipeline)
 	{
 		currentRenderPipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
 		commandList->SetPipelineState(currentRenderPipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(currentRenderPipeline->pipelineLayout->rootSignature.Get());
+	}
+	void CommandBufferD3D12::BeginCompute(RGLComputePipelinePtr in_pipeline)
+	{
+		currentComputePipeline = std::static_pointer_cast<ComputePipelineD3D12>(in_pipeline);
+		commandList->SetPipelineState(currentComputePipeline->pipelineState.Get());
+		commandList->SetComputeRootSignature(currentComputePipeline->pipelineLayout->rootSignature.Get());
+	}
+	void CommandBufferD3D12::EndCompute()
+	{
+		currentComputePipeline.reset();
+	}
+	void CommandBufferD3D12::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ)
+	{
+		commandList->Dispatch(threadsX, threadsY, threadsZ);
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{

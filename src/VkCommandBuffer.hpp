@@ -28,10 +28,14 @@ namespace RGL {
 		void Reset() final;
 		void Begin() final;
 		void End() final;
-		void BindPipeline(RGLRenderPipelinePtr) final;
+		void BindRenderPipeline(RGLRenderPipelinePtr) final;
 
 		void BeginRendering(RGLRenderPassPtr) final;
 		void EndRendering() final;
+
+		void BeginCompute(RGLComputePipelinePtr) final;
+		void EndCompute() final;
+		void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
 
 		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
 		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
