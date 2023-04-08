@@ -9,6 +9,7 @@
 #include "MTLSampler.hpp"
 #include "MTLRenderPass.hpp"
 #include "MTLDevice.hpp"
+#include "MTLComputePipeline.hpp"
 #include "RGLCommon.hpp"
 
 namespace RGL{
@@ -123,7 +124,7 @@ void CommandBufferMTL::SetIndexBuffer(RGLBufferPtr buffer) {
     indexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
 }
 
-void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
+void CommandBufferMTL::BindRenderPipeline(RGLRenderPipelinePtr pipelineIn){
     auto pipeline = std::static_pointer_cast<RenderPipelineMTL>(pipelineIn);
     [currentCommandEncoder setRenderPipelineState: pipeline->pipelineState];
     if (pipeline->depthStencilState){
@@ -135,6 +136,19 @@ void CommandBufferMTL::BindPipeline(RGLRenderPipelinePtr pipelineIn){
     [currentCommandEncoder setFrontFacingWinding:rgl2mtlwinding(pipeline->settings.rasterizerConfig.windingOrder)];
     [currentCommandEncoder setCullMode:rgl2mtlcullmode(pipeline->settings.rasterizerConfig.cullMode)];
     [currentCommandEncoder setTriangleFillMode:pipeline->currentFillMode];
+}
+
+void CommandBufferMTL::BeginCompute(RGLComputePipelinePtr pipelineIn){
+    currentComputeCommandEncoder = [currentCommandBuffer computeCommandEncoder];
+    [currentComputeCommandEncoder setComputePipelineState:std::static_pointer_cast<ComputePipelineMTL>(pipelineIn)->pipelineState];
+}
+
+void CommandBufferMTL::EndCompute(){
+    [currentComputeCommandEncoder endEncoding];
+}
+
+void CommandBufferMTL::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ){
+    [currentComputeCommandEncoder dispatchThreads:MTLSizeMake(threadsX, threadsY, threadsZ) threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){

@@ -13,6 +13,7 @@ struct BufferMTL;
     struct CommandBufferMTL : public ICommandBuffer{
         OBJC_ID(MTLCommandBuffer) currentCommandBuffer = nullptr;
         OBJC_ID(MTLRenderCommandEncoder) currentCommandEncoder = nullptr;
+        OBJC_ID(MTLComputeCommandEncoder) currentComputeCommandEncoder = nullptr;
         OBJC_ID(MTLDepthStencilState) noDepthStencil = nullptr;
         
         std::shared_ptr<BufferMTL> indexBuffer;
@@ -25,7 +26,10 @@ struct BufferMTL;
         void Reset() final;
         void Begin() final;
         void End() final;
-        void BindPipeline(RGLRenderPipelinePtr) final;
+        void BindRenderPipeline(RGLRenderPipelinePtr) final;
+        void BeginCompute(RGLComputePipelinePtr) final;
+        void EndCompute() final;
+        void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
 
         void BeginRendering(RGLRenderPassPtr) final;
         void EndRendering() final;

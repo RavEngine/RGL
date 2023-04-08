@@ -63,8 +63,12 @@ namespace RGL {
 
 		virtual void BeginRendering(RGLRenderPassPtr) = 0;
 		virtual void EndRendering() = 0;
+        
 
-		virtual void BindPipeline(RGLRenderPipelinePtr) = 0;
+		virtual void BindRenderPipeline(RGLRenderPipelinePtr) = 0;
+        virtual void BeginCompute(RGLComputePipelinePtr) = 0;
+        virtual void EndCompute() = 0;
+        virtual void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) = 0;
 
 		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
         
