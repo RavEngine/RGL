@@ -71,6 +71,7 @@ namespace RGL {
         virtual void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) = 0;
 
 		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
+		virtual void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
         
         virtual void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) = 0;
 

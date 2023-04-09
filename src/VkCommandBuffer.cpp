@@ -180,11 +180,12 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginCompute(RGLComputePipelinePtr inPipeline)
 	{
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, std::static_pointer_cast<ComputePipelineVk>(inPipeline)->computePipeline);
+		currentComputePipeline = std::static_pointer_cast<ComputePipelineVk>(inPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, currentComputePipeline->computePipeline);
 	}
 	void CommandBufferVk::EndCompute()
 	{
-
+		currentComputePipeline = nullptr;
 	}
 	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ)
 	{
@@ -192,32 +193,42 @@ namespace RGL {
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
+		GenericBindBuffer(buffer, offsetIntoBuffer, bindingOffset, VK_PIPELINE_BIND_POINT_GRAPHICS);
+		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+	}
+
+	void CommandBufferVk::GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint)
+	{
 		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
 		VkDescriptorBufferInfo bufferInfo{
-		   .buffer = vkbuffer->buffer,
-		   .offset = offsetIntoBuffer * vkbuffer->stride,
-		   .range = VK_WHOLE_SIZE,
+			.buffer = vkbuffer->buffer,
+			.offset = offsetIntoBuffer * vkbuffer->stride,
+			.range = VK_WHOLE_SIZE,
 		};
 		VkWriteDescriptorSet writeinfo{
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.dstSet = currentRenderPipeline->pipelineLayout->descriptorSet,
-				.dstBinding = bindingOffset,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = &bufferInfo,
-				.pTexelBufferView = nullptr
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = VK_NULL_HANDLE,	// we push descriptors instead
+			.dstBinding = bindingOffset,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+			.pImageInfo = nullptr,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = nullptr
 		};
 		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
 			commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			currentRenderPipeline->pipelineLayout->layout,
+			bindPoint,
+			(bindPoint == VK_PIPELINE_BIND_POINT_COMPUTE? currentComputePipeline->pipelineLayout->layout : currentRenderPipeline->pipelineLayout->layout),
 			0,
 			1,
 			&writeinfo
 		);
-		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
+	}
+
+	void CommandBufferVk::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer)
+	{
+		GenericBindBuffer(buffer, offsetIntoBuffer, binding, VK_PIPELINE_BIND_POINT_COMPUTE);
 	}
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
@@ -277,7 +288,7 @@ namespace RGL {
 		};
 		VkWriteDescriptorSet writeinfo{
 				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.dstSet = currentRenderPipeline->pipelineLayout->descriptorSet,
+				.dstSet = VK_NULL_HANDLE,
 				.dstBinding = index,
 				.dstArrayElement = 0,
 				.descriptorCount = 1,

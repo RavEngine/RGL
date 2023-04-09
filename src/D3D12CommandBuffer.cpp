@@ -108,6 +108,9 @@ namespace RGL {
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
 		commandList->SetGraphicsRootShaderResourceView(bindingOffset + 1, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
 	}
+	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer)
+	{
+	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
 		commandList->IASetVertexBuffers(0, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView + offsetIntoBuffer);

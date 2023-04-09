@@ -17,6 +17,7 @@ namespace RGL {
 		
 		const std::shared_ptr<CommandQueueVk> owningQueue;
 		std::shared_ptr<RenderPipelineVk> currentRenderPipeline = nullptr;
+		std::shared_ptr<struct ComputePipelineVk> currentComputePipeline = nullptr;
 
 		std::unordered_set<struct SwapchainVK*> swapchainsToSignal;
 
@@ -38,6 +39,8 @@ namespace RGL {
 		void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
 
 		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
+
+		void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
 		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
 
 		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages);
@@ -66,5 +69,8 @@ namespace RGL {
 		void SetScissor(const Rect&) final;
 
 		void Commit(const CommitConfig&) final;
+
+	private:
+		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);
 	};
 }

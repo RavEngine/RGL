@@ -8,13 +8,15 @@ namespace RGL {
 		TransferDestination = 1 << 0,
 		TransferSource = 1 << 1
 	};
+
+	
+
 	inline BufferFlags operator|(BufferFlags x, BufferFlags y) {
 		return BufferFlags{ std::underlying_type_t<BufferFlags>(x) | std::underlying_type_t<BufferFlags>(y) };
 	}
 	inline BufferFlags operator&(BufferFlags x, BufferFlags y) {
 		return BufferFlags{ std::underlying_type_t<BufferFlags>(x) & std::underlying_type_t<BufferFlags>(y) };
 	}
-
 	inline BufferFlags& operator|=(BufferFlags& x, BufferFlags y)
 	{
 		x = x | y;
@@ -35,7 +37,7 @@ namespace RGL {
 	struct BufferConfig {
 		uint32_t size_bytes = 0;
 		uint32_t stride = 0;
-		enum class Type : uint16_t {
+		enum class Type : int {
 			UniformBuffer = 0x00000010,
 			StorageBuffer = 0x00000020,
 			IndexBuffer = 0x00000040,
@@ -54,6 +56,23 @@ namespace RGL {
 		template<typename T>
 		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t, decltype(access) access, decltype(options) options = decltype(options)::None) : BufferConfig(sizeof(T), type,stride,access,options){}
 	};
+
+	inline BufferConfig::Type operator|(BufferConfig::Type x, BufferConfig::Type y) {
+		return BufferConfig::Type{ std::underlying_type_t<BufferConfig::Type>(x) | std::underlying_type_t<BufferConfig::Type>(y) };
+	}
+	inline BufferConfig::Type operator&(BufferConfig::Type x, BufferConfig::Type y) {
+		return BufferConfig::Type{ std::underlying_type_t<BufferConfig::Type>(x) & std::underlying_type_t<BufferConfig::Type>(y) };
+	}
+	inline BufferConfig::Type& operator|=(BufferConfig::Type& x, BufferConfig::Type y)
+	{
+		x = x | y;
+		return x;
+	}
+	inline BufferConfig::Type& operator&=(BufferConfig::Type& x, BufferConfig::Type y)
+	{
+		x = x & y;
+		return x;
+	}
 
 	struct IBuffer {
 		/**

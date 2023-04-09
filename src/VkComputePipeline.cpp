@@ -5,7 +5,7 @@
 #include "RGLVk.hpp"
 
 namespace RGL {
-	ComputePipelineVk::ComputePipelineVk(decltype(owningDevice) owningDevice, const ComputePipelineDescriptor& desc) : owningDevice(owningDevice)
+	ComputePipelineVk::ComputePipelineVk(decltype(owningDevice) owningDevice, const ComputePipelineDescriptor& desc) : owningDevice(owningDevice), pipelineLayout(std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout))
 	{
         VkPipelineShaderStageCreateInfo shaderStages{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -14,7 +14,6 @@ namespace RGL {
             .pName = "main"
         };
 
-        auto pipelineLayout = std::static_pointer_cast<PipelineLayoutVk>(desc.pipelineLayout);
         VkComputePipelineCreateInfo pipelineInfo{
             .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
             .stage = shaderStages,

@@ -39,6 +39,7 @@ namespace RGL {
 		void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
 
 		void BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer = 0) final;
+		void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
 		void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
 
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
