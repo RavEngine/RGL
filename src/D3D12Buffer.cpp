@@ -8,20 +8,14 @@ namespace RGL {
 	BufferD3D12::BufferD3D12(decltype(owningDevice) device, const BufferConfig& config) : owningDevice(device), myType(config.type)
 	{
         mappedMemory.size = config.size_bytes;
-        switch (config.type) {
-        case decltype(config.type)::StorageBuffer:
-        case decltype(config.type)::IndirectBuffer:
-        case decltype(config.type)::VertexBuffer:
-            vertexBufferView.SizeInBytes = config.size_bytes;
-            vertexBufferView.StrideInBytes = config.stride;
-            break;
-        case decltype(config.type)::IndexBuffer:
+        if ((config.type & BufferConfig::Type::IndexBuffer) != BufferConfig::Type::NoneDoNotUse) {
             indexBufferView.SizeInBytes = config.size_bytes;
             indexBufferView.Format = config.stride == sizeof(uint16_t) ? decltype(indexBufferView.Format)::DXGI_FORMAT_R16_UINT : decltype(indexBufferView.Format)::DXGI_FORMAT_R32_UINT;
-            break;
-        default:
-            FatalError("current buffer type is not supported");
-        };
+        }
+        else {
+            vertexBufferView.SizeInBytes = config.size_bytes;
+            vertexBufferView.StrideInBytes = config.stride;
+        }
         auto v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto t = CD3DX12_RESOURCE_DESC::Buffer(config.size_bytes, D3D12_RESOURCE_FLAG_NONE);
         auto state = D3D12_RESOURCE_STATE_GENERIC_READ;
