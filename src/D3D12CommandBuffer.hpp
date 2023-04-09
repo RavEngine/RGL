@@ -44,6 +44,7 @@ namespace RGL {
 
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
+		void SetComputeBytes(const untyped_span data, uint32_t offset) final;
 
 		void SetIndexBuffer(RGLBufferPtr buffer) final;
 

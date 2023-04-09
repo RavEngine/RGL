@@ -125,6 +125,11 @@ namespace RGL {
 		// d3d does not make a distinction
 		SetVertexBytes(data, offset);
 	}
+	void CommandBufferD3D12::SetComputeBytes(const untyped_span data, uint32_t offset)
+	{
+		auto size = data.size() / 4 + (data.size() % 4 != 0 ? 1 : 0);
+		commandList->SetComputeRoot32BitConstants(offset, size, data.data(), 0);
+	}
 	void CommandBufferD3D12::SetIndexBuffer(RGLBufferPtr buffer)
 	{
 		commandList->IASetIndexBuffer(&(std::static_pointer_cast<BufferD3D12>(buffer)->indexBufferView));

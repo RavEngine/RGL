@@ -98,6 +98,7 @@ namespace RGL {
 
 		virtual void SetVertexBytes(const untyped_span data, uint32_t offset) = 0;
 		virtual void SetFragmentBytes(const untyped_span data, uint32_t offset) = 0;
+		virtual void SetComputeBytes(const untyped_span data, uint32_t offset) = 0;
 		virtual void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) = 0;
 	};
 }

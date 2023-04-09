@@ -248,7 +248,9 @@ namespace RGL {
 		std::memset(localdata, 0, size);
 		std::memcpy(localdata, data.data(), data.size());
 
-		vkCmdPushConstants(commandBuffer, currentRenderPipeline->pipelineLayout->layout, stages, offset, size, localdata);
+		auto layout = (stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
+
+		vkCmdPushConstants(commandBuffer, layout, stages, offset, size, localdata);
 	}
 
 	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
@@ -258,6 +260,10 @@ namespace RGL {
 	void CommandBufferVk::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
 		setPushConstantData(data, offset, VK_SHADER_STAGE_FRAGMENT_BIT);
+	}
+	void CommandBufferVk::SetComputeBytes(const untyped_span data, uint32_t offset)
+	{
+		setPushConstantData(data, offset, VK_SHADER_STAGE_COMPUTE_BIT);
 	}
 	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
