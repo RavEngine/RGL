@@ -6,10 +6,9 @@ namespace RGL {
 	enum class BufferFlags : int {
 		None = 0,
 		TransferDestination = 1 << 0,
-		TransferSource = 1 << 1
+		TransferSource = 1 << 1,
+        Writable = 1 << 2
 	};
-
-	
 
 	inline BufferFlags operator|(BufferFlags x, BufferFlags y) {
 		return BufferFlags{ std::underlying_type_t<BufferFlags>(x) | std::underlying_type_t<BufferFlags>(y) };

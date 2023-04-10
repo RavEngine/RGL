@@ -51,6 +51,7 @@ namespace RGL {
 				Fragment = 0x00000010,
 				Compute = 0x00000020,
 			} stageFlags;
+            bool writable = false;
 			//TODO: support image samplers
 		};
 		std::vector<LayoutBindingDesc> bindings;
