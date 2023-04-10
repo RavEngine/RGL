@@ -35,6 +35,7 @@ struct BufferMTL;
         void EndRendering() final;
 
         void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
+        void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
         void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) final;
         
         void SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index) final;
@@ -43,6 +44,7 @@ struct BufferMTL;
 
         void SetVertexBytes(const untyped_span data, uint32_t offset) final;
         void SetFragmentBytes(const untyped_span data, uint32_t offset) final;
+        void SetComputeBytes(const untyped_span data, uint32_t offset) final;
         
         void SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) final;
         void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) final;
