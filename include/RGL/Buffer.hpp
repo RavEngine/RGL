@@ -38,6 +38,7 @@ namespace RGL {
 		uint32_t size_bytes = 0;
 		uint32_t stride = 0;
 		enum class Type : int {
+			NoneDoNotUse = 0,
 			UniformBuffer = 0x00000010,
 			StorageBuffer = 0x00000020,
 			IndexBuffer = 0x00000040,
