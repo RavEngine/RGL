@@ -123,7 +123,12 @@ namespace RGL {
             switch (item.type) {
             case decltype(item.type)::StorageBuffer:
             case decltype(item.type)::UniformBuffer:
-                rootParameters.emplace_back().InitAsShaderResourceView(item.binding, 0);
+                if (item.writable){
+                    rootParameters.emplace_back().InitAsUnorderedAccessView(item.binding, 0);
+                }
+                else {
+                    rootParameters.emplace_back().InitAsShaderResourceView(item.binding, 0);
+                }
                 break;
 
             }

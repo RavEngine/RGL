@@ -16,8 +16,11 @@ namespace RGL {
             vertexBufferView.SizeInBytes = config.size_bytes;
             vertexBufferView.StrideInBytes = config.stride;
         }
-        auto v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto t = CD3DX12_RESOURCE_DESC::Buffer(config.size_bytes, D3D12_RESOURCE_FLAG_NONE);
+        const bool isWritable = (config.options & BufferFlags::Writable) != BufferFlags::None;
+
+        auto v = isWritable ? CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) : CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        // writable is marked as a UAV
+        auto t = CD3DX12_RESOURCE_DESC::Buffer(config.size_bytes, isWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE );
         auto state = D3D12_RESOURCE_STATE_GENERIC_READ;
 
         if ((config.options & decltype(config.options)::TransferDestination) != decltype(config.options)::None) {
