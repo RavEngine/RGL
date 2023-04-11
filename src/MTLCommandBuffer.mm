@@ -148,7 +148,7 @@ void CommandBufferMTL::EndCompute(){
 }
 
 void CommandBufferMTL::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ){
-    [currentComputeCommandEncoder dispatchThreads:MTLSizeMake(threadsX, threadsY, threadsZ) threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
+    [currentComputeCommandEncoder dispatchThreadgroups:MTLSizeMake(threadsX, threadsY, threadsZ) threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){
