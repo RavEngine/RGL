@@ -27,6 +27,8 @@ namespace RGL {
 		Microsoft::WRL::ComPtr<D3D12MA::Allocator> allocator;
 		UINT g_RTVDescriptorHeapSize = 0;
 
+		Microsoft::WRL::ComPtr<ID3D12Fence> deviceRemovedFence;
+
 		//TODO: make these vectors of descriptorpiles
 		// where new ones are created when they fill up 
 

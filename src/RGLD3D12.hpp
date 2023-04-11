@@ -28,4 +28,6 @@ namespace RGL {
 
 	DXGI_FORMAT rgl2dxgiformat_texture(RGL::TextureFormat format);
 	D3D12_RESOURCE_STATES rgl2d3d12resourcestate(RGL::ResourceLayout layout);
+
+	void RGLDeviceRemovedHandler(PVOID context, BOOLEAN);
 }

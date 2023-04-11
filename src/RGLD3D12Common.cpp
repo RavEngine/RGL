@@ -10,6 +10,25 @@ using namespace RGL;
 using namespace Microsoft::WRL;
 
 namespace RGL {
+    void RGLDeviceRemovedHandler(PVOID context, BOOLEAN)
+    {
+#if defined(_DEBUG)
+        ID3D12Device* pDevice = (ID3D12Device*)context;
+
+        ComPtr<ID3D12DeviceRemovedExtendedData> pDred;
+        DX_CHECK(pDevice->QueryInterface(IID_PPV_ARGS(&pDred)));
+        D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT DredAutoBreadcrumbsOutput;
+        D3D12_DRED_PAGE_FAULT_OUTPUT DredPageFaultOutput;
+        DX_CHECK(pDred->GetAutoBreadcrumbsOutput(&DredAutoBreadcrumbsOutput));
+        DX_CHECK(pDred->GetPageFaultAllocationOutput(&DredPageFaultOutput));
+        // Custom processing of DRED data can be done here.
+        // Produce telemetry...
+        // Log information to console...
+        // break into a debugger...
+#endif
+        FatalError("Device removal triggered!");
+    }
+
     void EnableDebugLayer()
     {
 #if defined(_DEBUG)
@@ -20,6 +39,14 @@ namespace RGL {
         ComPtr<ID3D12Debug> debugInterface;
         DX_CHECK(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)));
         debugInterface->EnableDebugLayer();
+
+        // enable DRED 
+        ComPtr<ID3D12DeviceRemovedExtendedDataSettings> pDredSettings;
+        DX_CHECK(D3D12GetDebugInterface(IID_PPV_ARGS(&pDredSettings)));
+
+        // Turn on auto-breadcrumbs and page fault reporting.
+        pDredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+        pDredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 #endif
     }
 
