@@ -40,7 +40,7 @@ namespace RGL {
 		Set the contents of this buffer. Intended to be used with VertexBuffers or other data that changes infrequently or never.
 		@param newData the data to write into the buffer.
 		*/
-		void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset) final;
+		void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) final;
 
 		decltype(BufferConfig::size_bytes) getBufferSize() const;
 

@@ -27,7 +27,7 @@
         #include <RGL/../../src/D3D12Surface.hpp>
         #include <RGL/../../src/D3D12Synchronization.hpp>
         #include <RGL/../../src/D3D12Texture.hpp>
-        #include <RGL/../../src/RenderPass.hpp>
+        #include <RGL/../../src/D3D12RenderPass.hpp>
     #elif RGL_MTL_AVAILABLE
         #include <RGL/../../src/MTLDevice.hpp>
         #include <RGL/../../src/MTLSwapchain.hpp>

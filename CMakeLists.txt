@@ -89,6 +89,7 @@ if(MSVC AND NOT RGL_DISABLE_DX)
 	set_target_properties("DirectX-Guids"  "DirectXTK12"  PROPERTIES 
 		FOLDER "RGL/Libraries"
 	)
+	target_include_directories(${PROJECT_NAME} PUBLIC "deps/DirectXTK12/Inc")
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=0)
 	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")

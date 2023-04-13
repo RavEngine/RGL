@@ -137,7 +137,7 @@ using RGLFencePtr = std::shared_ptr<RGL::FenceD3D12>;
 using RGLTexturePtr = std::shared_ptr<RGL::TextureD3D12>;
 using RGLSamplerPtr = std::shared_ptr<RGL::SamplerD3D12>;
 using RGLCommandQueuePtr = std::shared_ptr<RGL::CommandQueueD3D12>;
-using CommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
+using RGLCommandBufferPtr = std::shared_ptr<RGL::CommandBufferD3D12>;
 using RGLRenderPassPtr = std::shared_ptr<RGL::RenderPassD3D12>;
 using RGLComputePipelinePtr = std::shared_ptr<RGL::ComputePipelineD3D12>;
 #endif
