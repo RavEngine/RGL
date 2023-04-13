@@ -18,6 +18,10 @@ option(RGL_ENABLE_RGLC "Enable the separate compiler executable" ON)
 option(RGL_DISABLE_VK "Force-disable the Vulkan backend" OFF)
 option(RGL_DISABLE_DX "Force-disable the D3D12 backend" OFF)
 
+if (CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
+	set(RGL_DISABLE_VK ON CACHE INTERNAL "")
+endif()
+
 #setup main library
 file(GLOB_RECURSE MM_SOURCES "src/*.mm")
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" )
