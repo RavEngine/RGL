@@ -88,6 +88,7 @@ namespace RGL {
 	struct DeviceVk;
 	struct CommandQueueVk;
 	struct CommandBufferVk;
+	struct ComputePipelineVk;
 }
 
 using RGLDevicePtr = std::shared_ptr<RGL::DeviceVk>;
