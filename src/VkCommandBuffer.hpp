@@ -71,6 +71,8 @@ namespace RGL {
 
 		void Commit(const CommitConfig&) final;
 
+		void SetRenderPipelineBarrier(const BarrierConfig&) final;
+
 	private:
 		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);
 	};

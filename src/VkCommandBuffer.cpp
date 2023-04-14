@@ -393,6 +393,74 @@ namespace RGL {
 		owningQueue->Submit(this, config);
 		swapchainsToSignal.clear();
 	}
+	void CommandBufferVk::SetRenderPipelineBarrier(const BarrierConfig& config)
+	{
+		stackarray(bufferBarriers, VkBufferMemoryBarrier2, config.buffers.size());
+
+		uint32_t i = 0;
+		for (const auto& bufferBase : config.buffers) {
+			auto buffer = std::static_pointer_cast<BufferVk>(bufferBase);
+			auto owningDeviceFamily = buffer->owningDevice->indices.graphicsFamily.value();
+			bufferBarriers[i] = {
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+				.pNext = nullptr,
+				.srcStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT ,
+				.srcAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+				.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.srcQueueFamilyIndex = owningDeviceFamily,
+				.dstQueueFamilyIndex = owningDeviceFamily,
+				.buffer = buffer->buffer,
+				.offset = 0,
+				.size = buffer->getBufferSize()
+			};
+			i++;
+		}
+
+
+		stackarray(textureBarriers, VkImageMemoryBarrier2, config.textures.size());
+		i = 0;
+		for (const auto& textureBase : config.textures) {
+			auto image = std::static_pointer_cast<TextureVk>(textureBase);
+			textureBarriers[i] = {
+				.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+				.pNext = nullptr,
+				.srcStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+				.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// if these are set to the same value, no transition is executed
+				.newLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.srcQueueFamilyIndex = 0,
+				.dstQueueFamilyIndex = 0,
+				.image = image->vkImage,
+				.subresourceRange = {
+					.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT | VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+					.baseMipLevel = 0,
+					.levelCount = 1,
+					.baseArrayLayer = 0,
+					.layerCount = 1,
+				}
+			};
+			i++;
+		}
+
+		VkDependencyInfo depInfo{
+			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+			.pNext = nullptr,
+			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
+			.memoryBarrierCount = 0,
+			.pMemoryBarriers = nullptr,
+			.bufferMemoryBarrierCount = static_cast<uint32_t>(config.buffers.size()),
+			.pBufferMemoryBarriers = bufferBarriers,
+			.imageMemoryBarrierCount = static_cast<uint32_t>(config.textures.size()),
+			.pImageMemoryBarriers = textureBarriers
+		};
+		vkCmdPipelineBarrier2(
+			commandBuffer,
+			&depInfo
+		);
+	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
 		auto device = owningQueue->owningDevice->device;

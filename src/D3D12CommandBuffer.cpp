@@ -214,6 +214,10 @@ namespace RGL {
 
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
 	}
+	void CommandBufferD3D12::SetRenderPipelineBarrier(const BarrierConfig& config)
+	{
+
+	}
 	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
 		auto casted = static_cast<TextureD3D12*>(sourceTexture);

@@ -32,6 +32,7 @@ namespace RGL {
            VK_KHR_MAINTENANCE1_EXTENSION_NAME,
            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
            VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
+           VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
@@ -155,10 +156,12 @@ namespace RGL {
         VkPhysicalDeviceFeatures deviceFeatures{
             .samplerAnisotropy = VK_TRUE,   // need to explicity request it
         };
-
+        VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2Feature{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+        };
         VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingfeature{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
-            .pNext = nullptr
+            .pNext = &synchronization2Feature
         };
         VkPhysicalDeviceImagelessFramebufferFeatures imagelessFramebuffer{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES,
@@ -174,6 +177,9 @@ namespace RGL {
         }
         if (dynamicRenderingfeature.dynamicRendering == VK_FALSE) {
             FatalError("Cannot init - dynamic rendering is not supported");
+        }
+        if (synchronization2Feature.synchronization2 == VK_FALSE) {
+            FatalError("Cannot init - synchronization2 is not supported");
         }
 
         std::vector<const char*> runtimeExtensions{std::begin(deviceExtensions),std::end(deviceExtensions)};
