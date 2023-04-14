@@ -216,7 +216,35 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetRenderPipelineBarrier(const BarrierConfig& config)
 	{
+		auto totalBarriers = config.buffers.size() + config.textures.size();
+		stackarray(barriers, D3D12_RESOURCE_BARRIER, totalBarriers);
 
+		uint32_t i = 0;
+		for (const auto& bufferBase : config.buffers) {
+			auto buffer = std::static_pointer_cast<BufferD3D12>(bufferBase);
+			barriers[i] = {
+				.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+				.UAV = {
+					.pResource = buffer->buffer.Get(),
+				}
+			};
+			i++;
+		}
+
+		i = config.buffers.size();
+		for (const auto& textureBase: config.textures) {
+			auto texture = std::static_pointer_cast<TextureD3D12>(textureBase);
+			barriers[i] = {
+				.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+				.UAV = {
+					.pResource = texture->texture.Get()
+				}
+			};
+		}
+
+		commandList->ResourceBarrier(totalBarriers, barriers);
 	}
 	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
