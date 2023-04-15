@@ -64,7 +64,14 @@ namespace RGL {
 		uint32_t baseInstance;
 	};
 
-	struct IndirectInstancedConfig {
+	struct IndirectCommand {
+		uint32_t vertexCount;
+		uint32_t instanceCount;
+		uint32_t firstVertex;
+		uint32_t firstInstance;
+	};
+
+	struct IndirectConfig {
 		RGLBufferPtr indirectBuffer;
 		uint32_t offsetIntoBuffer = 0;	// in bytes
 		uint32_t nDraws;
@@ -122,6 +129,7 @@ namespace RGL {
 
 		virtual void SetRenderPipelineBarrier(const BarrierConfig&) = 0;
 
-		virtual void ExecuteIndirectInstanced(const IndirectInstancedConfig&) = 0;
+		virtual void ExecuteIndirectInstanced(const IndirectConfig&) = 0;
+		virtual void ExecuteIndirect(const IndirectConfig&) = 0;
 	};
 }

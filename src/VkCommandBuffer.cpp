@@ -461,7 +461,17 @@ namespace RGL {
 			&depInfo
 		);
 	}
-	void CommandBufferVk::ExecuteIndirectInstanced(const IndirectInstancedConfig& config)
+	void CommandBufferVk::ExecuteIndirect(const IndirectConfig& config)
+	{
+		const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
+		vkCmdDrawIndirect(commandBuffer,
+			buffer->buffer,
+			config.offsetIntoBuffer,
+			config.nDraws,
+			sizeof(IndirectCommand)
+		);
+	}
+	void CommandBufferVk::ExecuteIndirectInstanced(const IndirectConfig& config)
 	{
 		const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
 		vkCmdDrawIndexedIndirect(commandBuffer,
