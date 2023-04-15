@@ -64,6 +64,8 @@ struct BufferMTL;
 
         void Commit(const CommitConfig&) final;
         
+        void SetRenderPipelineBarrier(const BarrierConfig&) final;
+        
         virtual ~CommandBufferMTL(){}
     };
 

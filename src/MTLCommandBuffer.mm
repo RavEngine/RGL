@@ -269,6 +269,23 @@ void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const R
     [blitencoder endEncoding];
 }
 
+void CommandBufferMTL::SetRenderPipelineBarrier(const BarrierConfig& config){
+    auto size = config.buffers.size() + config.textures.size();
+    stackarray(resources, id<MTLResource>, size);
+    
+    uint32_t i = 0;
+    for(const auto& bufferBase : config.buffers){
+        resources[i] = std::static_pointer_cast<BufferMTL>(bufferBase)->buffer;
+    }
+    i = config.buffers.size();
+    for(const auto& textureBase : config.textures){
+        resources[i] = std::static_pointer_cast<TextureMTL>(textureBase)->texture;
+    }
+    
+    constexpr auto stages = MTLRenderStageVertex | MTLRenderStageFragment;
+    [currentCommandEncoder memoryBarrierWithResources:resources count:size afterStages:stages beforeStages:stages];
+}
+
 void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {
     // no effect on Metal
 }
