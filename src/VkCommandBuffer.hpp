@@ -73,7 +73,7 @@ namespace RGL {
 
 		void SetRenderPipelineBarrier(const BarrierConfig&) final;
 
-		void ExecuteIndirectInstanced(const IndirectConfig&) final;
+		void ExecuteIndirectIndexed(const IndirectConfig&) final;
 		void ExecuteIndirect(const IndirectConfig&) final;
 
 	private:

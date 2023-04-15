@@ -178,7 +178,7 @@ void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
 }
 
 void CommandBufferMTL::SetComputeBytes(const untyped_span data, uint32_t offset){
-    [currentComputeCommandEncoder setBytes:data.data() length:data.size() atIndex:offset];
+    [currentComputeCommandEncoder setBytes:data.data() length:data.size() atIndex:offset+1];
 }
 
 void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset){
@@ -289,5 +289,25 @@ void CommandBufferMTL::SetRenderPipelineBarrier(const BarrierConfig& config){
 void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {
     // no effect on Metal
 }
+
+void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config) {
+#if 0
+    auto desc = [MTLIndirectCommandBufferDescriptor new];
+    desc.commandTypes = MTLIndirectCommandTypeDrawIndexed;
+    desc.inheritBuffers = true;
+    desc.inheritPipelineState = true;
+    
+    auto indirecBuffer = [owningQueue->owningDevice->device newIndirectCommandBufferWithDescriptor:desc maxCommandCount:config.nDraws options:MTLResourceStorageModePrivate];
+    
+    //[currentCommandEncoder executeCommandsInBuffer:indirecBuffer withRange:NSMakeRange(0, config.nDraws)];
+#endif
+}
+
+void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {
+    
+}
+
 }
 #endif
+
+

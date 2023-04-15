@@ -129,7 +129,7 @@ namespace RGL {
 
 		virtual void SetRenderPipelineBarrier(const BarrierConfig&) = 0;
 
-		virtual void ExecuteIndirectInstanced(const IndirectConfig&) = 0;
+		virtual void ExecuteIndirectIndexed(const IndirectConfig&) = 0;
 		virtual void ExecuteIndirect(const IndirectConfig&) = 0;
 	};
 }

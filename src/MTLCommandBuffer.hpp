@@ -66,6 +66,9 @@ struct BufferMTL;
         
         void SetRenderPipelineBarrier(const BarrierConfig&) final;
         
+        virtual void ExecuteIndirectIndexed(const IndirectConfig&) final;
+        virtual void ExecuteIndirect(const IndirectConfig&) final;
+        
         virtual ~CommandBufferMTL(){}
     };
 
