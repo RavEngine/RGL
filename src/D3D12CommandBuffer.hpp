@@ -71,6 +71,8 @@ namespace RGL {
 		// submit onto the queue that created this command buffer
 		void Commit(const CommitConfig&) final;
 
+		void ExecuteIndirectInstanced(const IndirectInstancedConfig&) final;
+
 		~CommandBufferD3D12() {}
 	};
 }

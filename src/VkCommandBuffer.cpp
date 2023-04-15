@@ -461,6 +461,16 @@ namespace RGL {
 			&depInfo
 		);
 	}
+	void CommandBufferVk::ExecuteIndirectInstanced(const IndirectInstancedConfig& config)
+	{
+		const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
+		vkCmdDrawIndexedIndirect(commandBuffer,
+			buffer->buffer,
+			config.offsetIntoBuffer,
+			config.nDraws,
+			sizeof(IndirectInstancedCommand)
+		);
+	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
 		auto device = owningQueue->owningDevice->device;

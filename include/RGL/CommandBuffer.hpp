@@ -56,6 +56,20 @@ namespace RGL {
 		std::initializer_list<RGLTexturePtr> textures;
 	};
 
+	struct IndirectInstancedCommand {
+		uint32_t indexCount;
+		uint32_t instanceCount;
+		uint32_t indexStart;
+		uint32_t baseVertex;
+		uint32_t baseInstance;
+	};
+
+	struct IndirectInstancedConfig {
+		RGLBufferPtr indirectBuffer;
+		uint32_t offsetIntoBuffer = 0;	// in bytes
+		uint32_t nDraws;
+	};
+
 	struct ICommandBuffer {
 		// clear the command buffer, to encode new commands
 		virtual void Reset() = 0;
@@ -108,5 +122,6 @@ namespace RGL {
 
 		virtual void SetRenderPipelineBarrier(const BarrierConfig&) = 0;
 
+		virtual void ExecuteIndirectInstanced(const IndirectInstancedConfig&) = 0;
 	};
 }
