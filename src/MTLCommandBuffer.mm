@@ -291,20 +291,27 @@ void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::Resource
 }
 
 void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config) {
-#if 0
-    auto desc = [MTLIndirectCommandBufferDescriptor new];
-    desc.commandTypes = MTLIndirectCommandTypeDrawIndexed;
-    desc.inheritBuffers = true;
-    desc.inheritPipelineState = true;
+    auto buffer = std::static_pointer_cast<BufferMTL>(config.indirectBuffer);
+    assert(indexBuffer != nil); // did you forget to call SetIndexBuffer?
+    auto indexType = MTLIndexTypeUInt32;
+    if (indexBuffer->stride == 2){
+        indexType = MTLIndexTypeUInt16;
+    }
     
-    auto indirecBuffer = [owningQueue->owningDevice->device newIndirectCommandBufferWithDescriptor:desc maxCommandCount:config.nDraws options:MTLResourceStorageModePrivate];
+    // because Metal doesn't have multidraw...
+    for(uint32_t i = 0; i < config.nDraws; i++){
+        [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:0 indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectIndexedCommand)];
+    }
     
-    //[currentCommandEncoder executeCommandsInBuffer:indirecBuffer withRange:NSMakeRange(0, config.nDraws)];
-#endif
 }
 
 void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {
+    auto buffer = std::static_pointer_cast<BufferMTL>(config.indirectBuffer);
     
+    // because Metal doesn't have multidraw...
+    for(uint32_t i = 0; i < config.nDraws; i++){
+        [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectCommand)];
+    }
 }
 
 }

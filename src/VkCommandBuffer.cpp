@@ -478,7 +478,7 @@ namespace RGL {
 			buffer->buffer,
 			config.offsetIntoBuffer,
 			config.nDraws,
-			sizeof(IndirectInstancedCommand)
+			sizeof(IndirectIndexedCommand)
 		);
 	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
