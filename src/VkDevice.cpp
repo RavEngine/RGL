@@ -33,6 +33,7 @@ namespace RGL {
            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
            VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+           VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
