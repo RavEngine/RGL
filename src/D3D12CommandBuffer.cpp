@@ -106,13 +106,27 @@ namespace RGL {
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
-		commandList->SetGraphicsRootShaderResourceView(bindingOffset + 1, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+		const auto layout = currentRenderPipeline->pipelineLayout;
+		const auto bindPoint = layout->slotForBufferIdx(bindingOffset);
+		if (layout->bufferIdxIsUAV(bindingOffset)) {
+			commandList->SetGraphicsRootUnorderedAccessView(bindPoint, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+		}
+		else {
+			commandList->SetGraphicsRootShaderResourceView(bindPoint, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+		}
 	}
 	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
-		//TODO: check if buffer is writable and bind UAV or SRV 
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
-		commandList->SetComputeRootUnorderedAccessView(bindingOffset - 1, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+		const auto currentLayout = currentComputePipeline->pipelineLayout;
+		const auto slotidx = currentLayout->slotForBufferIdx(bindingOffset);
+		if (currentLayout->bufferIdxIsUAV(bindingOffset)) {
+			commandList->SetComputeRootUnorderedAccessView(slotidx, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+		}
+		else {
+			commandList->SetComputeRootShaderResourceView(slotidx, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
+
+		}
 	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
@@ -169,21 +183,23 @@ namespace RGL {
 	{
 		// combined image samplers are indexed in pairs (sampler, texture) starting after the constants
 		// the index is into the descriptor table array
-		// example (if offset is 1):
+		// example (if firstSamplerIdx is 1):
 		// 0 -> (1,2)
 		// 1 -> (3,4)
 		// 2 -> (5,6)
 		// etc
-		index *= 2;
-		index += currentRenderPipeline->pipelineLayout->config.constants.size();
+		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
 		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
 		ID3D12DescriptorHeap* heapForThis[2] = { samplerHeap->Heap(), srvheap->Heap()};
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(index, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
-		commandList->SetGraphicsRootDescriptorTable(index + 1, srvheap->GetGpuHandle(thisTexture->srvIDX));
+
+		const auto samplerSlot = pipelineLayout->slotForSamplerIdx(index);
+		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
+		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
+		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture->srvIDX));
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{

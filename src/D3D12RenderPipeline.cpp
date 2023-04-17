@@ -75,59 +75,61 @@ namespace RGL {
         // create the constants data
         const auto nconstants = desc.constants.size();
 
-        uint32_t nsamplers = 0;
-        for (const auto& item : desc.bindings) {
-            switch (item.type) {
-            case decltype(item.type)::CombinedImageSampler:
-                nsamplers++;
-                break;
-            }
-        }
-
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
         std::list< D3D12_DESCRIPTOR_RANGE1> ranges; // stable memory location is necessary
-        //stackarray(rootParameters, CD3DX12_ROOT_PARAMETER1, totalParams);
         for (const auto& constant : desc.constants) {
             rootParameters.emplace_back().InitAsConstants(constant.size_bytes / sizeof(int), constant.n_register, 0, D3D12_SHADER_VISIBILITY_ALL);
         }
-        //TODO: check 
-        for (UINT i = 0; i < nsamplers; i++) {
-            // sampler
-            {
-               
-                auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
-                    .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                    .NumDescriptors = 1,
-                    .BaseShaderRegister = i,
-                    .RegisterSpace = 0,
-                    .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
-                });
-                rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
-            }
 
-            // SRV
-            {
-                auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
-                    .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                    .NumDescriptors = 1,
-                    .BaseShaderRegister = i,
-                    .RegisterSpace = 0,
-                    .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
-                });
-                rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
+        // create combined image sampler data
+        {
+            for (const auto& item : desc.bindings) {
+                switch (item.type) {
+                case decltype(item.type)::CombinedImageSampler:
+                    {
+                        auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
+                            .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+                            .NumDescriptors = 1,
+                            .BaseShaderRegister = item.binding,
+                            .RegisterSpace = 0,
+                            .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
+                            });
+                        samplerBindingtoRootSlot[item.binding] = rootParameters.size();
+                        rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
+                    }
+
+                    // SRV
+                    {
+                        auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
+                            .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                            .NumDescriptors = 1,
+                            .BaseShaderRegister = item.binding,
+                            .RegisterSpace = 0,
+                            .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
+                            });
+                        textureBindingToRootSlot[item.binding] = rootParameters.size();
+                        rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
+                    }
+                break;
+                }
             }
         }
+        firstSamplerIdx = rootParameters.size();
+
+        firstBufferIdx = rootParameters.size();
         // constant / uniform buffer bindings (SRVs)
-        uint32_t buffidx = 0;
         for (const auto& item : desc.bindings) {
             switch (item.type) {
             case decltype(item.type)::StorageBuffer:
             case decltype(item.type)::UniformBuffer:
+                bufferBindingToRootSlot[item.binding] = rootParameters.size();
                 if (item.writable){
                     rootParameters.emplace_back().InitAsUnorderedAccessView(item.binding, 0);
+                    bufferIsUAV.push_back(true);
                 }
                 else {
                     rootParameters.emplace_back().InitAsShaderResourceView(item.binding, 0);
+                    bufferIsUAV.push_back(false);
                 }
                 break;
 
