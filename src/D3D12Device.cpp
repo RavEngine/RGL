@@ -165,6 +165,32 @@ namespace RGL {
         DSVHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
         CBV_SRV_UAVHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
         SamplerHeap.emplace(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
+       
+        {
+            D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[]{
+            {.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW }
+            };
+            D3D12_COMMAND_SIGNATURE_DESC signature{
+                .ByteStride = sizeof(D3D12_DRAW_ARGUMENTS),
+                .NumArgumentDescs = std::size(argumentDescs),
+                .pArgumentDescs = argumentDescs,
+                .NodeMask = 0
+            };
+            device->CreateCommandSignature(&signature, nullptr, __uuidof(ID3D12CommandSignature), &multidrawSignature);
+        }
+        {
+            D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[]{
+            {.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED}
+            };
+            D3D12_COMMAND_SIGNATURE_DESC signature{
+                .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
+                .NumArgumentDescs = std::size(argumentDescs),
+                .pArgumentDescs = argumentDescs,
+                .NodeMask = 0
+            };
+            device->CreateCommandSignature(&signature, nullptr, __uuidof(ID3D12CommandSignature), &multidrawIndexedSignature);
+        }
     }
 
     DeviceD3D12::~DeviceD3D12() {

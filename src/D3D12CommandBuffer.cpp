@@ -108,8 +108,11 @@ namespace RGL {
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
 		commandList->SetGraphicsRootShaderResourceView(bindingOffset + 1, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
 	}
-	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer)
+	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
+		//TODO: check if buffer is writable and bind UAV or SRV 
+		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
+		commandList->SetComputeRootUnorderedAccessView(bindingOffset - 1, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
 	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
 	{
@@ -136,7 +139,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		
+		SetFragmentSampler(sampler, index);
 	}
 	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
@@ -150,7 +153,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
-
+		SetFragmentTexture(texture, index);
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
@@ -303,11 +306,29 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{
-
+		auto buffer = std::static_pointer_cast<BufferD3D12>(config.indirectBuffer);
+		auto sig = buffer->owningDevice->multidrawIndexedSignature;
+		commandList->ExecuteIndirect(
+			sig.Get(),
+			config.nDraws,
+			buffer->buffer.Get(),
+			config.offsetIntoBuffer,
+			nullptr,
+			0
+		);
 	}
-	void CommandBufferD3D12::ExecuteIndirect(const IndirectConfig&)
+	void CommandBufferD3D12::ExecuteIndirect(const IndirectConfig& config)
 	{
-
+		auto buffer = std::static_pointer_cast<BufferD3D12>(config.indirectBuffer);
+		auto sig = buffer->owningDevice->multidrawSignature;
+		commandList->ExecuteIndirect(
+			sig.Get(),
+			config.nDraws,
+			buffer->buffer.Get(),
+			config.offsetIntoBuffer,
+			nullptr,
+			0
+		);
 	}
 }
 
