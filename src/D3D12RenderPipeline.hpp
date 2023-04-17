@@ -13,15 +13,18 @@ namespace RGL {
 		const std::shared_ptr<DeviceD3D12> owningDevice;
 		ComPtr<ID3D12RootSignature> rootSignature;
 		const PipelineLayoutDescriptor config;
-		uint32_t firstBufferIdx = 0, firstSamplerIdx = 0;
 
-		std::unordered_map<uint32_t, uint32_t> 
-			bufferBindingToRootSlot,
-			samplerBindingtoRootSlot,
+		struct bufferBindInfo {
+			uint32_t slot;
+			bool isUAV;
+		};
+
+		std::unordered_map<uint32_t, bufferBindInfo>	bufferBindingToRootSlot;
+		std::unordered_map<uint32_t, uint32_t> samplerBindingtoRootSlot,
 			textureBindingToRootSlot;
 
 		auto slotForBufferIdx(uint32_t bindingPos) {
-			return bufferBindingToRootSlot.at(bindingPos);
+			return bufferBindingToRootSlot.at(bindingPos).slot;
 		}
 
 		auto slotForSamplerIdx(uint32_t bindingPos) {
@@ -33,10 +36,8 @@ namespace RGL {
 		}
 
 		bool bufferIdxIsUAV(uint32_t bindingPos) {
-			const auto buffIdx = slotForBufferIdx(bindingPos) - firstSamplerIdx;
-			return bufferIsUAV[buffIdx];
+			return bufferBindingToRootSlot.at(bindingPos).isUAV;
 		}
-		std::vector<bool> bufferIsUAV;
 
 		PipelineLayoutD3D12(decltype(owningDevice), const PipelineLayoutDescriptor&);
 	};
