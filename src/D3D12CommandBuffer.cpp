@@ -157,7 +157,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		index += 1;
+		index = currentRenderPipeline->pipelineLayout->slotForSamplerIdx(index);
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
 		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
 		ID3D12DescriptorHeap* heapForThis = samplerHeap->Heap();
@@ -171,13 +171,12 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
-		index += 1;
+		index += currentRenderPipeline->pipelineLayout->slotForSamplerIdx(index);;
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 		auto& heapForThis = thisTexture->owningDevice->CBV_SRV_UAVHeap.value();
 		auto ptr = heapForThis.Heap();
 		commandList->SetDescriptorHeaps(1, &ptr);
-		// bindings come in pairs (sampler, texture, sampler, texture)
-		commandList->SetGraphicsRootDescriptorTable(index + 1, heapForThis.GetGpuHandle(thisTexture->srvIDX));
+		commandList->SetGraphicsRootDescriptorTable(index, heapForThis.GetGpuHandle(thisTexture->srvIDX));
 	}
 	void CommandBufferD3D12::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
 	{
