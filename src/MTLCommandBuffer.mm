@@ -300,10 +300,6 @@ void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config
     
     // because Metal doesn't have multidraw...
     for(uint32_t i = 0; i < config.nDraws; i++){
-        if (config.argumentBuffer){
-            auto buffer = std::static_pointer_cast<BufferMTL>(config.argumentBuffer);
-            [currentCommandEncoder setVertexBuffer:buffer->buffer offset:i * buffer->stride  atIndex:config.argumentBufferBindingPosition];
-        }
         [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:0 indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectIndexedCommand)];
     }
     
@@ -314,10 +310,6 @@ void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {
     
     // because Metal doesn't have multidraw...
     for(uint32_t i = 0; i < config.nDraws; i++){
-        if (config.argumentBuffer){
-            auto buffer = std::static_pointer_cast<BufferMTL>(config.argumentBuffer);
-            [currentCommandEncoder setVertexBuffer:buffer->buffer offset:i * buffer->stride  atIndex:config.argumentBufferBindingPosition];
-        }
         [currentCommandEncoder drawPrimitives:MTLPrimitiveTypeTriangle indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectCommand)];
     }
 }
