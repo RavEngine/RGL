@@ -73,6 +73,8 @@ namespace RGL {
 
 	struct IndirectConfig {
 		RGLBufferPtr indirectBuffer;
+        RGLBufferPtr argumentBuffer = nullptr;
+        uint32_t argumentBufferBindingPosition = 0;
 		uint32_t offsetIntoBuffer = 0;	// in bytes
 		uint32_t nDraws;
 	};
