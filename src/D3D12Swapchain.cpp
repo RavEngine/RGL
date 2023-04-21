@@ -102,11 +102,9 @@ namespace RGL {
         DXGI_SWAP_CHAIN_DESC1 desc;
         swapChain->GetDesc1(&desc);
         backbufferTextures.clear();
-        if (initialized) {
-            for (const auto index : rtvIndices) {
-                descriptorHeap.DeallocateSingle(index);
-            }
-        }
+        // note: we do not need to manually release the descriptor indicies, because 
+        // the framebuffers are wrapped in Texture handles and 
+        // automatically release their own IDs when they are destroyed
 
         for (int i = 0; i < g_NumFrames; ++i)
         {
@@ -122,7 +120,7 @@ namespace RGL {
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, handle);
 
             backbuffers[i] = backBuffer;
-            backbufferTextures.emplace_back(backBuffer, Dimension{ desc.Width,desc.Height }, i, owningDevice);
+            backbufferTextures.emplace_back(backBuffer, Dimension{ desc.Width,desc.Height }, idx, owningDevice);
         }
         initialized = true;
     }

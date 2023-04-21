@@ -12,7 +12,7 @@ namespace RGL {
 	private:
 		ID3D12Device* owningDevice;
 		std::queue<index_t> freeList{};
-		index_t end = 0;	// __NOT__ one past the end
+		index_t nextFreeIndexNotInQueue = 0;	// __NOT__ one past the end
 	public:
 
 		D3D12DynamicDescriptorHeap(decltype(owningDevice) device, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags);

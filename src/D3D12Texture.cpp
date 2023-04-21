@@ -170,18 +170,22 @@ namespace RGL {
 	}
 	TextureD3D12::~TextureD3D12()
 	{
+		texture = nullptr;
 		if (allocation) {
 			allocation->Release();
 		}
 		// release descriptors
 		if (rtvAllocated()) {
 			owningDevice->RTVHeap->DeallocateSingle(rtvIDX);
+			rtvIDX = unallocated;
 		}
 		if (srvAllocated()) {
 			owningDevice->CBV_SRV_UAVHeap->DeallocateSingle(srvIDX);
+			srvIDX = unallocated;
 		}
 		if (dsvAllocated()) {
 			owningDevice->DSVHeap->DeallocateSingle(dsvIDX);
+			dsvIDX = unallocated;
 		}
 	}
 }
