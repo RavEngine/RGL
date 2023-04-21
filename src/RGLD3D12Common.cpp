@@ -15,6 +15,12 @@ namespace RGL {
 #if defined(_DEBUG)
         ID3D12Device* pDevice = (ID3D12Device*)context;
 
+        auto reason = pDevice->GetDeviceRemovedReason();
+        if (reason == S_OK) {
+            return; // proper shutdown, no need to go further
+        }
+        OutputDebugStringA(_com_error(reason, nullptr).ErrorMessage());
+
         ComPtr<ID3D12DeviceRemovedExtendedData> pDred;
         DX_CHECK(pDevice->QueryInterface(IID_PPV_ARGS(&pDred)));
         D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT DredAutoBreadcrumbsOutput;

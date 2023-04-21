@@ -316,8 +316,10 @@ namespace RGL {
 	void CommandBufferD3D12::Commit(const CommitConfig& config)
 	{
 		owningQueue->ExecuteCommandList(commandList);
-		auto d3d12fence = std::static_pointer_cast<FenceD3D12>(config.signalFence);
-		owningQueue->m_d3d12CommandQueue->Signal(d3d12fence->fence.Get(),1);	// 1 because we emulate binary vulkan fences
+		if (config.signalFence) {
+			auto d3d12fence = std::static_pointer_cast<FenceD3D12>(config.signalFence);
+			owningQueue->m_d3d12CommandQueue->Signal(d3d12fence->fence.Get(), 1);	// 1 because we emulate binary vulkan fences
+		}
 	}
 	void CommandBufferD3D12::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{

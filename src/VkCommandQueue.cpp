@@ -38,8 +38,11 @@ namespace RGL {
            .signalSemaphoreCount = nSwapchains,
            .pSignalSemaphores = signalSemaphores
         };
-        auto fence = std::static_pointer_cast<FenceVk>(config.signalFence);
-        VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence->fence));
+        std::shared_ptr<FenceVk> fence;
+        if (config.signalFence) {
+            fence = std::static_pointer_cast<FenceVk>(config.signalFence);
+        }
+        VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence ? fence->fence : nullptr));
 	}
     RGLCommandBufferPtr CommandQueueVk::CreateCommandBuffer()
 	{
