@@ -114,22 +114,19 @@ namespace RGL {
                 }
             }
         }
-        firstSamplerIdx = rootParameters.size();
 
-        firstBufferIdx = rootParameters.size();
         // constant / uniform buffer bindings (SRVs)
         for (const auto& item : desc.bindings) {
             switch (item.type) {
             case decltype(item.type)::StorageBuffer:
             case decltype(item.type)::UniformBuffer:
-                bufferBindingToRootSlot[item.binding] = rootParameters.size();
                 if (item.writable){
+                    bufferBindingToRootSlot[item.binding] = { static_cast<uint32_t>(rootParameters.size()), true };
                     rootParameters.emplace_back().InitAsUnorderedAccessView(item.binding, 0);
-                    bufferIsUAV.push_back(true);
                 }
                 else {
+                    bufferBindingToRootSlot[item.binding] = { static_cast<uint32_t>(rootParameters.size()), false };
                     rootParameters.emplace_back().InitAsShaderResourceView(item.binding, 0);
-                    bufferIsUAV.push_back(false);
                 }
                 break;
 
