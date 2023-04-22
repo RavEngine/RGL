@@ -261,12 +261,14 @@ namespace RGL {
 
         uint32_t lastBoundSampler = 0;
         for (const auto& binding : desc.bindings) {
+            const auto type = static_cast<VkDescriptorType>(binding.type);
+            const auto stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags);
             layoutbindings.push_back(
                 VkDescriptorSetLayoutBinding {
                   .binding = binding.binding,   // see vertex shader
-                  .descriptorType = static_cast<VkDescriptorType>(binding.type),
+                  .descriptorType = type,
                   .descriptorCount = 1,
-                  .stageFlags = static_cast<VkShaderStageFlags>(binding.stageFlags),
+                  .stageFlags = stageFlags,
                   .pImmutableSamplers = (binding.type == decltype(binding.type)::Sampler) ? &std::static_pointer_cast<SamplerVk>(desc.boundSamplers[lastBoundSampler++])->sampler : nullptr       // used for image samplers
                 }
             );
@@ -287,9 +289,11 @@ namespace RGL {
         stackarray(pushconstants, VkPushConstantRange, nconstants);
 
         for (int i = 0; i < nconstants; i++) {
+            const auto flags = rgl2vkstageflags(desc.constants[i].visibility);
+            pushConstantBindingStageFlags[desc.constants[i].n_register] = flags;
             pushconstants[i].offset = desc.constants[i].n_register;
             pushconstants[i].size = desc.constants[i].size_bytes;
-            pushconstants[i].stageFlags = rgl2vkstageflags(desc.constants[i].visibility);
+            pushconstants[i].stageFlags = flags;
         }
 
 

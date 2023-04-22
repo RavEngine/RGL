@@ -239,7 +239,7 @@ namespace RGL {
 		vkCmdBindVertexBuffers(commandBuffer, 0, std::size(vertexBuffers), vertexBuffers, offsets);
 	}
 
-	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, decltype(VK_SHADER_STAGE_VERTEX_BIT) stages)
+	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages)
 	{
 		// size must be a multiple of 4
 		// need to get a little extra space for safety
@@ -255,11 +255,13 @@ namespace RGL {
 
 	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
 	{
-		setPushConstantData(data, offset, VK_SHADER_STAGE_VERTEX_BIT);
+		auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(offset);
+		setPushConstantData(data, offset, stages);
 	}
 	void CommandBufferVk::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
-		setPushConstantData(data, offset, VK_SHADER_STAGE_FRAGMENT_BIT);
+		auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(offset);
+		setPushConstantData(data, offset, stages);
 	}
 	void CommandBufferVk::SetComputeBytes(const untyped_span data, uint32_t offset)
 	{

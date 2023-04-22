@@ -3,6 +3,7 @@
 #include <RGL/Pipeline.hpp>
 #include "VkDevice.hpp"
 #include "VkRenderPass.hpp"
+#include <unordered_map>
 
 namespace RGL {
 
@@ -10,6 +11,8 @@ namespace RGL {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		VkPipelineLayout layout = VK_NULL_HANDLE;
 		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+
+		std::unordered_map<uint32_t, VkShaderStageFlags> pushConstantBindingStageFlags;
 
 		PipelineLayoutVk(decltype(owningDevice), const PipelineLayoutDescriptor&);
 		virtual ~PipelineLayoutVk();
