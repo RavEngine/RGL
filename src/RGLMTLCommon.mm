@@ -39,11 +39,11 @@ MTLPixelFormat rgl2mtlformat(TextureFormat format){
 
 APPLE_API_TYPE(MTLTextureUsage) rgl2mtlTextureUsage(RGL::TextureUsage usage){
     MTLTextureUsage ret = 0;
-    if (usage & decltype(usage)::Sampled){
+    if (usage.Sampled){
         ret |= MTLTextureUsageShaderRead;
     }
     
-    if (usage & decltype(usage)::ColorAttachment || usage & decltype(usage)::DepthStencilAttachment){
+    if (usage.ColorAttachment || usage.DepthStencilAttachment){
         ret |= MTLTextureUsageRenderTarget;
     }
     return ret;

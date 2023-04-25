@@ -23,7 +23,7 @@ TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const Text
     auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format width:config.width height:config.height mipmapped:config.mipLevels > 1];
     auto usage = rgl2mtlTextureUsage(config.usage);;
     desc.usage = usage;
-    desc.storageMode =  (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil) ? MTLStorageModePrivate :
+    desc.storageMode = (config.aspect.HasDepth || config.aspect.HasStencil) ? MTLStorageModePrivate :
 #if TARGET_OS_IPHONE
     MTLStorageModeShared;
 #else
