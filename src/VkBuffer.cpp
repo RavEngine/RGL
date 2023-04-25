@@ -6,6 +6,27 @@
 
 namespace RGL {
 
+    VkBufferUsageFlags rgl2vkbufferflags(RGL::BufferConfig::Type type) {
+        VkBufferUsageFlags flags;
+        if (type.IndexBuffer) {
+            flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        }
+        if (type.IndirectBuffer) {
+            flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        }
+        if (type.StorageBuffer) {
+            flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        }
+        if (type.UniformBuffer) {
+            flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        }
+        if (type.VertexBuffer) {
+            flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        }
+
+        return flags;
+    }
+
 	BufferVk::BufferVk(decltype(owningDevice) owningDevice, const BufferConfig& config) : owningDevice(owningDevice) {
         
         VkMemoryPropertyFlags memprop = 0;
@@ -20,14 +41,14 @@ namespace RGL {
             FatalError("Unsupported access");
         }
 
-        auto usage = static_cast<VkBufferUsageFlags>(config.type);
-        if ((config.options & RGL::BufferFlags::TransferDestination) != RGL::BufferFlags::None) {
+        auto usage = rgl2vkbufferflags(config.type);
+        if (config.options.TransferDestination) {
             usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         }
 
-        allocation = createBuffer(owningDevice.get(), config.size_bytes, usage, memprop, buffer);
+        allocation = createBuffer(owningDevice.get(), config.nElements * config.stride, usage, memprop, buffer);
 
-        mappedMemory.size = config.size_bytes;
+        mappedMemory.size = config.nElements * config.stride;
         stride = config.stride;
 	}
 
@@ -39,12 +60,12 @@ namespace RGL {
         vmaFreeMemory(owningDevice->vkallocator, allocation);
     }
 
-    void BufferVk::SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset) {
+    void BufferVk::SetBufferData(untyped_span data, decltype(BufferConfig::nElements) offset) {
         UpdateBufferData(data, offset);
         UnmapMemory();
     }
 
-    decltype(BufferConfig::size_bytes) BufferVk::getBufferSize() const
+    decltype(BufferConfig::nElements) BufferVk::getBufferSize() const
     {
         return mappedMemory.size;
     }
@@ -62,7 +83,7 @@ namespace RGL {
         mappedMemory.data = nullptr;
     }
 
-    void BufferVk::UpdateBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset) {
+    void BufferVk::UpdateBufferData(untyped_span data, decltype(BufferConfig::nElements) offset) {
         if (!mappedMemory.data) {
             MapMemory();
         }

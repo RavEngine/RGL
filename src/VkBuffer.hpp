@@ -22,9 +22,9 @@ namespace RGL {
 
 		void MapMemory() final;
 		void UnmapMemory() final;
-		void UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset = 0) final;
-		void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) final;
-		decltype(BufferConfig::size_bytes) getBufferSize() const final;
+		void UpdateBufferData(untyped_span newData, decltype(BufferConfig::nElements) offset = 0) final;
+		void SetBufferData(untyped_span data, decltype(BufferConfig::nElements) offset = 0) final;
+		decltype(BufferConfig::nElements) getBufferSize() const final;
 
 		void* GetMappedDataPtr() final;
 	};

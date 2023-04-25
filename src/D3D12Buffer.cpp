@@ -7,23 +7,24 @@ namespace RGL {
 
 	BufferD3D12::BufferD3D12(decltype(owningDevice) device, const BufferConfig& config) : owningDevice(device), myType(config.type)
 	{
-        mappedMemory.size = config.size_bytes;
-        if ((config.type & BufferConfig::Type::IndexBuffer) != BufferConfig::Type::NoneDoNotUse) {
-            indexBufferView.SizeInBytes = config.size_bytes;
+        const auto size_bytes = config.nElements * config.stride;
+        mappedMemory.size = size_bytes;
+        if (config.type.IndexBuffer) {
+            indexBufferView.SizeInBytes = size_bytes;
             indexBufferView.Format = config.stride == sizeof(uint16_t) ? decltype(indexBufferView.Format)::DXGI_FORMAT_R16_UINT : decltype(indexBufferView.Format)::DXGI_FORMAT_R32_UINT;
         }
         else {
-            vertexBufferView.SizeInBytes = config.size_bytes;
+            vertexBufferView.SizeInBytes = size_bytes;
             vertexBufferView.StrideInBytes = config.stride;
         }
-        const bool isWritable = (config.options & BufferFlags::Writable) != BufferFlags::None;
+        const bool isWritable = config.options.Writable;
 
         auto v = isWritable ? CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) : CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         // writable is marked as a UAV
-        auto t = CD3DX12_RESOURCE_DESC::Buffer(config.size_bytes, isWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE );
+        auto t = CD3DX12_RESOURCE_DESC::Buffer(size_bytes, isWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE );
         auto state = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-        if ((config.options & decltype(config.options)::TransferDestination) != decltype(config.options)::None) {
+        if (config.options.TransferDestination) {
             state = D3D12_RESOURCE_STATE_COPY_DEST;
             v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
         }
@@ -56,7 +57,7 @@ namespace RGL {
         };
         buffer->Unmap(0, &range);
 	}
-	void BufferD3D12::UpdateBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset)
+	void BufferD3D12::UpdateBufferData(untyped_span data, decltype(BufferConfig::nElements) offset)
 	{
         if (!mappedMemory.data) {
             MapMemory();
@@ -64,13 +65,13 @@ namespace RGL {
         Assert(data.size() + offset <= mappedMemory.size, "Attempting to write more data than the buffer can hold");
         memcpy(static_cast<std::byte*>(mappedMemory.data) + offset, data.data(), data.size());
 	}
-	void BufferD3D12::SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset)
+	void BufferD3D12::SetBufferData(untyped_span data, decltype(BufferConfig::nElements) offset)
 	{
         MapMemory();
         UpdateBufferData(data, offset);
         UnmapMemory();
 	}
-    decltype(BufferConfig::size_bytes) BufferD3D12::getBufferSize() const
+    decltype(BufferConfig::nElements) BufferD3D12::getBufferSize() const
     {
         return mappedMemory.size;
     }

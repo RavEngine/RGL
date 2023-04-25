@@ -17,9 +17,9 @@ namespace RGL{
         //IBuffer
         void MapMemory() ;
         void UnmapMemory() ;
-        void UpdateBufferData(untyped_span newData, decltype(BufferConfig::size_bytes) offset = 0) ;
-        void SetBufferData(untyped_span data, decltype(BufferConfig::size_bytes) offset = 0) ;
-        decltype(BufferConfig::size_bytes) getBufferSize() const final;
+        void UpdateBufferData(untyped_span newData, decltype(BufferConfig::nElements) offset = 0) ;
+        void SetBufferData(untyped_span data, decltype(BufferConfig::nElements) offset = 0) ;
+        decltype(BufferConfig::nElements) getBufferSize() const final;
         void* GetMappedDataPtr() final;
         virtual ~BufferMTL(){}
     };
