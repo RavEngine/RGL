@@ -183,11 +183,24 @@ namespace RGL {
         
         const auto nattributes = desc.vertexConfig.attributeDescs.size();
 
+        std::unordered_map<uint32_t, D3D12_INPUT_CLASSIFICATION> bindingToType;
+        for (const auto& binding : desc.vertexConfig.vertexBindings) {
+            bindingToType[binding.binding] = binding.inputRate == RGL::InputRate::Vertex ? D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA : D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+        }
+
         // create the vertex attribute layout
         stackarray(inputLayout, D3D12_INPUT_ELEMENT_DESC, nattributes);
         for (UINT i = 0; i < nattributes; i++) {
             auto& attr = desc.vertexConfig.attributeDescs[i];
-            inputLayout[i] = { "TEXCOORD", i, rgl2dxgiformat(attr.format), 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA , 0 };
+            auto type = bindingToType.at(attr.binding);
+            inputLayout[i] = { 
+                .SemanticName = "TEXCOORD", 
+                .SemanticIndex = attr.location, 
+                .Format = rgl2dxgiformat(attr.format), 
+                .InputSlot = attr.binding, 
+                .AlignedByteOffset =  D3D12_APPEND_ALIGNED_ELEMENT, 
+                .InputSlotClass = type ,
+                .InstanceDataStepRate = (type == D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA ? 1u : 0u) };
         }
 
         // setup the shaders

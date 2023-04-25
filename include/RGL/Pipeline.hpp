@@ -40,6 +40,10 @@ namespace RGL {
 		Fill, Line, Point,							// lines, points, or use the existing config
 	};
 
+	enum class InputRate : uint8_t {
+		Vertex, Instance
+	};
+
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
@@ -159,11 +163,9 @@ namespace RGL {
 		struct VertexConfig {
 			struct VertexBindingDesc {
 				uint32_t binding, stride;
-				//TODO: input rate (VkVertexInputRate)
-				enum class InputRate : uint8_t {
-					Vertex, Instance
-				} inputRate;
-			} vertexBindinDesc;
+				InputRate inputRate = InputRate::Vertex;
+			} ;
+			std::vector< VertexBindingDesc> vertexBindings;
 
 			struct VertexAttributeDesc {
 				uint32_t location, binding, offset;

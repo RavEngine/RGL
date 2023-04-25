@@ -77,6 +77,11 @@ namespace RGL {
 		uint32_t nDraws;
 	};
 
+	struct VertexBufferBinding {
+		uint32_t bindingPosition = 0;
+		uint32_t offsetIntoBuffer = 0;
+	};
+
 	struct ICommandBuffer {
 		// clear the command buffer, to encode new commands
 		virtual void Reset() = 0;
@@ -99,7 +104,7 @@ namespace RGL {
 		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
 		virtual void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
         
-        virtual void SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer = 0) = 0;
+		virtual void SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo = {}) = 0;
 
         virtual void SetIndexBuffer(RGLBufferPtr buffer) = 0;
         

@@ -81,12 +81,15 @@ namespace RGL {
             .pDynamicStates = dynamicStates.data()
         };
 
-        // setup vertex info
-        VkVertexInputBindingDescription bindingDescription{
-            .binding = desc.vertexConfig.vertexBindinDesc.binding,
-            .stride = desc.vertexConfig.vertexBindinDesc.stride,
-            .inputRate = desc.vertexConfig.vertexBindinDesc.inputRate == decltype(desc.vertexConfig.vertexBindinDesc.inputRate)::Vertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE
-        };
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+        for (const auto& binding : desc.vertexConfig.vertexBindings) {
+            bindingDescriptions.push_back({
+                .binding = binding.binding,
+                .stride = binding.stride,
+                .inputRate = binding.inputRate == decltype(binding.inputRate)::Vertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE
+            });
+        }
+
         std::vector<VkVertexInputAttributeDescription>attributeDescriptions;
         attributeDescriptions.reserve(desc.vertexConfig.attributeDescs.size());
         for (const auto& attribute : desc.vertexConfig.attributeDescs) {
@@ -101,10 +104,10 @@ namespace RGL {
         // vertex format
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &bindingDescription,      // optional
+            .vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size()),
+            .pVertexBindingDescriptions = bindingDescriptions.data(),
             .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
-            .pVertexAttributeDescriptions = attributeDescriptions.data(),    // optional
+            .pVertexAttributeDescriptions = attributeDescriptions.data(),
         };
 
         // trilist, tristrip, etc

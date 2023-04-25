@@ -231,12 +231,12 @@ namespace RGL {
 		GenericBindBuffer(buffer, offsetIntoBuffer, binding, VK_PIPELINE_BIND_POINT_COMPUTE);
 	}
 
-	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer)
+	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo)
 	{
 		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
 		VkBuffer vertexBuffers[] = { vkbuffer->buffer };
-		VkDeviceSize offsets[] = { offsetIntoBuffer * vkbuffer->stride };
-		vkCmdBindVertexBuffers(commandBuffer, 0, std::size(vertexBuffers), vertexBuffers, offsets);
+		VkDeviceSize offsets[] = { bindingInfo.offsetIntoBuffer * vkbuffer->stride };
+		vkCmdBindVertexBuffers(commandBuffer, bindingInfo.bindingPosition, std::size(vertexBuffers), vertexBuffers, offsets);
 	}
 
 	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages)
