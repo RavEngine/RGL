@@ -14,7 +14,7 @@ namespace RGL {
 	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
 	{
 		// make the heap and SRV 
-		bool canBeshadervisible = config.usage & TextureUsage::Sampled;
+		bool canBeshadervisible = config.usage.Sampled;
 		auto format = rgl2dxgiformat_texture(config.format);
 		PlaceInHeaps(owningDevice, format, config);
 	}
@@ -77,7 +77,7 @@ namespace RGL {
 	{
 		const auto format = rgl2dxgiformat_texture(config.format);
 
-		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
+		const bool isDS = (config.aspect.HasDepth || config.aspect.HasStencil);
 
 		D3D12_RESOURCE_DESC resourceDesc = {};
 		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -104,7 +104,7 @@ namespace RGL {
 			initialState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 
-		if (config.usage & TextureUsage::ColorAttachment) {
+		if (config.usage.ColorAttachment) {
 			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			std::fill(optimizedClearValue.Color, optimizedClearValue.Color + std::size(optimizedClearValue.Color), 0);
 			//initialState |= D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -131,7 +131,7 @@ namespace RGL {
 	}
 	void TextureD3D12::PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
 	{
-		const bool isDS = (config.aspect & TextureAspect::HasDepth || config.aspect & TextureAspect::HasStencil);
+		const bool isDS = (config.aspect.HasDepth || config.aspect.HasStencil);
 
 		if (isDS) {
 			dsvIDX = owningDevice->DSVHeap->AllocateSingle();
@@ -142,7 +142,7 @@ namespace RGL {
 			auto handle = owningDevice->DSVHeap->GetCpuHandle(dsvIDX);
 			owningDevice->device->CreateDepthStencilView(texture.Get(), &desc, handle);
 		}
-		if (config.usage & TextureUsage::ColorAttachment) {
+		if (config.usage.ColorAttachment) {
 			rtvIDX = owningDevice->RTVHeap->AllocateSingle();
 			D3D12_RENDER_TARGET_VIEW_DESC desc{
 				.Format = format,
@@ -151,7 +151,7 @@ namespace RGL {
 			auto handle = owningDevice->RTVHeap->GetCpuHandle(rtvIDX);
 			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, handle);
 		}
-		bool canBeShadervisible = config.usage & TextureUsage::Sampled;
+		bool canBeShadervisible = config.usage.Sampled;
 		if (canBeShadervisible) {
 			srvIDX = owningDevice->CBV_SRV_UAVHeap->AllocateSingle();
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};

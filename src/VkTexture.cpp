@@ -6,6 +6,56 @@
 
 namespace RGL {
 
+	VkImageAspectFlags rgl2vkAspectFlags(TextureAspect rglAspect) {
+		VkImageAspectFlags aspect = 0;
+
+		if (rglAspect.HasColor) {
+			aspect |= VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+		if (rglAspect.HasDepth) {
+			aspect |= VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		if (rglAspect.HasStencil) {
+			aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		if (rglAspect.HasMetadata) {
+			aspect |= VK_IMAGE_ASPECT_METADATA_BIT;
+		}
+
+		return aspect;
+	}
+
+	VkImageUsageFlags rgl2vkUsageFlags(TextureUsage rglUsage) {
+		VkImageUsageFlags usage = 0;
+
+		if (rglUsage.ColorAttachment) {
+			usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
+		if (rglUsage.DepthStencilAttachment) {
+			usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		}
+		if (rglUsage.InputAttachment) {
+			usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+		}
+		if (rglUsage.Sampled) {
+			usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		}
+		if (rglUsage.Storage) {
+			usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+		}
+		if (rglUsage.TransferDestination) {
+			usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
+		if (rglUsage.TransferSource) {
+			usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		}
+		if (rglUsage.TransientAttachment) {
+			usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+		}
+
+		return usage;
+	}
+
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue) {
 		VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
@@ -138,7 +188,7 @@ namespace RGL {
 			.arrayLayers = config.arrayLayers,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.tiling = VK_IMAGE_TILING_OPTIMAL,
-			.usage = static_cast<VkImageUsageFlags>(config.usage),
+			.usage = rgl2vkUsageFlags(config.usage),
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 			.initialLayout = rgl2vkImageLayout(config.initialLayout),
 		};
@@ -166,7 +216,7 @@ namespace RGL {
 			.a = VK_COMPONENT_SWIZZLE_IDENTITY
 	},
 		.subresourceRange{
-			.aspectMask = static_cast<VkImageAspectFlags>(config.aspect),    // mipmap and layer info (we don't want any here)
+			.aspectMask = rgl2vkAspectFlags(config.aspect),    // mipmap and layer info (we don't want any here)
 			.baseMipLevel = 0,
 			.levelCount = 1,
 			.baseArrayLayer = 0,

@@ -40,11 +40,6 @@ namespace RGL {
 		D24UnormS8Uint,		// 24 bit depth, 8 bit stencil
 	};
 
-	enum class TextureLayout : uint8_t {
-		Present,
-		ColorAttachmentOptimal
-	};
-
 	enum class MSASampleCount : uint8_t {
             C0 = 0,
 			C1 = 1,
@@ -69,32 +64,22 @@ namespace RGL {
 		None,
 	};
 
-    enum TextureUsage {        // matching VkImageUsageFlagBits
-        TransferSource = 0x00000001,
-        TransferDestination = 0x00000002,
-        Sampled = 0x00000004,
-        Storage = 0x00000008,
-        ColorAttachment = 0x00000010,
-        DepthStencilAttachment = 0x00000020,
-        TransientAttachment = 0x00000040,
-        InputAttachment = 0x00000080
+    struct TextureUsage {
+        bool TransferSource : 1 = false;
+        bool TransferDestination : 1 = false;
+        bool Sampled : 1 = false;
+        bool Storage : 1 = false;
+        bool ColorAttachment : 1 = false;
+        bool DepthStencilAttachment : 1 = false;
+        bool TransientAttachment : 1 = false;
+        bool InputAttachment : 1 = false;
     };
 
-    enum TextureAspect {
-        None = 0,
-        HasColor = 0x00000001,
-        HasDepth = 0x00000002,
-        HasStencil = 0x00000004,
-        HasMetadata = 0x00000008,
+    struct TextureAspect {
+        bool HasColor : 1 = false;
+        bool HasDepth : 1 = false;
+        bool HasStencil : 1 = false;
+        bool HasMetadata : 1 = false;
     };
 
-    inline TextureUsage operator|(TextureUsage a, TextureUsage b)
-    {
-        return static_cast<TextureUsage>(static_cast<int>(a) | static_cast<int>(b));
-    }
-
-    inline TextureAspect operator|(TextureAspect a, TextureAspect b)
-    {
-        return static_cast<TextureAspect>(static_cast<int>(a) | static_cast<int>(b));
-    }
 }

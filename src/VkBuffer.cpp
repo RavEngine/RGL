@@ -7,7 +7,7 @@
 namespace RGL {
 
     VkBufferUsageFlags rgl2vkbufferflags(RGL::BufferConfig::Type type) {
-        VkBufferUsageFlags flags;
+        VkBufferUsageFlags flags = 0;
         if (type.IndexBuffer) {
             flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         }

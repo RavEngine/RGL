@@ -33,10 +33,10 @@ namespace RGL {
 		BufferConfig(decltype(nElements) size, decltype(type) type, decltype(stride) stride, decltype(access) access, decltype(options) options = {}) : nElements(size), type(type), stride(stride), access(access), options(options) {}
 
 		template<typename T>
-		BufferConfig(decltype(type) type, decltype(stride) stride, decltype(access) access, decltype(options) options = {}) : BufferConfig(sizeof(T), type, stride, access, options) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride, decltype(access) access, decltype(options) options = {}) : BufferConfig(sizeof(T) / stride, type, stride, access, options) {}
 
 		template<typename T>
-		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t, decltype(access) access, decltype(options) options = {}) : BufferConfig(sizeof(T), type, stride, access, options) {}
+		BufferConfig(decltype(type) type, decltype(stride) stride, const T& t, decltype(access) access, decltype(options) options = {}) : BufferConfig(sizeof(T) / stride, type, stride, access, options) {}
 	};
 
 

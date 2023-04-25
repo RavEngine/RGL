@@ -20,8 +20,6 @@ struct RenderPassConfig {
         LoadAccessOperation stencilLoadOp = LoadAccessOperation::DontCare;
         StoreAccessOperation stencilStoreOp = StoreAccessOperation::DontCare;
 
-        TextureLayout initialLayout;    // TODO: support (vk)
-        TextureLayout finalLayout;        // TODO: support (vk)
         std::array<float, 4> clearColor{ 0,0,0, 1 };
     };
     std::vector<AttachmentDesc> attachments;

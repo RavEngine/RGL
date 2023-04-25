@@ -21,7 +21,7 @@ namespace RGL {
 
 	struct TextureConfig {
 		TextureUsage usage;
-		TextureAspect aspect = TextureAspect::None;
+		TextureAspect aspect;
 		uint32_t width = 0, height = 0, depth = 1, mipLevels = 1, arrayLayers = 1;
 		TextureType imageType = decltype(imageType)::T2D;
 		TextureFormat format;
