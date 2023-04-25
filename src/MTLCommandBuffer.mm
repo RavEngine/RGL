@@ -11,6 +11,7 @@
 #include "MTLDevice.hpp"
 #include "MTLComputePipeline.hpp"
 #include "RGLCommon.hpp"
+#include <librglc.hpp>
 
 namespace RGL{
 
@@ -174,15 +175,15 @@ void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBi
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset+1];
+    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset+librglc::MTL_FIRST_BUFFER];
 }
 
 void CommandBufferMTL::SetComputeBytes(const untyped_span data, uint32_t offset){
-    [currentComputeCommandEncoder setBytes:data.data() length:data.size() atIndex:offset+1];
+    [currentComputeCommandEncoder setBytes:data.data() length:data.size() atIndex:offset+librglc::MTL_FIRST_BUFFER];
 }
 
 void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset+1];
+    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset+librglc::MTL_FIRST_BUFFER];
 
 }
 

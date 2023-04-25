@@ -52,7 +52,7 @@ namespace librglc {
 		}
 		else if (toAPI == API::Metal) {
 			opt.version = 30;
-            opt.pushConstantSettings.firstIndex = 1;    // the [[stage_input]] consumes slot 0
+            opt.pushConstantSettings.firstIndex = MTL_FIRST_BUFFER;    // the [[stage_input]] consumes slot 0, extra vertex buffers consume the next slots
 		}
 
 		ShaderTranspiler s;

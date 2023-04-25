@@ -7,6 +7,8 @@
 
 namespace librglc {
 
+    constexpr static auto MTL_FIRST_BUFFER = 4;
+
 	enum class API : uint8_t {
 		Vulkan,
 		Direct3D12,
