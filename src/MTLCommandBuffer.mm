@@ -168,9 +168,9 @@ void CommandBufferMTL::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, 
     [currentComputeCommandEncoder setBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:binding];
 }
 
-void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, uint32_t offsetIntoBuffer) {
+void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo) {
     vertexBuffer = std::static_pointer_cast<BufferMTL>(buffer);
-    [currentCommandEncoder setVertexBuffer:vertexBuffer->buffer offset:offsetIntoBuffer * vertexBuffer->stride atIndex:0];
+    [currentCommandEncoder setVertexBuffer:vertexBuffer->buffer offset:bindingInfo.offsetIntoBuffer * vertexBuffer->stride atIndex:bindingInfo.bindingPosition];
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){

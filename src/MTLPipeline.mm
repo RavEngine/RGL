@@ -111,13 +111,30 @@ RenderPipelineMTL::RenderPipelineMTL(decltype(owningDevice) owningDevice, const 
         uint32_t i = 0;
         uint32_t totalStride = 0;
         auto vertexDescriptor = [MTLVertexDescriptor new];
+        std::unordered_map<uint32_t, MTLVertexStepFunction> bindingSteps;
+        {
+            uint32_t i = 0;
+            for(const auto& binding : desc.vertexConfig.vertexBindings){
+                bindingSteps[binding.binding] = binding.inputRate == RGL::InputRate::Instance ? MTLVertexStepFunctionPerInstance : MTLVertexStepFunctionPerVertex;
+                if (binding.inputRate == RGL::InputRate::Instance){
+                    vertexDescriptor.layouts[i].stepFunction = MTLVertexStepFunctionPerInstance;
+                    vertexDescriptor.layouts[i].stepRate = 1;
+                    vertexDescriptor.layouts[i].stride = binding.stride;
+                }
+                i++;
+            }
+        }
+        
         for(const auto& attribute : desc.vertexConfig.attributeDescs){
             auto vertexAttribute = [MTLVertexAttributeDescriptor new];
             auto formatpair = rgl2mtlvx(attribute.format);
             [vertexAttribute setFormat:formatpair.first];
             [vertexAttribute setOffset:attribute.offset];
-            [vertexAttribute setBufferIndex: 0];
-            totalStride += formatpair.second;
+            [vertexAttribute setBufferIndex: attribute.binding];
+            
+            if (bindingSteps.at(attribute.binding) == MTLVertexStepFunctionPerVertex){
+                totalStride += formatpair.second;
+            }
             
             vertexDescriptor.attributes[i] = vertexAttribute;
             i++;
