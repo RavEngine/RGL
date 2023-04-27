@@ -75,6 +75,7 @@ if (Vulkan_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "WindowsStore" AND NOT RGL_DI
 	set(VMA_STATIC_VULKAN_FUNCTIONS ON)
 	add_subdirectory(deps/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
 	target_include_directories(VulkanMemoryAllocator PUBLIC ${Vulkan_INCLUDE_DIRS})
+        target_compile_features(VulkanMemoryAllocator PUBLIC cxx_std_20)
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=0)
 	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
