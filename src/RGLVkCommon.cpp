@@ -110,7 +110,11 @@ namespace RGL {
         // load GLFW's specific extensions for Vulkan
         const char* minExtensions[] = {
             "VK_KHR_surface",
-            "VK_KHR_win32_surface",      // TODO: what is the surface for Linux?
+    #if _WIN32
+            "VK_KHR_win32_surface",
+    #else
+            "VK_KHR_xlib_surface"
+    #endif
         };
         instanceCreateInfo.enabledExtensionCount = std::size(minExtensions);
         std::vector<const char*> extensions(minExtensions, minExtensions + instanceCreateInfo.enabledExtensionCount);
