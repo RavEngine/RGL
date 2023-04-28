@@ -193,16 +193,11 @@ namespace RGL {
 			.initialLayout = rgl2vkImageLayout(config.initialLayout),
 		};
 
-
-		VK_CHECK(vkCreateImage(owningDevice->device, &imageInfo, nullptr, &vkImage));
-
 		VmaAllocationCreateInfo allocCreateInfo{};
-		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
-			VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 
 		VmaAllocationInfo allocInfo;
-		vmaCreateImage(owningDevice->vkallocator, &imageInfo, &allocCreateInfo, &vkImage, &alloc, &allocInfo);	// also binds memory
+		VK_CHECK(vmaCreateImage(owningDevice->vkallocator, &imageInfo, &allocCreateInfo, &vkImage, &alloc, &allocInfo));	// also binds memory
 
 		VkImageViewCreateInfo createInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
