@@ -242,22 +242,6 @@ else()
     message(STATUS "Using Shader Model 5.1 (FXC.EXE) for shaders.")
 endif()
 
-if(NOT USE_PREBUILT_SHADERS)
-    if(BUILD_DXIL_SHADERS AND VCPKG_TOOLCHAIN AND (NOT BUILD_SCARLETT_SHADERS) AND (NOT BUILD_XBOXONE_SHADERS))
-        message(STATUS "Using VCPKG for DirectXShaderCompiler (${VCPKG_HOST_TRIPLET}).")
-        find_program(DIRECTX_DXC_TOOL DXC.EXE
-          REQUIRED NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_DEFAULT_PATH
-          HINTS ${DIRECTX_DXC_PATH})
-    endif()
-    add_custom_command(
-        OUTPUT "${COMPILED_SHADERS}/SpriteEffect_SpriteVertexShader.inc"
-        MAIN_DEPENDENCY "${PROJECT_SOURCE_DIR}/Src/Shaders/CompileShaders.cmd"
-        DEPENDS ${SHADER_SOURCES}
-        COMMENT "Generating HLSL shaders..."
-        COMMAND ${CMAKE_COMMAND} -E env CompileShadersOutput="${COMPILED_SHADERS}" $<$<BOOL:${DIRECTX_DXC_TOOL}>:DirectXShaderCompiler=${DIRECTX_DXC_TOOL}> CompileShaders.cmd ARGS ${ShaderOpts} > "${COMPILED_SHADERS}/compileshaders.log"
-        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/Src/Shaders"
-        USES_TERMINAL)
-endif()
 
 add_library(${PROJECT_NAME} STATIC ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 
