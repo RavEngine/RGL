@@ -13,6 +13,7 @@ namespace RGL {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VmaAllocation allocation = VK_NULL_HANDLE;
+		const RGL::BufferAccess accessType;
 
 		MutableSpan mappedMemory;
 		size_t stride = 0;
@@ -25,7 +26,9 @@ namespace RGL {
 		void UpdateBufferData(untyped_span newData, decltype(BufferConfig::nElements) offset = 0) final;
 		void SetBufferData(untyped_span data, decltype(BufferConfig::nElements) offset = 0) final;
 		decltype(BufferConfig::nElements) getBufferSize() const final;
-
+        
+        void SignalRangeChanged(const Range&) final;
+        
 		void* GetMappedDataPtr() final;
 	};
 }
