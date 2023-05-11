@@ -64,12 +64,20 @@ struct BufferMTL;
 
         void Commit(const CommitConfig&) final;
         
-        void SetRenderPipelineBarrier(const BarrierConfig&) final;
+        void SetResourceBarrier(const ResourceBarrierConfig&) final;
+
+        void SetRenderPipelineBarrier(const PipelineBarrierConfig&) final;
         
         virtual void ExecuteIndirectIndexed(const IndirectConfig&) final;
         virtual void ExecuteIndirect(const IndirectConfig&) final;
         
         virtual ~CommandBufferMTL(){}
+        
+        void BeginRenderDebugMarker(const std::string& label) final;
+        void BeginComputeDebugMarker(const std::string& label) final;
+
+        void EndRenderDebugMarker() final;
+        void EndComputeDebugMarker() final;
     };
 
 }

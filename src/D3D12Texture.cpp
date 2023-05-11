@@ -4,10 +4,31 @@
 #include "D3D12Device.hpp"
 #include "D3D12CommandQueue.hpp"
 #include <D3D12MemAlloc.h>
+#include <ResourceUploadBatch.h>
 
 using namespace Microsoft::WRL;
 
 namespace RGL {
+
+	DXGI_FORMAT typelessForDS(DXGI_FORMAT format) {
+		switch (format) {
+		case DXGI_FORMAT_D32_FLOAT:
+			return DXGI_FORMAT_R32_TYPELESS;
+		case DXGI_FORMAT_D24_UNORM_S8_UINT:
+			return DXGI_FORMAT_R24G8_TYPELESS;
+		default:
+			return format;	// otherwise just passthrough
+		}
+	}
+
+	DXGI_FORMAT typelessForSRV(DXGI_FORMAT format) {
+		switch (format) {
+		case DXGI_FORMAT_D32_FLOAT:
+			return DXGI_FORMAT_R32_FLOAT;
+		default:
+			return format;	//otherwise just passthrough
+		}
+	}
 
 	TextureD3D12::TextureD3D12(decltype(texture) image, const Dimension& size, decltype(rtvIDX) offset, decltype(owningDevice) device) : texture(image), ITexture(size), rtvIDX(offset), owningDevice(device)
 	{
@@ -22,64 +43,35 @@ namespace RGL {
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
-		auto commandList = owningDevice->internalQueue->CreateCommandList();
 
-		// create the staging buffer
-		D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-		textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-		textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		textureUploadResourceDesc.Alignment = 0;
-		textureUploadResourceDesc.Width = bytes.size();
-		textureUploadResourceDesc.Height = 1;
-		textureUploadResourceDesc.DepthOrArraySize = 1;
-		textureUploadResourceDesc.MipLevels = 1;
-		textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-		textureUploadResourceDesc.SampleDesc.Count = 1;
-		textureUploadResourceDesc.SampleDesc.Quality = 0;
-		textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-		textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		ComPtr<ID3D12Resource> textureUpload;
-		D3D12MA::Allocation* textureUploadAllocation;
-		DX_CHECK(owningDevice->allocator->CreateResource(
-			&textureUploadAllocDesc,
-			&textureUploadResourceDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr, // pOptimizedClearValue
-			&textureUploadAllocation,
-			IID_PPV_ARGS(&textureUpload)));
-		textureUpload->SetName(L"textureUpload");
+		DirectX::ResourceUploadBatch upload(owningDevice->device.Get());
 
-		auto bytesPerRow = bytes.size() / config.width;;
-		D3D12_SUBRESOURCE_DATA textureSubresourceData = {};
-		textureSubresourceData.pData = bytes.data();
-		textureSubresourceData.RowPitch = bytesPerRow;
-		textureSubresourceData.SlicePitch = bytesPerRow * config.height;
+		upload.Begin();
 
-		UpdateSubresources(commandList.Get(), texture.Get(), textureUpload.Get(), 0, 0, 1, &textureSubresourceData);
+		D3D12_SUBRESOURCE_DATA initData = { bytes.data(), bytes.size() / config.height, bytes.size()};
+		upload.Upload(texture.Get(), 0, &initData, 1);
 
+		upload.Transition(texture.Get(),
+			D3D12_RESOURCE_STATE_COPY_DEST,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-		D3D12_RESOURCE_BARRIER textureBarrier = {};
-		textureBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		textureBarrier.Transition.pResource = texture.Get();
-		textureBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-		textureBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-		textureBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		commandList->ResourceBarrier(1, &textureBarrier);
-
-
-		commandList->Close();
-		auto fenceValue = owningDevice->internalQueue->ExecuteCommandList(commandList);
-		owningDevice->internalQueue->WaitForFenceValue(fenceValue);
-
-		textureUploadAllocation->Release();	// no longer need this so get rid of it
+		auto finish = upload.End(owningDevice->internalQueue->m_d3d12CommandQueue.Get());
+		finish.wait();
 
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config) : owningDevice(owningDevice), ITexture({ config.width,config.height })
 	{
-		const auto format = rgl2dxgiformat_texture(config.format);
+		auto format = rgl2dxgiformat_texture(config.format);
+		auto mainResourceFormat = format;
 
 		const bool isDS = (config.aspect.HasDepth || config.aspect.HasStencil);
+
+		// we cannot sample depth textures directly
+		// instead, we have to create this resource as Typeless, and then cast it to compatbile
+		// formats for the SRVs
+		if (isDS && config.usage.Sampled) {
+			mainResourceFormat = typelessForDS(format);
+		}
 
 		D3D12_RESOURCE_DESC resourceDesc = {};
 		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -88,7 +80,7 @@ namespace RGL {
 		resourceDesc.Height = config.height;
 		resourceDesc.DepthOrArraySize = config.arrayLayers;
 		resourceDesc.MipLevels = config.mipLevels;
-		resourceDesc.Format = format;
+		resourceDesc.Format = mainResourceFormat;
 		resourceDesc.SampleDesc.Count = 1;
 		resourceDesc.SampleDesc.Quality = 0;
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -96,14 +88,14 @@ namespace RGL {
 
 
 		D3D12_CLEAR_VALUE optimizedClearValue = {
-			.Format = resourceDesc.Format,
+			.Format = format,
 		};
 
-		D3D12_RESOURCE_STATES initialState = rgl2d3d12resourcestate(config.initialLayout);
+		initialState = rgl2d3d12resourcestate(config.initialLayout);
 		if (isDS) {
 			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			optimizedClearValue.DepthStencil = { 1,0 };
-			initialState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+			//initialState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 
 		if (config.usage.ColorAttachment) {
@@ -131,7 +123,7 @@ namespace RGL {
 		// add the resource to the appropriate heaps
 		PlaceInHeaps(owningDevice, format, config);
 	}
-	void TextureD3D12::PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, const DXGI_FORMAT& format, const RGL::TextureConfig& config)
+	void TextureD3D12::PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, DXGI_FORMAT format, const RGL::TextureConfig& config)
 	{
 		const bool isDS = (config.aspect.HasDepth || config.aspect.HasStencil);
 
@@ -153,8 +145,11 @@ namespace RGL {
 			auto handle = owningDevice->RTVHeap->GetCpuHandle(rtvIDX);
 			owningDevice->device->CreateRenderTargetView(texture.Get(), &desc, handle);
 		}
-		bool canBeShadervisible = config.usage.Sampled;
-		if (canBeShadervisible) {
+		if (config.usage.Sampled) {
+			if (isDS) {
+				// we need to change the format again because depth formats are not allowed for use in SRVs
+				format = typelessForSRV(format);
+			}
 			srvIDX = owningDevice->CBV_SRV_UAVHeap->AllocateSingle();
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;

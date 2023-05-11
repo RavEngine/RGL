@@ -71,10 +71,17 @@ namespace RGL {
 
 		void Commit(const CommitConfig&) final;
 
-		void SetRenderPipelineBarrier(const BarrierConfig&) final;
+		void SetResourceBarrier(const ResourceBarrierConfig&) final;
+		void SetRenderPipelineBarrier(const PipelineBarrierConfig&) final;
 
 		void ExecuteIndirectIndexed(const IndirectConfig&) final;
 		void ExecuteIndirect(const IndirectConfig&) final;
+
+		void BeginRenderDebugMarker(const std::string& label) final;
+		void BeginComputeDebugMarker(const std::string& label) final;
+
+		void EndRenderDebugMarker() final;
+		void EndComputeDebugMarker() final;
 
 	private:
 		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);

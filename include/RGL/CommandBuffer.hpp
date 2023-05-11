@@ -6,6 +6,7 @@
 #include <RGL/Buffer.hpp>
 #include <RGL/Synchronization.hpp>
 #include <span>
+#include <string>
 
 struct DrawInstancedConfig{
     uint32_t
@@ -51,7 +52,7 @@ namespace RGL {
 		Bottom
 	};
 
-	struct BarrierConfig {
+	struct ResourceBarrierConfig {
 		std::initializer_list<RGLBufferPtr> buffers;
 		std::initializer_list<RGLTexturePtr> textures;
 	};
@@ -80,6 +81,12 @@ namespace RGL {
 	struct VertexBufferBinding {
 		uint32_t bindingPosition = 0;
 		uint32_t offsetIntoBuffer = 0;
+	};
+
+	struct PipelineBarrierConfig {
+		bool Vertex : 1 = false;
+		bool Fragment : 1 = false;
+		bool Compute : 1 = false;
 	};
 
 	struct ICommandBuffer {
@@ -132,9 +139,17 @@ namespace RGL {
 		virtual void SetComputeBytes(const untyped_span data, uint32_t offset) = 0;
 		virtual void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) = 0;
 
-		virtual void SetRenderPipelineBarrier(const BarrierConfig&) = 0;
+		virtual void SetResourceBarrier(const ResourceBarrierConfig&) = 0;
+
+		virtual void SetRenderPipelineBarrier(const PipelineBarrierConfig&) = 0;
 
 		virtual void ExecuteIndirectIndexed(const IndirectConfig&) = 0;
 		virtual void ExecuteIndirect(const IndirectConfig&) = 0;
+
+		virtual void BeginRenderDebugMarker(const std::string& label) = 0;
+		virtual void BeginComputeDebugMarker(const std::string& label) = 0;
+
+		virtual void EndRenderDebugMarker() = 0;
+		virtual void EndComputeDebugMarker() = 0;
 	};
 }

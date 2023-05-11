@@ -63,7 +63,9 @@ namespace RGL {
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Rect&) final;
 
-		void SetRenderPipelineBarrier(const BarrierConfig&) final;
+		void SetResourceBarrier(const ResourceBarrierConfig&) final;
+
+		void SetRenderPipelineBarrier(const PipelineBarrierConfig&) final;
 
 		void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) final;
 
@@ -75,6 +77,12 @@ namespace RGL {
 		void ExecuteIndirectIndexed(const IndirectConfig&) final;
 		void ExecuteIndirect(const IndirectConfig&) final;
 
-		~CommandBufferD3D12() {}
+		void BeginRenderDebugMarker(const std::string& label) final;
+		void BeginComputeDebugMarker(const std::string& label) final;
+
+		void EndRenderDebugMarker() final;
+		void EndComputeDebugMarker() final;
+
+		virtual ~CommandBufferD3D12() {}
 	};
 }

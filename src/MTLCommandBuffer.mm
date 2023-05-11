@@ -270,7 +270,7 @@ void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const R
     [blitencoder endEncoding];
 }
 
-void CommandBufferMTL::SetRenderPipelineBarrier(const BarrierConfig& config){
+void CommandBufferMTL::SetResourceBarrier(const ResourceBarrierConfig& config){
     auto size = config.buffers.size() + config.textures.size();
     stackarray(resources, id<MTLResource>, size);
     
@@ -287,8 +287,28 @@ void CommandBufferMTL::SetRenderPipelineBarrier(const BarrierConfig& config){
     [currentCommandEncoder memoryBarrierWithResources:resources count:size afterStages:stages beforeStages:stages];
 }
 
+void CommandBufferMTL::SetRenderPipelineBarrier(const PipelineBarrierConfig&) {
+
+}
+
 void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {
     // no effect on Metal
+}
+
+void CommandBufferMTL::BeginRenderDebugMarker(const std::string &label){
+    [currentCommandEncoder pushDebugGroup:[NSString stringWithUTF8String:label.c_str()]];
+}
+
+void CommandBufferMTL::BeginComputeDebugMarker(const std::string &label){
+    [currentComputeCommandEncoder pushDebugGroup:[NSString stringWithUTF8String:label.c_str()]];
+}
+
+void CommandBufferMTL::EndRenderDebugMarker(){
+    [currentCommandEncoder popDebugGroup];
+}
+
+void CommandBufferMTL::EndComputeDebugMarker(){
+    [currentComputeCommandEncoder popDebugGroup];
 }
 
 void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config) {

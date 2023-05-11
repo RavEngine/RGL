@@ -11,6 +11,11 @@
 #include "D3D12RenderPass.hpp"
 #include "D3D12ComputePipeline.hpp"
 
+#if __has_include(<pix3.h>)
+#include <pix3.h>
+#define PIX_SUPPORTED
+#endif
+
 namespace RGL {
 
 	CommandBufferD3D12::CommandBufferD3D12(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
@@ -31,7 +36,6 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::Begin()
 	{
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 	void CommandBufferD3D12::End()
 	{
@@ -88,6 +92,7 @@ namespace RGL {
 		currentRenderPipeline = std::static_pointer_cast<RenderPipelineD3D12>(in_pipeline);
 		commandList->SetPipelineState(currentRenderPipeline->pipelineState.Get());
 		commandList->SetGraphicsRootSignature(currentRenderPipeline->pipelineLayout->rootSignature.Get());
+		commandList->IASetPrimitiveTopology(currentRenderPipeline->overrideMode);
 	}
 	void CommandBufferD3D12::BeginCompute(RGLComputePipelinePtr in_pipeline)
 	{
@@ -232,7 +237,7 @@ namespace RGL {
 
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
 	}
-	void CommandBufferD3D12::SetRenderPipelineBarrier(const BarrierConfig& config)
+	void CommandBufferD3D12::SetResourceBarrier(const ResourceBarrierConfig& config)
 	{
 		auto totalBarriers = config.buffers.size() + config.textures.size();
 		stackarray(barriers, D3D12_RESOURCE_BARRIER, totalBarriers);
@@ -263,6 +268,10 @@ namespace RGL {
 		}
 
 		commandList->ResourceBarrier(totalBarriers, barriers);
+	}
+	void CommandBufferD3D12::SetRenderPipelineBarrier(const PipelineBarrierConfig&)
+	{
+
 	}
 	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
@@ -304,6 +313,7 @@ namespace RGL {
 	void CommandBufferD3D12::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
 		auto casted = static_cast<const TextureD3D12*>(texture);
+		
 		auto beforeState = rgl2d3d12resourcestate(current);
 		auto afterState = rgl2d3d12resourcestate(target);
 		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -346,6 +356,26 @@ namespace RGL {
 			nullptr,
 			0
 		);
+	}
+	void CommandBufferD3D12::BeginRenderDebugMarker(const std::string& label)
+	{
+#ifdef PIX_SUPPORTED
+		PIXBeginEvent(commandList.Get(), 0, label.c_str());
+#endif
+	}
+	void CommandBufferD3D12::BeginComputeDebugMarker(const std::string& label)
+	{
+		BeginRenderDebugMarker(label);
+	}
+	void CommandBufferD3D12::EndRenderDebugMarker()
+	{
+#ifdef PIX_SUPPORTED
+		PIXEndEvent(commandList.Get());
+#endif
+	}
+	void CommandBufferD3D12::EndComputeDebugMarker()
+	{
+		EndRenderDebugMarker();
 	}
 }
 
