@@ -114,6 +114,11 @@ namespace RGL {
             case API::Direct3D12:
                 InitD3D12(options);
                 break;
+#if RGL_WEBGPU_AVAILABLE
+            case API::WebGPU:
+
+                break;
+#endif
 #endif
             case API::Noop:
                 break;
@@ -167,6 +172,8 @@ namespace RGL {
             return "Vulkan";
         case API::Noop:
             return "Noop";
+        case API::WebGPU:
+            return "WebGPU";
         default:
             FatalError("APIToString: invalid API");
             return "";
