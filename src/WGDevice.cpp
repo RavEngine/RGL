@@ -102,8 +102,20 @@ namespace RGL{
         WGPURequestAdapterOptions adapterOpts{};
         adapter = requestAdapter(instance,&adapterOpts);
 
-        WGPUDeviceDescriptor deviceDesc{};
+        WGPUDeviceDescriptor deviceDesc{
+            .nextInChain = nullptr,
+            .label = "RGL WGPU device",
+            .requiredFeaturesCount = 0,
+            .defaultQueue = {
+                .nextInChain = nullptr,
+                .label = "RGL Default queue"
+            }
+        };
         device = requestDevice(adapter,&deviceDesc);
+        auto onDeviceError = [](WGPUErrorType type, char const* message, void* /* pUserData */) {
+            FatalError(std::string("WGPU Device Error: ") + message);
+        };
+        wgpuDeviceSetUncapturedErrorCallback(device, onDeviceError, nullptr /* pUserData */);
     }
 
     DeviceWG::~DeviceWG() {
