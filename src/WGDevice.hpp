@@ -2,9 +2,13 @@
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
 #include <span>
+#include <emscripten/html5_webgpu.h>
 
 namespace RGL{
     struct DeviceWG : public IDevice, public std::enable_shared_from_this<DeviceWG>{
+        WGPUDevice device;
+        WGPUAdapter adapter;
+
         DeviceWG();
 		std::string GetBrandString() final;
 		
@@ -32,7 +36,7 @@ namespace RGL{
         RGLFencePtr CreateFence(bool preSignaled) final;
         void BlockUntilIdle() final;
         
-        virtual ~DeviceWG(){}
+        virtual ~DeviceWG();
     };
 
     RGLDevicePtr CreateDefaultDeviceWG();
