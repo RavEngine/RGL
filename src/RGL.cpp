@@ -19,6 +19,11 @@
 #include "MTLDevice.hpp"
 #endif
 
+#if RGL_WEBGPU_AVAILABLE
+#include "RGLWG.hpp"
+#include "WGDevice.hpp"
+#endif
+
 #include <iostream>
 
 #ifdef _WIN32
@@ -72,6 +77,10 @@ namespace RGL {
         case API::Metal:
             return CreateDefaultDeviceMTL();
 #endif
+#if RGL_WEBGPU_AVAILABLE
+        case API::WebGPU:
+            return CreateDefaultDeviceWG();
+#endif
         default:
             FatalError("Invalid API");
 
@@ -94,7 +103,9 @@ namespace RGL {
             InitMTL(options);
 #elif __linux__ || RGL_VK_AVAILABLE
             InitVk(options);
-#else
+#elif RGL_WEBGPU_AVAILABLE
+            InitWebGPU(options);
+#else   
 
 #endif
         }
@@ -116,7 +127,7 @@ namespace RGL {
                 break;
 #if RGL_WEBGPU_AVAILABLE
             case API::WebGPU:
-
+                InitWebGPU(options)
                 break;
 #endif
 #endif
@@ -145,6 +156,11 @@ namespace RGL {
         case API::Metal:
             DeinitMTL();
             break;
+#if RGL_WEBGPU_AVAILABLE
+        case API::WebGPU:
+            DeinitWebGPU();
+            break;
+#endif
 #endif
         default:
             FatalError("not implemented for this API");
