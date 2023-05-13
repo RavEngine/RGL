@@ -11,7 +11,6 @@ jobs:
               with:
                 submodules: recursive
             - name: Remove Unused
-              if: always()
               run: |
                 rm -rf deps/ShaderTranspiler/deps/DirectXShaderCompiler
                 find . -name .git -type d -exec rm -rf {} \;
@@ -19,6 +18,7 @@ jobs:
                 find . -name .git -type d -exec rm -rf {} \;
                 find . -name .git -exec rm {} \;
             - name: Upload
+              if: always()
               uses: actions/upload-artifact@v3
               with: 
                  name: RGL
