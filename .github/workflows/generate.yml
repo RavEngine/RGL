@@ -11,6 +11,7 @@ jobs:
               with:
                 submodules: recursive
             - name: Remove Unused
+              if: always()
               run: |
                 rm -rf deps/ShaderTranspiler/deps/DirectXShaderCompiler
                 find . -name .git -type d -exec rm -rf {} \;
