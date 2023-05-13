@@ -18,6 +18,7 @@ shadert::TargetAPI rgl2shadert_source(librglc::API api) {
 	switch (api) {
 	case decltype(api)::Direct3D12: return TargetAPI::HLSL;
 	case decltype(api)::Metal: return TargetAPI::Metal;
+	case decltype(api)::WebGPU: return TargetAPI::WGSL;
 	default:
 		throw std::runtime_error("Cannot create a source target for API");
 	}
