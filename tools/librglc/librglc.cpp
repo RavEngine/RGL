@@ -45,6 +45,7 @@ namespace librglc {
 	auto CompileAny(auto task, API toAPI, ShaderStage input_stage, const Config& config) {
 		shadert::Options opt;
 		opt.mobile = false;
+		opt.debug = config.enableDebug;
 		opt.entryPoint = config.entrypointOutputName;
 		if (toAPI == API::Vulkan) {
 			opt.version = 15;
