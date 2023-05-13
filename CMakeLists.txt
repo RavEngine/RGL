@@ -146,7 +146,7 @@ set_target_properties("RGL" ${rglc_exe} "librglc" PROPERTIES
 	XCODE_GENERATE_SCHEME ON
 )
 
-set_target_properties("SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
+set_target_properties("SPIRV-Reflect" "ShaderTranspiler" "libtint" "tint_diagnostic_utils" PROPERTIES 
 	FOLDER "RGL/Libraries"
 )
 

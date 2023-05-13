@@ -34,6 +34,7 @@ shadert::TargetAPI rgl2shadert_binary(librglc::API api) {
 #ifdef __APPLE__
 	case decltype(api)::Metal: return TargetAPI::MetalBinary;
 #endif
+	case decltype(api)::WebGPU: return TargetAPI::WGSL;
 	default:
 		throw std::runtime_error("Cannot create a binary target for API");
 	}
@@ -53,6 +54,9 @@ namespace librglc {
 		else if (toAPI == API::Metal) {
 			opt.version = 30;
             opt.pushConstantSettings.firstIndex = MTL_FIRST_BUFFER;    // the [[stage_input]] consumes slot 0, extra vertex buffers consume the next slots
+		}
+		else if (toAPI == API::WebGPU) {
+			opt.version = 13;
 		}
 
 		ShaderTranspiler s;
