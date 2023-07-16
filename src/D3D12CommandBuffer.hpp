@@ -56,6 +56,7 @@ namespace RGL {
 		void SetFragmentTexture(const ITexture* texture, uint32_t index) final;
 
 		void SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index) final;
+		void SetSampler(RGLSamplerPtr sampler, uint32_t index) final;
 
 		void Draw(uint32_t nVertices, const DrawInstancedConfig & = {}) final;
 		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;

@@ -302,6 +302,10 @@ namespace RGL {
 		}
 
 	}
+	void CommandBufferVk::SetSampler(RGLSamplerPtr sampler, uint32_t index)
+	{
+		FatalError("not implemented");
+	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		vkCmdDraw(commandBuffer, nVertices, config.nInstances, config.startVertex, config.firstInstance);
