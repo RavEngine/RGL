@@ -323,40 +323,6 @@ namespace RGL {
 			swapchainsToSignal.insert(castedImage->owningSwapchain);
 		}
 	}
-	void CommandBufferVk::SetCombinedTextureSampler(RGLSamplerPtr sampler, const ITexture* texture, uint32_t index)
-	{
-		auto castedImage = static_cast<const TextureVk*>(texture);
-		VkDescriptorImageInfo imginfo{
-					.sampler = std::static_pointer_cast<SamplerVk>(sampler)->sampler,
-					.imageView = castedImage->vkImageView,
-					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		};
-		VkWriteDescriptorSet writeinfo{
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.dstSet = VK_NULL_HANDLE,
-				.dstBinding = index,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.pImageInfo = &imginfo,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr
-		};
-		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
-			commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			currentRenderPipeline->pipelineLayout->layout,
-			0,
-			1,
-			&writeinfo
-		);
-
-		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
-		if (castedImage->owningSwapchain) {
-			swapchainsToSignal.insert(castedImage->owningSwapchain);
-		}
-
-	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		vkCmdDraw(commandBuffer, nVertices, config.nInstances, config.startVertex, config.firstInstance);

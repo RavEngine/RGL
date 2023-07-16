@@ -49,7 +49,7 @@ namespace RGL {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
 			enum class Type : uint8_t {
-				Sampler, CombinedImageSampler, SampledImage, StorageImage, UniformTexelBuffer, StorageTexelBuffer, UniformBuffer, StorageBuffer, UniformBufferDynamic, StorageBufferDynamic, InputAttachment
+				Sampler, SampledImage = 2, StorageImage, UniformTexelBuffer, StorageTexelBuffer, UniformBuffer, StorageBuffer, UniformBufferDynamic, StorageBufferDynamic, InputAttachment
 			} type;
 			enum class StageFlags {
 				Vertex = 0x00000001,
@@ -57,11 +57,8 @@ namespace RGL {
 				Compute = 0x00000020,
 			} stageFlags;
             bool writable = false;
-			//TODO: support image samplers
 		};
 		std::vector<LayoutBindingDesc> bindings;
-
-		std::vector<RGLSamplerPtr> boundSamplers;
 
 		struct ConstantConfig {
 			size_t size_bytes;
