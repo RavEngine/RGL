@@ -162,13 +162,13 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		index = currentRenderPipeline->pipelineLayout->slotForSamplerIdx(index);
 		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
+		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
+		const auto samplerSlot = pipelineLayout->slotForSamplerIdx(index);
 		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
-		ID3D12DescriptorHeap* heapForThis = samplerHeap->Heap();
-		auto handle = samplerHeap->GetGpuHandle(thisSampler->descriptorIndex);
-		commandList->SetDescriptorHeaps(1, &heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(index, handle);
+		ID3D12DescriptorHeap* heapForThis[] = { samplerHeap->Heap() };
+		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
+		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
 	}
 	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
@@ -205,18 +205,6 @@ namespace RGL {
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
 		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
 		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture->srvIDX));
-	}
-	void CommandBufferD3D12::SetSampler(RGLSamplerPtr sampler, uint32_t index)
-	{
-		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
-
-		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
-		const auto samplerSlot = pipelineLayout->slotForSamplerIdx(index);
-		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
-		ID3D12DescriptorHeap* heapForThis[] = { samplerHeap->Heap() };
-		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
-
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
