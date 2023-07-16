@@ -3,6 +3,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12CommandQueue.hpp"
 #include <D3D12MemAlloc.h>
+#include <ResourceUploadBatch.h>
 
 using namespace Microsoft::WRL;
 
@@ -40,32 +41,40 @@ namespace RGL {
         }
         const bool isWritable = config.options.Writable;
 
-        auto v = isWritable ? CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) : CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        // writable is marked as a UAV
-        auto t = CD3DX12_RESOURCE_DESC::Buffer(size_bytes, isWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE );
-        auto state = typeToState(myType);
+        CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);    // default to PRIVATE
+        initialState = D3D12_RESOURCE_STATE_COMMON;
+        // if writable, must be constructed with a UAV, otherwise use a standard SRV
+        auto resourceDescriptor = CD3DX12_RESOURCE_DESC::Buffer(size_bytes, isWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE);
 
-        if (config.access == RGL::BufferAccess::Private) {
-            v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        // decide the heap type
+        if (config.options.ReadbackTarget) {
+            // readback requires D3D12_RESOURCE_STATE_COPY_DEST and cannot be transitioned away from this state
+            heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+            initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+        }
+        else if (config.access == RGL::BufferAccess::Shared) {
+            heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            initialState = D3D12_RESOURCE_STATE_GENERIC_READ;   // UPLOAD requires this state, and resources cannot leave this state
         }
 
-        if (!isWritable) {
-            state = D3D12_RESOURCE_STATE_GENERIC_READ;
+        if (config.type.IndirectBuffer) {
+            initialState |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
         }
-
-        if (config.options.TransferDestination) {
-            state = D3D12_RESOURCE_STATE_COPY_DEST;
-            v = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
-        }
-
 
         DX_CHECK(device->device->CreateCommittedResource(
-            &v,
+            &heapProperties,
             D3D12_HEAP_FLAG_NONE,
-            &t,
-            state,
+            &resourceDescriptor,
+            initialState,
             nullptr,
             IID_PPV_ARGS(&buffer)));
+
+        if (config.options.debugName) {
+            std::wstring wide;
+            wide.resize(config.options.debugName == nullptr ? 0 : strlen(config.options.debugName));
+            MultiByteToWideChar(CP_UTF8, 0, config.options.debugName, -1, wide.data(), wide.size());
+            buffer->SetName(wide.c_str());
+        }
 
         vertexBufferView.BufferLocation = buffer->GetGPUVirtualAddress();
         indexBufferView.BufferLocation = vertexBufferView.BufferLocation;   //NOTE: if this is made a union, check this
@@ -87,6 +96,8 @@ namespace RGL {
            .End = mappedMemory.size
         };
         buffer->Unmap(0, &range);
+        mappedMemory.data = nullptr;
+        mappedMemory.size = 0;
 	}
 	void BufferD3D12::UpdateBufferData(untyped_span data, decltype(BufferConfig::nElements) offset)
 	{
@@ -103,21 +114,26 @@ namespace RGL {
             UnmapMemory();
         }
         else {
+
             // create the staging buffer
-            D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-            textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-            D3D12_RESOURCE_DESC bufferUploadResourceDesc = {};
-            bufferUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            bufferUploadResourceDesc.Alignment = 0;
-            bufferUploadResourceDesc.Width = data.size();
-            bufferUploadResourceDesc.Height = 1;
-            bufferUploadResourceDesc.DepthOrArraySize = 1;
-            bufferUploadResourceDesc.MipLevels = 1;
-            bufferUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-            bufferUploadResourceDesc.SampleDesc.Count = 1;
-            bufferUploadResourceDesc.SampleDesc.Quality = 0;
-            bufferUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            bufferUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+            D3D12MA::ALLOCATION_DESC textureUploadAllocDesc{
+                .HeapType = D3D12_HEAP_TYPE_UPLOAD
+            };
+            D3D12_RESOURCE_DESC bufferUploadResourceDesc{
+                .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+                .Alignment = 0,
+                .Width = data.size(),
+                .Height = 1,
+                .DepthOrArraySize = 1,
+                .MipLevels = 1,
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .SampleDesc = {
+                    .Count = 1,
+                    .Quality = 0,
+                },
+                .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+                .Flags = D3D12_RESOURCE_FLAG_NONE
+            };
             ComPtr<ID3D12Resource> bufferUpload;
             D3D12MA::Allocation* bufferUploadAllocation;
             DX_CHECK(owningDevice->allocator->CreateResource(
@@ -129,23 +145,27 @@ namespace RGL {
                 IID_PPV_ARGS(&bufferUpload)));
             bufferUpload->SetName(L"bufferUpload");
 
-            auto bytesPerRow = data.size();
-            D3D12_SUBRESOURCE_DATA bufferSubresourceData = {};
-            bufferSubresourceData.pData = data.data();
-            bufferSubresourceData.RowPitch = bytesPerRow;
-            bufferSubresourceData.SlicePitch = bytesPerRow * 1;
+            // put the data in the staging buffer
+            void* writePtr;
+            D3D12_RANGE range{
+                .Begin = 0,
+                .End = data.size()
+            };
+            bufferUpload->Map(0, &range, &writePtr);
+            std::memcpy(writePtr, data.data(), data.size());
+            bufferUpload->Unmap(0, &range);
+
+            // upload the data to the GPU
             auto commandList = owningDevice->internalQueue->CreateCommandList();
 
-            auto state = D3D12_RESOURCE_STATE_GENERIC_READ;
-
+            auto state = initialState;
             auto beginTransition = CD3DX12_RESOURCE_BARRIER::Transition(
                 buffer.Get(),
                 state,
                 D3D12_RESOURCE_STATE_COPY_DEST
             );
             commandList->ResourceBarrier(1, &beginTransition);
-
-            UpdateSubresources(commandList.Get(), buffer.Get(), bufferUpload.Get(), 0, 0, 1, &bufferSubresourceData);
+            commandList->CopyBufferRegion(buffer.Get(), offset, bufferUpload.Get(), 0, data.size());
 
             auto endTransition = CD3DX12_RESOURCE_BARRIER::Transition(
                 buffer.Get(),
@@ -173,6 +193,12 @@ namespace RGL {
 
     void BufferD3D12::SignalRangeChanged(const Range & range){
         
+    }
+    BufferD3D12::~BufferD3D12()
+    {
+        if (mappedMemory.data != nullptr) {
+            UnmapMemory();
+        }
     }
 }
 #endif

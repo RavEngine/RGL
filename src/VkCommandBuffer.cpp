@@ -38,34 +38,7 @@ namespace RGL {
 		VkPipelineStageFlags srcStageMask,
 		VkPipelineStageFlags dstStageMask
 	) {
-		const VkImageMemoryBarrier image_memory_barrier_begin{
-					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-					.srcAccessMask = srcAccessMask,
-					.dstAccessMask = dstAccessMask,
-					.oldLayout = oldLayout,
-					.newLayout = newLayout,
-					.image = image,
-					.subresourceRange = {
-					  .aspectMask = aspectMask,
-					  .baseMipLevel = 0,
-					  .levelCount = 1,
-					  .baseArrayLayer = 0,
-					  .layerCount = 1,
-					}
-		};
-
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			srcStageMask,  // srcStageMask
-			dstStageMask, // dstStageMask
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1, // imageMemoryBarrierCount
-			&image_memory_barrier_begin // pImageMemoryBarriers
-		);
+		
 	}
 
 	void RGL::CommandBufferVk::Reset()
@@ -136,8 +109,17 @@ namespace RGL {
 		}
 
 		// repeat for depth stencil attachment
-
-		auto texSize = renderPass->textures[0]->GetSize();
+		RGL::Dimension texSize{};
+		if (renderPass->textures.size() > 0) {
+			texSize = renderPass->textures[0]->GetSize();
+		}
+		else if (renderPass->depthTexture) {
+			texSize = renderPass->depthTexture->GetSize();
+		}
+		else {
+			FatalError("No rendertargets are bound, cannot get texture size for beginRendering");
+		}
+		
 		VkRenderingAttachmentInfoKHR* depthAttachmentinfo = nullptr;
 		VkRenderingAttachmentInfoKHR depthAttachmentInfoData{};
 
@@ -187,7 +169,7 @@ namespace RGL {
 	{
 		currentComputePipeline = nullptr;
 	}
-	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ)
+	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ,  uint32_t threadsPerThreadgroupX, uint32_t threadsPerThreadgroupY, uint32_t threadsPerThreadgroupZ)
 	{
 		vkCmdDispatch(commandBuffer, threadsX, threadsY, threadsZ);
 	}
@@ -330,44 +312,56 @@ namespace RGL {
 	}
 	void CommandBufferVk::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
-		auto img = static_cast<const TextureVk*>(texture);
-
-		auto decideFlagsForBegin = [img]() {
-			VkAccessFlags writeFlags = 0;
-			if (img->createdConfig.aspect.HasColor) {
-				writeFlags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			}
-			if (img->createdConfig.aspect.HasDepth || img->createdConfig.aspect.HasDepth) {
-				writeFlags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			}
-			return writeFlags;
-		};
-
-		auto decideFlagsForEnd = [img]() {
-			VkPipelineStageFlags writeFlags = 0;
-			if (img->createdConfig.aspect.HasColor) {
-				writeFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			}
-			if (img->createdConfig.aspect.HasDepth || img->createdConfig.aspect.HasDepth) {
-				writeFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-			}
-			return writeFlags;
-		};
-
-		auto beginFlags = decideFlagsForBegin();
-		auto endFlags = decideFlagsForEnd();	
-
-		encodeResourceTransition(commandBuffer,
-			img->vkImage,
-			position == TransitionPosition::Top ? VK_ACCESS_NONE : beginFlags,
-			position == TransitionPosition::Top ? beginFlags : VK_ACCESS_NONE,
-			rgl2vkImageLayout(current),
-			rgl2vkImageLayout(target),
-			img->createdAspectVk,
-			position == TransitionPosition::Top ? VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT : endFlags,
-			position == TransitionPosition::Top? endFlags : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
-		);
+		TransitionResources({
+			{
+				.texture = texture,
+				.from = current,
+				.to = target
+			},
+		}, position);
 	}
+	void CommandBufferVk::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
+	{
+		const auto transitionCount = transitions.size();
+		stackarray(allTransitions, VkImageMemoryBarrier, transitionCount);
+		uint32_t i = 0;
+		for (const auto& transition : transitions) {
+			auto img = static_cast<const TextureVk*>(transition.texture);
+
+			//TODO: don't use generic MEMORY flags
+			allTransitions[i] = {
+					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+					.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+					.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+					.oldLayout = rgl2vkImageLayout(transition.from),
+					.newLayout = rgl2vkImageLayout(transition.to),
+					.image = img->vkImage,
+					.subresourceRange = {
+					  .aspectMask = img->createdAspectVk,
+					  .baseMipLevel = 0,
+					  .levelCount = 1,
+					  .baseArrayLayer = 0,
+					  .layerCount = 1,
+					}
+			};
+			//TODO: don't use ALL_COMMANDS
+			i++;
+		}
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,  // srcStageMask	
+			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			transitionCount, // imageMemoryBarrierCount
+			allTransitions // pImageMemoryBarriers
+		);
+		
+	}
+
 	void CommandBufferVk::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr destBuffer)
 	{
 		auto casted = static_cast<TextureVk*>(sourceTexture);
@@ -395,6 +389,17 @@ namespace RGL {
 		};
 
 		vkCmdCopyImageToBuffer(commandBuffer, casted->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
+	}
+	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
+	{
+		VkBufferCopy bufferCopyData{
+				   .srcOffset = from.offset,
+				   .dstOffset = to.offset,
+				   .size = size
+		};
+		auto fromBuffer = std::static_pointer_cast<BufferVk>(from.buffer);
+		auto toBuffer = std::static_pointer_cast<BufferVk>(to.buffer);
+		vkCmdCopyBuffer(commandBuffer, fromBuffer->buffer, toBuffer->buffer, 1, &bufferCopyData);
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{
@@ -432,10 +437,10 @@ namespace RGL {
 			bufferBarriers[i] = {
 				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
 				.pNext = nullptr,
-				.srcStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT ,
-				.srcAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-				.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT | VK_ACCESS_2_HOST_WRITE_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_2_INDEX_READ_BIT | VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_TRANSFER_READ_BIT | VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_READ_BIT,
 				.srcQueueFamilyIndex = owningDeviceFamily,
 				.dstQueueFamilyIndex = owningDeviceFamily,
 				.buffer = buffer->buffer,
@@ -453,10 +458,10 @@ namespace RGL {
 			textureBarriers[i] = {
 				.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
 				.pNext = nullptr,
-				.srcStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-				.srcAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-				.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
+				.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,
 				.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// if these are set to the same value, no transition is executed
 				.newLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 				.srcQueueFamilyIndex = 0,
@@ -473,12 +478,22 @@ namespace RGL {
 			i++;
 		}
 
+		//TODO: don't use all_commands or all_stages bit because it's inefficient
+		VkMemoryBarrier2 memBarrier{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+			.pNext = nullptr,
+			.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,		// wait for all work submitted before
+			.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,			// make writes available
+			.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,		// all work submitted after needs to wait for the results of this barrier
+			.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,			// make reads available
+		};
+
 		VkDependencyInfo depInfo{
 			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
 			.pNext = nullptr,
 			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
-			.memoryBarrierCount = 0,
-			.pMemoryBarriers = nullptr,
+			.memoryBarrierCount = 1,
+			.pMemoryBarriers = &memBarrier,
 			.bufferMemoryBarrierCount = static_cast<uint32_t>(config.buffers.size()),
 			.pBufferMemoryBarriers = bufferBarriers,
 			.imageMemoryBarrierCount = static_cast<uint32_t>(config.textures.size()),
@@ -538,11 +553,13 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginRenderDebugMarker(const std::string& label)
 	{
+#ifndef NDEBUG
 		VkDebugUtilsLabelEXT markerInfo = {
 			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 			.pLabelName = label.c_str()
 		};
 		owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &markerInfo);
+#endif
 	}
 	void CommandBufferVk::BeginComputeDebugMarker(const std::string& label)
 	{
@@ -550,7 +567,9 @@ namespace RGL {
 	}
 	void CommandBufferVk::EndRenderDebugMarker()
 	{
+#ifndef NDEBUG
 		owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+#endif
 	}
 	void CommandBufferVk::EndComputeDebugMarker()
 	{

@@ -22,7 +22,7 @@ namespace RGL {
     void loadVulkanFunction(VkDevice device, T& ptr, const char* fnname) {
         ptr = (std::remove_reference_t<decltype(ptr)>) vkGetDeviceProcAddr(device, fnname);
         if (!ptr) {
-            FatalError("Cannot get Vulkan function pointer");
+            FatalError(std::string("Cannot get Vulkan function pointer: ") + fnname);
         }
     }
 
@@ -33,7 +33,8 @@ namespace RGL {
            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
            VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-           VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
+           VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
+           VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME
     };
 
     bool checkDeviceExtensionSupport(const VkPhysicalDevice device) {
@@ -157,8 +158,17 @@ namespace RGL {
         VkPhysicalDeviceFeatures deviceFeatures{
             .samplerAnisotropy = VK_TRUE,   // need to explicity request it
         };
+        VkPhysicalDeviceCustomBorderColorFeaturesEXT customBorderColor{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT,
+            .pNext = nullptr
+        };
+        VkPhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayout{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES,
+            .pNext = &customBorderColor
+        };
         VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2Feature{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+            .pNext = &scalarBlockLayout
         };
         VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingfeature{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
@@ -182,9 +192,17 @@ namespace RGL {
         if (synchronization2Feature.synchronization2 == VK_FALSE) {
             FatalError("Cannot init - synchronization2 is not supported");
         }
+        if (scalarBlockLayout.scalarBlockLayout == VK_FALSE) {
+            FatalError("Cannot init - ScalarBlockLayout is not supported");
+        }
+        if (customBorderColor.customBorderColors == VK_FALSE) {
+            FatalError("Cannot init - CustomBorderColor is not supported");
+        }
 
         std::vector<const char*> runtimeExtensions{std::begin(deviceExtensions),std::end(deviceExtensions)};
+#ifndef NDEBUG
         runtimeExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+#endif
 
         VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -203,9 +221,11 @@ namespace RGL {
 
         // load extra functions
         loadVulkanFunction(device, vkCmdPushDescriptorSetKHR, "vkCmdPushDescriptorSetKHR");
+#ifndef NDEBUG
         loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
         loadVulkanFunction(device, rgl_vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
         loadVulkanFunction(device, rgl_vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
+#endif
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
         VK_VALID(presentQueue);
@@ -236,6 +256,7 @@ namespace RGL {
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
     {
+#ifndef NDEBUG
         VkDebugMarkerObjectNameInfoEXT objectName{
            .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
            .pNext = nullptr,
@@ -245,6 +266,7 @@ namespace RGL {
         };
 
         VK_CHECK(this->rgl_vkDebugMarkerSetObjectNameEXT(this->device, &objectName));
+#endif
     }
 
     RGL::DeviceVk::~DeviceVk() {
@@ -294,7 +316,7 @@ namespace RGL {
         return std::make_shared<ShaderLibraryVk>(shared_from_this());
     }
 
-    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibraryFromBytes(const std::span<uint8_t> data)
+    RGLShaderLibraryPtr RGL::DeviceVk::CreateShaderLibraryFromBytes(const std::span<const uint8_t> data)
     {
         return std::make_shared<ShaderLibraryVk>(shared_from_this(), data);
     }

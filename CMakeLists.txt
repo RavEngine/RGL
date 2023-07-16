@@ -16,6 +16,7 @@ project(RGL)
 
 option(RGL_ENABLE_RGLC "Enable the separate compiler executable" ON)
 option(RGL_DISABLE_VK "Force-disable the Vulkan backend" OFF)
+option(RGL_USE_MINIVKSDK "Use MiniVulkanSDK instead of the installed Vulkan SDK" OFF)
 option(RGL_DISABLE_DX "Force-disable the D3D12 backend" OFF)
 
 if (CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
@@ -23,19 +24,18 @@ if (CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
 endif()
 
 #setup main library
-file(GLOB_RECURSE MM_SOURCES "src/*.mm")
+if(APPLE)
+	file(GLOB_RECURSE MM_SOURCES "src/*.mm")
+endif()
+
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.hpp" "include/*.hpp" "src/*.h" )
 add_library(${PROJECT_NAME} ${SOURCES} ${MM_SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 if (APPLE)
-set_source_files_properties(${MM_SOURCES} PROPERTIES
-	COMPILE_FLAGS "-x objective-c++"
-)
-
-if (linux)
-endif()
-
+	set_source_files_properties(${MM_SOURCES} PROPERTIES
+		COMPILE_FLAGS "-x objective-c++"
+	)
 endif()
 
 # setup compiler
@@ -66,16 +66,33 @@ if (RGL_ENABLE_RGLC)
 	set(rglc_exe "rglc")
 endif()
 
-find_package(Vulkan)
-if (Vulkan_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "WindowsStore" AND NOT RGL_DISABLE_VK)
-	set(VK_LIBS ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
-	set(VK_INCLUDE ${Vulkan_INCLUDE_DIRS} deps/VulkanMemoryAllocator/include)
+if(NOT RGL_USE_MINIVKSDK)
+	find_package(Vulkan)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "WindowsStore" OR RGL_DISABLE_VK OR APPLE OR CMAKE_SYSTEM_NAME MATCHES "Emscripten")
+	set(VK_FORCE_DISABLED ON)
+else()
+	set(VK_FORCE_DISABLED OFF)
+endif()
+
+if (NOT VK_FORCE_DISABLED AND (RGL_USE_MINIVKSDK OR Vulkan_FOUND))
+	if (RGL_USE_MINIVKSDK)
+		add_subdirectory(deps/MiniVulkanSDK EXCLUDE_FROM_ALL)
+		set(VK_LIBS MiniVulkanSDK VulkanMemoryAllocator)
+		set(VK_INCLUDE deps/VulkanMemoryAllocator/include)
+	else()
+		set(VK_LIBS ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
+		set(VK_INCLUDE ${Vulkan_INCLUDE_DIRS} deps/VulkanMemoryAllocator/include)
+	endif()
+
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=1)
 	set(RGL_VK_AVAILABLE ON CACHE INTERNAL "RGL Vulkan")
 	set(VMA_STATIC_VULKAN_FUNCTIONS ON)
 	add_subdirectory(deps/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
 	target_include_directories(VulkanMemoryAllocator PUBLIC ${Vulkan_INCLUDE_DIRS})
-        target_compile_features(VulkanMemoryAllocator PUBLIC cxx_std_20)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS}) # so that library users get the vk paths if applicable
+    target_compile_features(VulkanMemoryAllocator PUBLIC cxx_std_20)
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=0)
 	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
@@ -130,6 +147,18 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	librglc
 )
 
+set(AFTERMATH_DIR "AftermathSDK")
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/${AFTERMATH_DIR}")
+	target_include_directories(${PROJECT_NAME} PRIVATE "deps/${AFTERMATH_DIR}/include")
+	file(GLOB AFTERMATH_LIBS "deps/${AFTERMATH_DIR}/lib/x64/*.lib")
+	target_link_libraries(${PROJECT_NAME} PRIVATE ${AFTERMATH_LIBS})
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_AFTERMATH_AVAILABLE=1)
+	message("Aftermath SDK enabled")
+else()
+	message("Aftermath SDK disabled")
+	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_AFTERMATH_AVAILABLE=0)
+endif()
+
 target_include_directories(${PROJECT_NAME} 
 	PRIVATE
 		${X11_INCLUDE_DIR}
@@ -154,22 +183,6 @@ set_target_properties("GenericCodeGen" "glslang" "MachineIndependent" "OGLCompil
 	FOLDER "RGL/Libraries/glslang"
 )
 
-set_target_properties(
-	"spirv-tools-build-version" 
-	"spirv-tools-header-DebugInfo" 
-	"spirv-tools-header-NonSemanticShaderDebugInfo100" 
-	"spirv-tools-header-OpenCLDebugInfo100" 
-	"spv-tools-cldi100" 
-	"spv-tools-clspvreflection" 
-	"spv-tools-debuginfo"
-	"spv-tools-shdi100"
-	"spv-tools-spv-amd-gs"
-	"spv-tools-spv-amd-sb"
-	"spv-tools-spv-amd-stm"
-	"spv-tools-spv-amd-sevp"
-	PROPERTIES 
-	FOLDER "RGL/Libraries/SPIRV-Tools build"
-)
 
 set_target_properties(
 	"SPIRV-Tools-opt" "SPIRV-Tools-reduce" "SPIRV-Tools-static"
@@ -178,9 +191,6 @@ set_target_properties(
 )
 
 set_target_properties(
-	"core_tables"
-	"enum_string_mapping"
-	"extinst_tables"
 	"spirv-cross-core"
 	"spirv-cross-glsl" "spirv-cross-hlsl" "spirv-cross-msl" "spirv-cross-reflect"
 	PROPERTIES 
@@ -198,6 +208,12 @@ endif()
 
 if (RGL_VK_AVAILABLE)
 	set_target_properties(VulkanMemoryAllocator PROPERTIES FOLDER "RGL/Libraries")
+	if (TARGET loader-opt)
+		set_target_properties(loader-opt loader-unknown-chain PROPERTIES FOLDER "RGL/Libraries")
+	endif()
+	if(RGL_USE_MINIVKSDK)
+		set_target_properties(vulkan vvl VkLayer_utils loader_asm_gen_files PROPERTIES FOLDER "RGL/Libraries")
+	endif()
 endif()
 if (RGL_DX12_AVAILABLE)
 	set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "RGL/Libraries")

@@ -106,7 +106,7 @@ namespace RGL {
 		virtual void BindRenderPipeline(RGLRenderPipelinePtr) = 0;
         virtual void BeginCompute(RGLComputePipelinePtr) = 0;
         virtual void EndCompute() = 0;
-        virtual void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) = 0;
+        virtual void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ, uint32_t threadsPerThreadgroupX=1, uint32_t threadsPerThreadgroupY=1, uint32_t threadsPerThreadgroupZ=1) = 0;
 
 		virtual void BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
 		virtual void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) = 0;
@@ -131,6 +131,12 @@ namespace RGL {
 
 		virtual void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) = 0;
 
+		struct BufferCopyConfig {
+			RGLBufferPtr buffer;
+			uint32_t offset = 0;
+		};
+		virtual void CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) = 0;
+
 		// submit onto the queue that created this command buffer
 		virtual void Commit(const CommitConfig&) = 0;
 
@@ -138,6 +144,12 @@ namespace RGL {
 		virtual void SetFragmentBytes(const untyped_span data, uint32_t offset) = 0;
 		virtual void SetComputeBytes(const untyped_span data, uint32_t offset) = 0;
 		virtual void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) = 0;
+
+		struct ResourceTransition {
+			const ITexture* texture;
+			RGL::ResourceLayout from, to;
+		};
+		virtual void TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position) = 0;
 
 		virtual void SetResourceBarrier(const ResourceBarrierConfig&) = 0;
 

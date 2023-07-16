@@ -148,8 +148,8 @@ void CommandBufferMTL::EndCompute(){
     [currentComputeCommandEncoder endEncoding];
 }
 
-void CommandBufferMTL::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ){
-    [currentComputeCommandEncoder dispatchThreadgroups:MTLSizeMake(threadsX, threadsY, threadsZ) threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
+void CommandBufferMTL::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ, uint32_t threadsPerThreadgroupX, uint32_t threadsPerThreadgroupY, uint32_t threadsPerThreadgroupZ){
+    [currentComputeCommandEncoder dispatchThreadgroups:MTLSizeMake(threadsX, threadsY, threadsZ) threadsPerThreadgroup:MTLSizeMake(threadsPerThreadgroupX, threadsPerThreadgroupY, threadsPerThreadgroupZ)];
 }
 
 void CommandBufferMTL::BeginRendering(RGLRenderPassPtr renderPass){
@@ -162,7 +162,9 @@ void CommandBufferMTL::EndRendering(){
 }
 
 void CommandBufferMTL::BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer){
-    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:binding];    //TODO: don't hardcode to vertex stage
+    //TODO: something smarter than this
+    [currentCommandEncoder setVertexBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:binding];
+    [currentCommandEncoder setFragmentBuffer:std::static_pointer_cast<BufferMTL>(buffer)->buffer offset:offsetIntoBuffer atIndex:binding];
 }
 
 void CommandBufferMTL::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer){
@@ -271,6 +273,7 @@ void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const R
 }
 
 void CommandBufferMTL::SetResourceBarrier(const ResourceBarrierConfig& config){
+#if 0
     auto size = config.buffers.size() + config.textures.size();
     stackarray(resources, id<MTLResource>, size);
     
@@ -285,13 +288,26 @@ void CommandBufferMTL::SetResourceBarrier(const ResourceBarrierConfig& config){
     
     constexpr auto stages = MTLRenderStageVertex | MTLRenderStageFragment;
     [currentCommandEncoder memoryBarrierWithResources:resources count:size afterStages:stages beforeStages:stages];
+#endif
 }
 
 void CommandBufferMTL::SetRenderPipelineBarrier(const PipelineBarrierConfig&) {
 
 }
 
+void CommandBufferMTL::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size){
+    auto blitEncoder = [currentCommandBuffer blitCommandEncoder];
+    auto fromBuffer = std::static_pointer_cast<BufferMTL>(from.buffer);
+    auto toBuffer = std::static_pointer_cast<BufferMTL>(to.buffer);
+    [blitEncoder copyFromBuffer:fromBuffer->buffer sourceOffset:from.offset toBuffer:toBuffer->buffer destinationOffset:to.offset size:size];
+    [blitEncoder endEncoding];
+}
+
 void CommandBufferMTL::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) {
+    // no effect on Metal
+}
+void CommandBufferMTL::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
+{
     // no effect on Metal
 }
 

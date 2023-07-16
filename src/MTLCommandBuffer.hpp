@@ -29,7 +29,7 @@ struct BufferMTL;
         void BindRenderPipeline(RGLRenderPipelinePtr) final;
         void BeginCompute(RGLComputePipelinePtr) final;
         void EndCompute() final;
-        void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ) final;
+        void DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ, uint32_t threadsPerThreadgroupX=1, uint32_t threadsPerThreadgroupY=1, uint32_t threadsPerThreadgroupZ=1) final;
 
         void BeginRendering(RGLRenderPassPtr) final;
         void EndRendering() final;
@@ -59,8 +59,10 @@ struct BufferMTL;
         void SetScissor(const Rect&) final;
         
         void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) final;
+        void CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) final;
 
         void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
+        void TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position) final;
 
         void Commit(const CommitConfig&) final;
         

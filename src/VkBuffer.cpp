@@ -45,8 +45,15 @@ namespace RGL {
         if (config.options.TransferDestination || config.access == decltype(config.access)::Private) {
             usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         }
+        if (config.options.Transfersource) {
+            usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        }
 
         allocation = createBuffer(owningDevice.get(), config.nElements * config.stride, usage, memprop, buffer);
+
+        if (config.options.debugName) {
+            owningDevice->SetDebugNameForResource(buffer, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, config.options.debugName);
+        }
 
         mappedMemory.size = config.nElements * config.stride;
         stride = config.stride;
@@ -73,7 +80,7 @@ namespace RGL {
             // copy to staging buffer
             void* mappedPtr = nullptr;
             vmaMapMemory(owningDevice->vkallocator, tmpBufferAlloc, &mappedPtr);
-            std::memcpy(mappedPtr, ((char*)data.data()) + offset, data.size());
+            std::memcpy(mappedPtr, data.data(), data.size());
             vmaUnmapMemory(owningDevice->vkallocator, tmpBufferAlloc);
 
             // copy staging to real
@@ -82,7 +89,7 @@ namespace RGL {
 
             VkBufferCopy bufferCopyData{
                 .srcOffset = 0,
-                .dstOffset = 0,
+                .dstOffset = offset,
                 .size = data.size()
             };
 
