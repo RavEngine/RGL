@@ -57,7 +57,10 @@ namespace RGL {
 			
 			auto rtv = tx->owningDevice->RTVHeap->GetCpuHandle(tx->rtvIDX);
 
-			commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
+			if (currentRenderPass->config.attachments[i].loadOp == RGL::LoadAccessOperation::Clear) {
+				commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
+			}
+
 
 			rtvs[i] = rtv;
 
@@ -179,6 +182,7 @@ namespace RGL {
 		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
+		assert(thisTexture->srvAllocated(), "Cannot bind this texture because it is not in a heap!");
 		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
 		ID3D12DescriptorHeap* heapForThis[] = { srvheap->Heap() };
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
