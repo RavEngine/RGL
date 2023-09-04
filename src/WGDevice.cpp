@@ -43,8 +43,8 @@ namespace RGL{
                 std::cout << "no adapter" << std::endl;
                 FatalError(std::string("Could not get WebGPU adapter: ") + message);
             }
-            userData.sem.release();
             userData.requestEnded = true;
+            userData.sem.release();
         };
 
         // Call to the WebGPU request adapter procedure
@@ -55,6 +55,7 @@ namespace RGL{
             (void*)&userData
         );
         std::cout << "waiting for adapter" << std::endl;
+        std::cout << "requestEnded = " << userData.requestEnded << std::endl;
         userData.sem.acquire();
 
         // In theory we should wait until onAdapterReady has been called, which
@@ -108,7 +109,14 @@ namespace RGL{
     }
 
     DeviceWG::DeviceWG() {
-        WGPURequestAdapterOptions adapterOpts{};
+        WGPURequestAdapterOptions adapterOpts{
+            .nextInChain = nullptr,
+            .compatibleSurface = nullptr,
+            .powerPreference = WGPUPowerPreference_HighPerformance,
+            .backendType = WGPUBackendType_WebGPU,
+            .forceFallbackAdapter = false,
+            .compatibilityMode = false
+        };
         adapter = requestAdapter(instance,&adapterOpts);
 
         WGPUDeviceDescriptor deviceDesc{
