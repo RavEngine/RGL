@@ -7,6 +7,7 @@
 #include <format>
 #include <iostream>
 #include <semaphore>
+#include <emscripten.h>
 
 namespace RGL{
     /**
@@ -34,13 +35,10 @@ namespace RGL{
         // provided as the last argument of wgpuInstanceRequestAdapter and received
         // by the callback as its last argument.
         auto onAdapterRequestEnded = [](WGPURequestAdapterStatus status, WGPUAdapter adapter, char const * message, void * pUserData) {
-            std::cout << "in callback" << std::endl;
             UserData& userData = *reinterpret_cast<UserData*>(pUserData);
             if (status == WGPURequestAdapterStatus_Success) {
                 userData.adapter = adapter;
-                std::cout << "got adapter" << std::endl;
             } else {
-                std::cout << "no adapter" << std::endl;
                 FatalError(std::string("Could not get WebGPU adapter: ") + message);
             }
             userData.requestEnded = true;
@@ -54,14 +52,8 @@ namespace RGL{
             onAdapterRequestEnded,
             (void*)&userData
         );
-        std::cout << "waiting for adapter" << std::endl;
-        std::cout << "requestEnded = " << userData.requestEnded << std::endl;
+        emscripten_sleep(100);
         userData.sem.acquire();
-
-        // In theory we should wait until onAdapterReady has been called, which
-        // could take some time (what the 'await' keyword does in the JavaScript
-        // code). In practice, we know that when the wgpuInstanceRequestAdapter()
-        // function returns its callback has been called.
         assert(userData.requestEnded);
 
         return userData.adapter;
@@ -78,6 +70,7 @@ namespace RGL{
         struct UserData {
             WGPUDevice device = nullptr;
             bool requestEnded = false;
+            std::binary_semaphore sem{0};
         };
         UserData userData;
 
@@ -89,6 +82,7 @@ namespace RGL{
                 FatalError(std::string( "Could not get WebGPU adapter: " ) + message);
             }
             userData.requestEnded = true;
+            userData.sem.release();
         };
 
         wgpuAdapterRequestDevice(
@@ -97,7 +91,8 @@ namespace RGL{
             onDeviceRequestEnded,
             (void*)&userData
         );
-
+        emscripten_sleep(300);
+        userData.sem.acquire();
         assert(userData.requestEnded);
 
         return userData.device;
@@ -186,6 +181,7 @@ RGLBufferPtr DeviceWG::CreateBuffer(const BufferConfig& config) {
 }
 
 RGLCommandQueuePtr DeviceWG::CreateCommandQueue(QueueType type) {
+    return std::make_shared<CommandQueueWG>(shared_from_this());
 }
 
 RGLFencePtr DeviceWG::CreateFence(bool preSignaled) {
