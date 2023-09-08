@@ -1,5 +1,6 @@
 #if RGL_WEBGPU_AVAILABLE
 #include "WGSwapchain.hpp"
+#include "WGDevice.hpp"
 #include <emscripten/html5_webgpu.h>
 
 namespace RGL{
@@ -12,11 +13,27 @@ namespace RGL{
             .usage = WGPUTextureUsage_RenderAttachment,
             .presentMode = WGPUPresentMode_Fifo,
         };
-        swapchain = wgpuDeviceCreateSwapChain(device, surface->surface, &swapChainDesc)
+        swapchain = wgpuDeviceCreateSwapChain(owningDevice->device, surface->surface, &swapChainDesc);
     }
 
     SwapchainWG::~SwapchainWG(){
-        wgpuSwapchainRelease(swapchain);
+        wgpuSwapChainRelease(swapchain);
+    }
+
+    void SwapchainWG::Resize(uint32_t width, uint32_t height){
+
+    }
+
+    void SwapchainWG::GetNextImage(uint32_t* index){
+
+    }
+
+    ITexture* SwapchainWG::ImageAtIndex(uint32_t index){
+        return nullptr;
+    }
+
+    void SwapchainWG::Present(const SwapchainPresentConfig&){
+        
     }
 }
 

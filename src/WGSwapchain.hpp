@@ -6,6 +6,7 @@
 #include <array>
 
 namespace RGL{
+    struct DeviceWG;
 	struct SwapchainWG : public ISwapchain{
         WGPUSwapChain swapchain;
 		std::shared_ptr<SurfaceWG> surface;

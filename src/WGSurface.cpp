@@ -19,7 +19,6 @@ namespace RGL{
             .nextInChain = &canvasDesc.chain,
             .label = "Surface"
         };
-        std::cout << static_cast<const void*>(canvasDesc.selector) << std::endl;
         surface = wgpuInstanceCreateSurface(instance, &desc);
     }
 

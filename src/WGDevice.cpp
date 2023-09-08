@@ -4,6 +4,7 @@
 #include "RGLWG.hpp"
 #include "WGCommandQueue.hpp"
 #include "WGFence.hpp"
+#include "WGSwapchain.hpp"
 #include <cassert>
 #include <format>
 #include <iostream>
@@ -148,7 +149,7 @@ size_t DeviceWG::GetCurrentVRAMInUse() const{
 }
 
 RGLSwapchainPtr DeviceWG::CreateSwapchain(RGLSurfacePtr isurface, RGLCommandQueuePtr presentQueue, int width, int height){
-  
+    return std::make_shared<SwapchainWG>(std::static_pointer_cast<SurfaceWG>(isurface), width, height, shared_from_this());
 }
 
 RGLPipelineLayoutPtr DeviceWG::CreatePipelineLayout(const PipelineLayoutDescriptor& desc) {
