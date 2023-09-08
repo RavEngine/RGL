@@ -8,10 +8,18 @@ namespace RGL{
 
     SurfaceWG::SurfaceWG(const void* pointer){
         // we are expecting a CSS selector string, like "#canvas", for the value of pointer
-        WGPUSurfaceDescriptor desc{
-            .nextInChain = nullptr,
-            .label = static_cast<const char* const>(pointer)
+        WGPUSurfaceDescriptorFromCanvasHTMLSelector canvasDesc{
+            .chain = {
+                .next = nullptr,
+                .sType = WGPUSType_SurfaceDescriptorFromCanvasHTMLSelector 
+            },
+            .selector = static_cast<const char* const>(pointer)
         };
+        WGPUSurfaceDescriptor desc{
+            .nextInChain = &canvasDesc.chain,
+            .label = "Surface"
+        };
+        std::cout << static_cast<const void*>(canvasDesc.selector) << std::endl;
         surface = wgpuInstanceCreateSurface(instance, &desc);
     }
 

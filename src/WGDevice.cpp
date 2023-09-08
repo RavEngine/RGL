@@ -3,6 +3,7 @@
 #include "RGLCommon.hpp"
 #include "RGLWG.hpp"
 #include "WGCommandQueue.hpp"
+#include "WGFence.hpp"
 #include <cassert>
 #include <format>
 #include <iostream>
@@ -185,6 +186,7 @@ RGLCommandQueuePtr DeviceWG::CreateCommandQueue(QueueType type) {
 }
 
 RGLFencePtr DeviceWG::CreateFence(bool preSignaled) {
+    return std::make_shared<FenceWG>();
 }
 
 RGLTexturePtr DeviceWG::CreateTextureWithData(const TextureConfig& config, untyped_span data){
