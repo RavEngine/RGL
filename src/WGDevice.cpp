@@ -138,7 +138,12 @@ namespace RGL{
     }
 
 std::string DeviceWG::GetBrandString() {
-   return "Unknown WebGPU device";
+    /*
+    WGPUAdapterProperties properties;
+    wgpuAdapterGetProperties(adapter,&properties);
+    return properties.name;
+    */
+    return "Unknown WebGPU device";
 }
 
 size_t DeviceWG::GetTotalVRAM() const{
