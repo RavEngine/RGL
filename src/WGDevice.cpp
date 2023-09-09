@@ -5,6 +5,7 @@
 #include "WGCommandQueue.hpp"
 #include "WGFence.hpp"
 #include "WGSwapchain.hpp"
+#include "WGShaderLibrary.hpp"
 #include <cassert>
 #include <format>
 #include <iostream>
@@ -174,14 +175,15 @@ RGLShaderLibraryPtr DeviceWG::CreateShaderLibraryFromName(const std::string_view
 }
 
 RGLShaderLibraryPtr DeviceWG::CreateShaderLibraryFromBytes(const std::span<const uint8_t>) {
-    FatalError("Not Implemented");
+    FatalError("CreateShaderLibraryFromBytes Implemented");
 }
 
 RGLShaderLibraryPtr DeviceWG::CreateShaderLibrarySourceCode(const std::string_view source, const FromSourceConfig& config) {
+    return std::make_shared<ShaderLibraryWG>(shared_from_this(),source, config);
 }
 
-RGLShaderLibraryPtr DeviceWG::CreateShaderLibraryFromPath(const std::filesystem::path&) {
-    FatalError("ShaderLibraryMTL");
+RGLShaderLibraryPtr DeviceWG::CreateShaderLibraryFromPath(const std::filesystem::path& path) {
+     return std::make_shared<ShaderLibraryWG>(shared_from_this(),path);
 }
 
 RGLBufferPtr DeviceWG::CreateBuffer(const BufferConfig& config) {
