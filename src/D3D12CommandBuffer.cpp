@@ -43,6 +43,9 @@ namespace RGL {
 		stackarray(barriers, CD3DX12_RESOURCE_BARRIER, activeResources.size());
 		int i = 0;
 		for (const auto& [resource, state] : activeResources) {
+			if (state == resource->nativeState) {
+				continue;	// states must be different.
+			}
 			barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(
 				resource->GetResource(),
 				state,
@@ -50,7 +53,7 @@ namespace RGL {
 			);
 			i++;
 		}
-		commandList->ResourceBarrier(activeResources.size(), barriers);
+		commandList->ResourceBarrier(i, barriers);
 
 
 		DX_CHECK(commandList->Close());
@@ -91,7 +94,7 @@ namespace RGL {
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
-				TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
 				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
 				dsvptr = &dsv;
