@@ -39,11 +39,27 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::End()
 	{
+		// put all the resources back in their native states
+		stackarray(barriers, CD3DX12_RESOURCE_BARRIER, activeResources.size());
+		int i = 0;
+		for (const auto& [resource, state] : activeResources) {
+			barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(
+				resource->GetResource(),
+				state,
+				resource->nativeState
+			);
+			i++;
+		}
+		commandList->ResourceBarrier(activeResources.size(), barriers);
+
+
 		DX_CHECK(commandList->Close());
 		ended = true;
+		activeResources.clear();
 	}
 	void CommandBufferD3D12::BeginRendering(RGLRenderPassPtr renderPass)
 	{
+//#error check resource state 
 		currentRenderPass = std::static_pointer_cast<RenderPassD3D12>(renderPass);
 
 		const auto nrtvs = currentRenderPass->config.attachments.size();
@@ -52,6 +68,8 @@ namespace RGL {
 		uint32_t i = 0;
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
+
+			TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 			Assert(tx->rtvAllocated(),"This texture was not allocated as a render target!");
 			
@@ -73,6 +91,7 @@ namespace RGL {
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
+				TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
 				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
 				dsvptr = &dsv;
@@ -113,6 +132,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
+//#error check resource state 
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
 		const auto layout = currentRenderPipeline->pipelineLayout;
 		const auto bindPoint = layout->slotForBufferIdx(bindingOffset);
@@ -125,6 +145,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
+//#error check resource state 
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
 		const auto currentLayout = currentComputePipeline->pipelineLayout;
 		const auto slotidx = currentLayout->slotForBufferIdx(bindingOffset);
@@ -138,6 +159,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo)
 	{
+//#error check resource state 
 		commandList->IASetVertexBuffers(bindingInfo.bindingPosition, 1, &std::static_pointer_cast<BufferD3D12>(buffer)->vertexBufferView + bindingInfo.offsetIntoBuffer);
 	}
 	void CommandBufferD3D12::SetVertexBytes(const untyped_span data, uint32_t offset)
@@ -157,6 +179,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetIndexBuffer(RGLBufferPtr buffer)
 	{
+//#error check resource state 
 		commandList->IASetIndexBuffer(&(std::static_pointer_cast<BufferD3D12>(buffer)->indexBufferView));
 	}
 	void CommandBufferD3D12::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
@@ -179,6 +202,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
+//#error check resource state 
 		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
@@ -302,12 +326,13 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
+//#error check resource state 
 		auto fromBuffer = std::static_pointer_cast<BufferD3D12>(from.buffer);
 		auto toBuffer = std::static_pointer_cast<BufferD3D12>(to.buffer);
 
 		auto preBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			toBuffer->buffer.Get(),
-			toBuffer->initialState,
+			toBuffer->nativeState,
 			D3D12_RESOURCE_STATE_COPY_DEST 
 		);
 		commandList->ResourceBarrier(1, &preBarrier);
@@ -316,35 +341,16 @@ namespace RGL {
 		auto postBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			toBuffer->buffer.Get(),
 			D3D12_RESOURCE_STATE_COPY_DEST,
-			toBuffer->initialState
+			toBuffer->nativeState
 		);
 		commandList->ResourceBarrier(1, &postBarrier);
 	}
 	void CommandBufferD3D12::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
-		TransitionResources({
-			{
-				.texture = texture,
-				.from = current,
-				.to = target
-			},
-			}, position);
+		
 	}
 	void CommandBufferD3D12::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
 	{
-		auto count = transitions.size();
-		stackarray(barriers, CD3DX12_RESOURCE_BARRIER, count);
-		uint32_t i = 0;
-		for (const auto& transition : transitions) {
-			auto casted = static_cast<const TextureD3D12*>(transition.texture);
-			barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(
-				casted->texture.Get(),
-				rgl2d3d12resourcestate(transition.from),
-				rgl2d3d12resourcestate(transition.to)
-			);
-			i++;
-		}
-		commandList->ResourceBarrier(count, barriers);
 	}
 
 	void CommandBufferD3D12::Commit(const CommitConfig& config)
@@ -357,6 +363,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{
+//#error check indirect buffer state
 		auto buffer = std::static_pointer_cast<BufferD3D12>(config.indirectBuffer);
 		auto sig = buffer->owningDevice->multidrawIndexedSignature;
 		commandList->ExecuteIndirect(
@@ -370,6 +377,7 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::ExecuteIndirect(const IndirectConfig& config)
 	{
+//#error check indirect buffer state
 		auto buffer = std::static_pointer_cast<BufferD3D12>(config.indirectBuffer);
 		auto sig = buffer->owningDevice->multidrawSignature;
 		commandList->ExecuteIndirect(
@@ -400,6 +408,57 @@ namespace RGL {
 	void CommandBufferD3D12::EndComputeDebugMarker()
 	{
 		EndRenderDebugMarker();
+	}
+	void CommandBufferD3D12::TransitionIfNeeded(BufferD3D12* buffer, D3D12_RESOURCE_STATES needed)
+	{
+		// only UAV buffers need to be transitioned
+		if (!buffer->isWritable) {
+			return;
+		}
+
+		// track the resource if it's not already in there
+		auto it = activeResources.find(buffer);
+
+		if (it == activeResources.end()) {
+			activeResources[buffer] = buffer->nativeState;
+		}
+
+		// do the resource transition
+		D3D12_RESOURCE_BARRIER barrier{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.UAV = {
+				.pResource = buffer->buffer.Get(),
+			}
+		};
+		//TODO: barriers of size 1 are inefficient. We should batch these somehow.
+		commandList->ResourceBarrier(1, &barrier);
+		
+	}
+	void CommandBufferD3D12::TransitionIfNeeded(TextureD3D12* texture, D3D12_RESOURCE_STATES needed)
+	{
+		auto it = activeResources.find(texture);
+
+		if (it == activeResources.end()) {
+			activeResources[texture] = texture->nativeState;
+			it = activeResources.find(texture);
+		}
+
+		auto current = (*it).second;
+		if (current == needed) {
+			return;
+		}
+
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			texture->texture.Get(),
+			current,
+			needed
+		);
+		// update tracker
+		(*it).second = needed;
+
+		//TODO: barriers of size 1 are inefficient. We should batch these somehow.
+		commandList->ResourceBarrier(1, &barrier);
 	}
 }
 

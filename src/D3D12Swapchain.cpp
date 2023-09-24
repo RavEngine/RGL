@@ -41,7 +41,7 @@ namespace RGL {
         return allowTearing == TRUE;
     }
 
-    ComPtr<IDXGISwapChain4> CreateSwapChain(void* hWndPtr,
+    ComPtr<IDXGISwapChain4> CreateSwapChain(const void* hWndPtr,
         ComPtr<ID3D12CommandQueue> commandQueue,
         uint32_t width, uint32_t height, uint32_t bufferCount)
     {
@@ -72,7 +72,7 @@ namespace RGL {
         ComPtr<IDXGISwapChain1> swapChain1;
 
 #if !_UWP
-        auto hwnd = *static_cast<HWND*>(hWndPtr);
+        auto hwnd = *static_cast<const HWND*>(hWndPtr);
         DX_CHECK(dxgiFactory4->CreateSwapChainForHwnd(
             commandQueue.Get(),
             hwnd,
