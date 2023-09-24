@@ -23,7 +23,11 @@ namespace RGL {
 
 		//TODO: also store if the last use was a write or a read
 		//if a read, then we need to insert a standard barrier even if it's already in the right state
-		std::unordered_map<struct D3D12TrackedResource*, D3D12_RESOURCE_STATES> activeResources;
+		struct ResourceLastUse {
+			D3D12_RESOURCE_STATES state;
+			bool written = false;
+		};
+		std::unordered_map<const struct D3D12TrackedResource*, ResourceLastUse> activeResources;
 
 		bool ended = false;
 
@@ -93,7 +97,7 @@ namespace RGL {
 
 		virtual ~CommandBufferD3D12() {}
 	private:
-		void TransitionIfNeeded(BufferD3D12* buffer, D3D12_RESOURCE_STATES needed);
-		void TransitionIfNeeded(TextureD3D12* texture, D3D12_RESOURCE_STATES needed);
+		void SyncIfNeeded(const BufferD3D12* buffer, D3D12_RESOURCE_STATES needed, bool written = false);
+		void SyncIfNeeded(const TextureD3D12* texture, D3D12_RESOURCE_STATES needed, bool written = false);
 	};
 }

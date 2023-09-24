@@ -54,7 +54,7 @@ namespace RGL {
 
 		virtual ~BufferD3D12();
 
-		ID3D12Resource* GetResource() final {
+		ID3D12Resource* GetResource() const final {
 			return buffer.Get();
 		}
 	};

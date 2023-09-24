@@ -51,9 +51,14 @@ namespace RGL {
 		D3D12_SUBRESOURCE_DATA initData = { bytes.data(), bytes.size() / config.height, bytes.size()};
 		upload.Upload(texture.Get(), 0, &initData, 1);
 
+		constexpr static auto endState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
 		upload.Transition(texture.Get(),
 			D3D12_RESOURCE_STATE_COPY_DEST,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			endState
+			);
+
+		nativeState = endState;
 
 		auto finish = upload.End(owningDevice->internalQueue->m_d3d12CommandQueue.Get());
 		finish.wait();

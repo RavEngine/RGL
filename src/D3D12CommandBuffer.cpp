@@ -42,18 +42,20 @@ namespace RGL {
 		// put all the resources back in their native states
 		stackarray(barriers, CD3DX12_RESOURCE_BARRIER, activeResources.size());
 		int i = 0;
-		for (const auto& [resource, state] : activeResources) {
-			if (state == resource->nativeState) {
+		for (const auto& [resource, record] : activeResources) {
+			if (record.state == resource->nativeState) {
 				continue;	// states must be different.
 			}
 			barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(
 				resource->GetResource(),
-				state,
+				record.state,
 				resource->nativeState
 			);
 			i++;
 		}
-		commandList->ResourceBarrier(i, barriers);
+		if (i > 0) {
+			commandList->ResourceBarrier(i, barriers);
+		}
 
 
 		DX_CHECK(commandList->Close());
@@ -72,7 +74,7 @@ namespace RGL {
 		for (const auto& attachment : currentRenderPass->config.attachments) {
 			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
 
-			TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			SyncIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 			Assert(tx->rtvAllocated(),"This texture was not allocated as a render target!");
 			
@@ -94,7 +96,7 @@ namespace RGL {
 		{
 			if (currentRenderPass->depthTexture) {
 				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
-				TransitionIfNeeded(tx, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				SyncIfNeeded(tx, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
 				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
 				dsvptr = &dsv;
@@ -205,10 +207,18 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
-//#error check resource state 
+		auto thisTexture = static_cast<const TextureD3D12*>(texture);
+
+		constexpr static auto depthReadState = D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+		constexpr static auto colorReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+		auto neededState = thisTexture->dsvAllocated() ? depthReadState : colorReadState;
+
+		SyncIfNeeded(thisTexture, neededState);
+
 		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
-		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 		assert(thisTexture->srvAllocated(), "Cannot bind this texture because it is not in a heap!");
 		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
 		ID3D12DescriptorHeap* heapForThis[] = { srvheap->Heap() };
@@ -412,7 +422,7 @@ namespace RGL {
 	{
 		EndRenderDebugMarker();
 	}
-	void CommandBufferD3D12::TransitionIfNeeded(BufferD3D12* buffer, D3D12_RESOURCE_STATES needed)
+	void CommandBufferD3D12::SyncIfNeeded(const BufferD3D12* buffer, D3D12_RESOURCE_STATES needed, bool written)
 	{
 		// only UAV buffers need to be transitioned
 		if (!buffer->isWritable) {
@@ -423,7 +433,10 @@ namespace RGL {
 		auto it = activeResources.find(buffer);
 
 		if (it == activeResources.end()) {
-			activeResources[buffer] = buffer->nativeState;
+			activeResources[buffer] = {
+				.state = buffer->nativeState,
+				.written = false
+			};
 		}
 
 		// do the resource transition
@@ -438,16 +451,19 @@ namespace RGL {
 		commandList->ResourceBarrier(1, &barrier);
 		
 	}
-	void CommandBufferD3D12::TransitionIfNeeded(TextureD3D12* texture, D3D12_RESOURCE_STATES needed)
+	void CommandBufferD3D12::SyncIfNeeded(const TextureD3D12* texture, D3D12_RESOURCE_STATES needed, bool written)
 	{
 		auto it = activeResources.find(texture);
 
 		if (it == activeResources.end()) {
-			activeResources[texture] = texture->nativeState;
+			activeResources[texture] = {
+				.state = texture->nativeState,
+				.written = false
+			};
 			it = activeResources.find(texture);
 		}
 
-		auto current = (*it).second;
+		auto current = (*it).second.state;
 		if (current == needed) {
 			return;
 		}
@@ -458,7 +474,10 @@ namespace RGL {
 			needed
 		);
 		// update tracker
-		(*it).second = needed;
+		(*it).second = {
+			.state = needed,
+			.written = written
+		};
 
 		//TODO: barriers of size 1 are inefficient. We should batch these somehow.
 		commandList->ResourceBarrier(1, &barrier);

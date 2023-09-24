@@ -46,7 +46,7 @@ namespace RGL {
 		Dimension GetSize() const final;
 		virtual ~TextureD3D12();
 
-		ID3D12Resource* GetResource() final {
+		ID3D12Resource* GetResource() const final {
 			return texture.Get();
 		}
 	};
