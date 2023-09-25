@@ -99,5 +99,6 @@ namespace RGL {
 	private:
 		void SyncIfNeeded(const BufferD3D12* buffer, D3D12_RESOURCE_STATES needed, bool written = false);
 		void SyncIfNeeded(const TextureD3D12* texture, D3D12_RESOURCE_STATES needed, bool written = false);
+		D3D12_RESOURCE_STATES GetCurrentResourceState(const struct D3D12TrackedResource*);
 	};
 }
