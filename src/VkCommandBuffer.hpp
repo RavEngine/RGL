@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include "RGLVk.hpp"
 #include <unordered_set>
+#include <unordered_map>
 
 namespace RGL {
 	struct DeviceVk;
@@ -20,6 +21,86 @@ namespace RGL {
 		std::shared_ptr<struct ComputePipelineVk> currentComputePipeline = nullptr;
 
 		std::unordered_set<struct SwapchainVK*> swapchainsToSignal;
+
+		struct TextureLastUse {
+			VkImageLayout lastLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			bool written = false;
+		};
+
+		struct BufferLastUse {
+			bool written = false;
+		};
+
+		std::unordered_map<const struct TextureVk*, TextureLastUse> activeTextures;
+		std::unordered_set<const struct BufferVk*, BufferLastUse> activeBuffers;
+
+		struct CmdSetVertexBuffer {
+
+		};
+		struct CmdSetIndexBuffer {
+
+		};
+
+		struct CmdBindRenderPipeline {
+
+		};
+
+		struct CmdBindRenderBuffer {
+
+		};
+
+		struct CmdSetPushConstantData {
+
+		};
+		
+		struct CmdSetSampler {
+
+		};
+
+		struct CmdSetTexture {
+
+		};
+
+		struct CmdDraw {
+
+		};
+
+		struct CmdDrawIndexed {
+
+		};
+
+		struct CmdExecuteIndirect {
+
+		};
+
+		struct CmdExecuteIndirectIndexed {
+
+		};
+
+		struct CmdDebugMarker {
+
+		};
+
+		struct CmdBegin {
+
+		};
+
+		std::vector<std::variant<
+			CmdSetVertexBuffer, 
+			CmdSetIndexBuffer,
+			CmdBindRenderPipeline,
+			CmdBindRenderBuffer,
+			CmdSetPushConstantData,
+			CmdSetSampler,
+			CmdSetTexture,
+			CmdDraw,
+			CmdDrawIndexed,
+			CmdExecuteIndirect,
+			CmdExecuteIndirectIndexed,
+			CmdDebugMarker,
+			CmdBegin
+			>
+		> renderCommands;
 
 		CommandBufferVk(decltype(owningQueue) owningQueue);
 
@@ -85,5 +166,7 @@ namespace RGL {
 
 	private:
 		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);
+		void RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage);
+		void RecordTextureBinding(const TextureVk texture, TextureLastUse usage);
 	};
 }

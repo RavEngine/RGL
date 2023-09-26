@@ -74,6 +74,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginRendering(RGLRenderPassPtr renderPassPtr)
 	{
+#error check attachment states
 		auto renderPass = std::static_pointer_cast<RenderPassVk>(renderPassPtr);
 		currentRenderPass = renderPass;
 
@@ -257,7 +258,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		SetVertexSampler(sampler,index);
+		SetFragmentSampler(sampler,index);
 	}
 	void CommandBufferVk::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
@@ -292,6 +293,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
+#error check texture status
 		auto castedImage = static_cast<const TextureVk*>(texture);
 		VkDescriptorImageInfo imginfo{
 					.sampler = VK_NULL_HANDLE,
