@@ -23,6 +23,8 @@ namespace RGL {
 		const TextureConfig createdConfig;
 		VkImageAspectFlags createdAspectVk = VK_IMAGE_ASPECT_COLOR_BIT;
 
+		VkImageLayout nativeFormat = VK_IMAGE_LAYOUT_UNDEFINED;
+
 		VmaAllocation alloc = VK_NULL_HANDLE;
 	};
 

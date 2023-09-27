@@ -74,90 +74,41 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginRendering(RGLRenderPassPtr renderPassPtr)
 	{
-#error check attachment states
+		EncodeCommand(CmdBeginRendering{ renderPassPtr });
+
 		auto renderPass = std::static_pointer_cast<RenderPassVk>(renderPassPtr);
-		currentRenderPass = renderPass;
-
-		stackarray(attachmentInfos, VkRenderingAttachmentInfoKHR, renderPass->config.attachments.size());
-
-		auto makeAttachmentInfo = [](const RenderPassConfig::AttachmentDesc& attachment, VkImageView imageView) -> VkRenderingAttachmentInfoKHR {
-			VkClearValue clearColor = { {{attachment.clearColor[0], attachment.clearColor[1], attachment.clearColor[2], attachment.clearColor[3]}} };
-
-			return {
-				.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-				.imageView = imageView,
-				.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
-				.loadOp = RGL2LoadOp(attachment.loadOp),
-				.storeOp = RGL2StoreOp(attachment.storeOp),
-				.clearValue = clearColor,
-			};
-		};
-
-
 		uint32_t i = 0;
 		for (const auto& attachment : renderPass->config.attachments) {
-			
-			attachmentInfos[i] = makeAttachmentInfo(attachment, renderPass->textures[i]->vkImageView);
-
-			// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
-			auto castedImage = static_cast<TextureVk*>(renderPass->textures[i]);
-
-			if (castedImage->owningSwapchain) {
-				swapchainsToSignal.insert(castedImage->owningSwapchain);
-			}
-
+			RecordTextureBinding(renderPass->textures[i], {
+					.lastLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+					.written = true
+				}
+			);
 			i++;
 		}
 
-		// repeat for depth stencil attachment
-		RGL::Dimension texSize{};
-		if (renderPass->textures.size() > 0) {
-			texSize = renderPass->textures[0]->GetSize();
-		}
-		else if (renderPass->depthTexture) {
-			texSize = renderPass->depthTexture->GetSize();
-		}
-		else {
-			FatalError("No rendertargets are bound, cannot get texture size for beginRendering");
-		}
-		
-		VkRenderingAttachmentInfoKHR* depthAttachmentinfo = nullptr;
-		VkRenderingAttachmentInfoKHR depthAttachmentInfoData{};
-
 		if (renderPass->config.depthAttachment.has_value()) {
-			auto& da = renderPass->config.depthAttachment.value();
-			depthAttachmentInfoData = makeAttachmentInfo(da, renderPass->depthTexture->vkImageView);
-			depthAttachmentinfo = &depthAttachmentInfoData;
+			RecordTextureBinding(renderPass->depthTexture,
+				{
+					.lastLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+					.written = true
+				}
+			);
 		}
-
-		VkRenderingAttachmentInfoKHR* stencilAttachmentInfo = nullptr;
-		VkRenderingAttachmentInfoKHR stencilAttachmentInfoData{};
 
 		if (renderPass->config.stencilAttachment.has_value()) {
-			auto& sa = renderPass->config.stencilAttachment.value();
-			stencilAttachmentInfoData = makeAttachmentInfo(sa, renderPass->depthTexture->vkImageView);
-			stencilAttachmentInfo = &stencilAttachmentInfoData;
+			RecordTextureBinding(renderPass->stencilTexture,
+				{
+					.lastLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL,
+					.written = true
+				}
+			);
 		}
-
-
-		const VkRenderingInfoKHR render_info{
-			.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-			.renderArea = {
-				.offset = {0,0},
-				.extent = VkExtent2D{.width = texSize.width, .height = texSize.height},
-			},
-			.layerCount = 1,
-			.colorAttachmentCount = static_cast<uint32_t>(renderPass->config.attachments.size()),
-			.pColorAttachments = attachmentInfos,
-			.pDepthAttachment = depthAttachmentinfo,
-			.pStencilAttachment = stencilAttachmentInfo
-		};
-
-
-		vkCmdBeginRendering(commandBuffer, &render_info);
 	}
+
 	void CommandBufferVk::EndRendering()
 	{
+		EndContext();
 		vkCmdEndRendering(commandBuffer);
 		currentRenderPipeline = nullptr;	// reset this to avoid having stale state
 	}
@@ -216,10 +167,8 @@ namespace RGL {
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo)
 	{
-		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
-		VkBuffer vertexBuffers[] = { vkbuffer->buffer };
-		VkDeviceSize offsets[] = { bindingInfo.offsetIntoBuffer * vkbuffer->stride };
-		vkCmdBindVertexBuffers(commandBuffer, bindingInfo.bindingPosition, std::size(vertexBuffers), vertexBuffers, offsets);
+		//TODO: check if buffer needs a barrier
+		EncodeCommand(CmdSetVertexBuffer{ buffer,bindingInfo });
 	}
 
 	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages)
@@ -252,40 +201,16 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
-		const auto casted = std::static_pointer_cast<BufferVk>(buffer);
-		const auto size_type = casted->stride == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
-		vkCmdBindIndexBuffer(commandBuffer, casted->buffer, 0, size_type);
+		//TODO: check if buffer needs a barrier
+		EncodeCommand( CmdSetIndexBuffer{buffer} );
 	}
 	void CommandBufferVk::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		SetFragmentSampler(sampler,index);
+		EncodeCommand(CmdSetSampler{ sampler, index });
 	}
 	void CommandBufferVk::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
-		VkDescriptorImageInfo imginfo{
-					.sampler = std::static_pointer_cast<SamplerVk>(sampler)->sampler,
-					.imageView = VK_NULL_HANDLE,
-					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		};
-		VkWriteDescriptorSet writeinfo{
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.dstSet = VK_NULL_HANDLE,
-				.dstBinding = index,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
-				.pImageInfo = &imginfo,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr
-		};
-		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
-			commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			currentRenderPipeline->pipelineLayout->layout,
-			0,
-			1,
-			&writeinfo
-		);
+		EncodeCommand(CmdSetSampler{ sampler, index });
 	}
 	void CommandBufferVk::SetVertexTexture(const ITexture* texture, uint32_t index)
 	{
@@ -293,45 +218,22 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetFragmentTexture(const ITexture* texture, uint32_t index)
 	{
-#error check texture status
-		auto castedImage = static_cast<const TextureVk*>(texture);
-		VkDescriptorImageInfo imginfo{
-					.sampler = VK_NULL_HANDLE,
-					.imageView = castedImage->vkImageView,
-					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		};
-		VkWriteDescriptorSet writeinfo{
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.dstSet = VK_NULL_HANDLE,
-				.dstBinding = index,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
-				.pImageInfo = &imginfo,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr
-		};
-		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
-			commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			currentRenderPipeline->pipelineLayout->layout,
-			0,
-			1,
-			&writeinfo
+		EncodeCommand(CmdSetTexture{ texture, index });
+		
+		auto vktexture = static_cast<const TextureVk*>(texture);
+		RecordTextureBinding(vktexture, {
+					.lastLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL,
+					.written = true
+			}
 		);
-
-		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
-		if (castedImage->owningSwapchain) {
-			swapchainsToSignal.insert(castedImage->owningSwapchain);
-		}
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
-		vkCmdDraw(commandBuffer, nVertices, config.nInstances, config.startVertex, config.firstInstance);
+		EncodeCommand(CmdDraw{ nVertices, config });
 	}
 	void CommandBufferVk::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& config)
 	{
-		vkCmdDrawIndexed(commandBuffer, nIndices, config.nInstances, config.firstIndex, config.startVertex, config.firstInstance);
+		EncodeCommand(CmdDrawIndexed{nIndices, config});
 	}
 	void CommandBufferVk::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
@@ -623,6 +525,249 @@ namespace RGL {
 	CommandBufferVk::~CommandBufferVk()
 	{
 		
+	}
+
+	void CommandBufferVk::RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage)
+	{
+
+	}
+
+	void CommandBufferVk::RecordTextureBinding(const TextureVk* texture, TextureLastUse usage)
+	{
+		auto it = activeTextures.find(texture);
+		auto needed = usage.lastLayout;
+
+		if (it == activeTextures.end()) {
+			activeTextures[texture] = {
+				.lastLayout = texture->nativeFormat,
+				.written = false
+			};
+			it = activeTextures.find(texture);
+		}
+
+		auto current = (*it).second.lastLayout;
+		if (current == needed) {
+			return;
+		}
+
+		VkImageMemoryBarrier transitionbarrier{
+					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+					.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+					.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+					.oldLayout = current,
+					.newLayout = needed,
+					.image = texture->vkImage,
+					.subresourceRange = {
+					  .aspectMask = texture->createdAspectVk,
+					  .baseMipLevel = 0,
+					  .levelCount = 1,
+					  .baseArrayLayer = 0,
+					  .layerCount = 1,
+					} 
+		};
+
+		// insert the transition barrier
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,  // srcStageMask	
+			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, // dstStageMask
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1, // imageMemoryBarrierCount
+			&transitionbarrier // pImageMemoryBarriers
+		);
+
+		// update tracker
+		(*it).second = {
+			.lastLayout = needed,
+			.written = usage.written
+		};
+	}
+
+	template<typename ... Ts>
+	struct Overload : Ts ... {
+		using Ts::operator() ...;
+	};
+	template<class... Ts> Overload(Ts...) -> Overload<Ts...>;
+	void CommandBufferVk::EndContext()
+	{
+		auto visitor = Overload{
+			[this](const CmdBeginRendering& arg) mutable {
+				auto renderPass = std::static_pointer_cast<RenderPassVk>(arg.pass);
+
+				currentRenderPass = renderPass;
+
+				stackarray(attachmentInfos, VkRenderingAttachmentInfoKHR, renderPass->config.attachments.size());
+
+				auto makeAttachmentInfo = [](const RenderPassConfig::AttachmentDesc& attachment, VkImageView imageView) -> VkRenderingAttachmentInfoKHR {
+					VkClearValue clearColor = { {{attachment.clearColor[0], attachment.clearColor[1], attachment.clearColor[2], attachment.clearColor[3]}} };
+
+					return {
+						.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+						.imageView = imageView,
+						.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
+						.loadOp = RGL2LoadOp(attachment.loadOp),
+						.storeOp = RGL2StoreOp(attachment.storeOp),
+						.clearValue = clearColor,
+					};
+				};
+
+
+				uint32_t i = 0;
+				for (const auto& attachment : renderPass->config.attachments) {
+
+					attachmentInfos[i] = makeAttachmentInfo(attachment, renderPass->textures[i]->vkImageView);
+
+					// the swapchain image may be in the wrong state (present state vs write state) so it needs to be transitioned
+					auto castedImage = static_cast<TextureVk*>(renderPass->textures[i]);
+
+					if (castedImage->owningSwapchain) {
+						swapchainsToSignal.insert(castedImage->owningSwapchain);
+					}
+
+					i++;
+				}
+
+				// repeat for depth stencil attachment
+				RGL::Dimension texSize{};
+				if (renderPass->textures.size() > 0) {
+					texSize = renderPass->textures[0]->GetSize();
+				}
+				else if (renderPass->depthTexture) {
+					texSize = renderPass->depthTexture->GetSize();
+				}
+				else {
+					FatalError("No rendertargets are bound, cannot get texture size for beginRendering");
+				}
+
+				VkRenderingAttachmentInfoKHR* depthAttachmentinfo = nullptr;
+				VkRenderingAttachmentInfoKHR depthAttachmentInfoData{};
+
+				if (renderPass->config.depthAttachment.has_value()) {
+					auto& da = renderPass->config.depthAttachment.value();
+					depthAttachmentInfoData = makeAttachmentInfo(da, renderPass->depthTexture->vkImageView);
+					depthAttachmentinfo = &depthAttachmentInfoData;
+				}
+
+				VkRenderingAttachmentInfoKHR* stencilAttachmentInfo = nullptr;
+				VkRenderingAttachmentInfoKHR stencilAttachmentInfoData{};
+
+				if (renderPass->config.stencilAttachment.has_value()) {
+					auto& sa = renderPass->config.stencilAttachment.value();
+					stencilAttachmentInfoData = makeAttachmentInfo(sa, renderPass->depthTexture->vkImageView);
+					stencilAttachmentInfo = &stencilAttachmentInfoData;
+				}
+
+
+				const VkRenderingInfoKHR render_info{
+					.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+					.renderArea = {
+						.offset = {0,0},
+						.extent = VkExtent2D{.width = texSize.width, .height = texSize.height},
+					},
+					.layerCount = 1,
+					.colorAttachmentCount = static_cast<uint32_t>(renderPass->config.attachments.size()),
+					.pColorAttachments = attachmentInfos,
+					.pDepthAttachment = depthAttachmentinfo,
+					.pStencilAttachment = stencilAttachmentInfo
+				};
+
+
+				vkCmdBeginRendering(commandBuffer, &render_info);
+			},
+			[this](const CmdSetVertexBuffer& arg) {
+				auto vkbuffer = std::static_pointer_cast<BufferVk>(arg.buffer);
+				VkBuffer vertexBuffers[] = { vkbuffer->buffer };
+				VkDeviceSize offsets[] = { arg.bindingInfo.offsetIntoBuffer * vkbuffer->stride };
+				vkCmdBindVertexBuffers(commandBuffer, arg.bindingInfo.bindingPosition, std::size(vertexBuffers), vertexBuffers, offsets);
+			},
+			[this](const CmdSetIndexBuffer& arg) {
+				const auto casted = std::static_pointer_cast<BufferVk>(arg.buffer);
+				const auto size_type = casted->stride == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+				vkCmdBindIndexBuffer(commandBuffer, casted->buffer, 0, size_type);
+			},
+			[this](const CmdSetSampler& arg) {
+				auto& sampler = arg.sampler;
+				auto index = arg.index;
+				VkDescriptorImageInfo imginfo{
+							.sampler = std::static_pointer_cast<SamplerVk>(sampler)->sampler,
+							.imageView = VK_NULL_HANDLE,
+							.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				};
+				VkWriteDescriptorSet writeinfo{
+						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+						.dstSet = VK_NULL_HANDLE,
+						.dstBinding = index,
+						.dstArrayElement = 0,
+						.descriptorCount = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+						.pImageInfo = &imginfo,
+						.pBufferInfo = nullptr,
+						.pTexelBufferView = nullptr
+				};
+				owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
+					commandBuffer,
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					currentRenderPipeline->pipelineLayout->layout,
+					0,
+					1,
+					&writeinfo
+				);
+			},
+			[this](const CmdSetTexture& arg) {
+				auto texture = arg.texture;
+				auto index = arg.index;
+				auto castedImage = static_cast<const TextureVk*>(texture);
+				auto nextLayout = castedImage->createdConfig.usage.DepthStencilAttachment ? VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+				RecordTextureBinding(castedImage, {
+					.lastLayout = nextLayout,
+					.written = true
+					});
+				VkDescriptorImageInfo imginfo{
+							.sampler = VK_NULL_HANDLE,
+							.imageView = castedImage->vkImageView,
+							.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				};
+				VkWriteDescriptorSet writeinfo{
+						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+						.dstSet = VK_NULL_HANDLE,
+						.dstBinding = index,
+						.dstArrayElement = 0,
+						.descriptorCount = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+						.pImageInfo = &imginfo,
+						.pBufferInfo = nullptr,
+						.pTexelBufferView = nullptr
+				};
+				owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
+					commandBuffer,
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					currentRenderPipeline->pipelineLayout->layout,
+					0,
+					1,
+					&writeinfo
+				);
+
+				if (castedImage->owningSwapchain) {
+					swapchainsToSignal.insert(castedImage->owningSwapchain);
+				}
+			},
+			[this](const CmdDraw& arg) {
+				vkCmdDraw(commandBuffer, arg.nVertices, arg.config.nInstances, arg.config.startVertex, arg.config.firstInstance);
+			},
+			[this](const CmdDrawIndexed& arg) {
+				vkCmdDrawIndexed(commandBuffer, arg.nIndices, arg.config.nInstances, arg.config.firstIndex, arg.config.startVertex, arg.config.firstInstance);
+			}
+		};
+
+		for (const auto& item : renderCommands) {
+			std::visit(visitor, item);
+		}
+
+		renderCommands.clear();
 	}
 }
 

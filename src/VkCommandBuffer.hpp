@@ -35,10 +35,11 @@ namespace RGL {
 		std::unordered_set<const struct BufferVk*, BufferLastUse> activeBuffers;
 
 		struct CmdSetVertexBuffer {
-
+			RGLBufferPtr buffer;
+			const VertexBufferBinding& bindingInfo;
 		};
 		struct CmdSetIndexBuffer {
-
+			RGLBufferPtr buffer;
 		};
 
 		struct CmdBindRenderPipeline {
@@ -54,19 +55,23 @@ namespace RGL {
 		};
 		
 		struct CmdSetSampler {
-
+			RGLSamplerPtr sampler;
+			uint32_t index;
 		};
 
 		struct CmdSetTexture {
-
+			const ITexture* texture;
+			uint32_t index;
 		};
 
 		struct CmdDraw {
-
+			uint32_t nVertices;
+			const DrawInstancedConfig& config;
 		};
 
 		struct CmdDrawIndexed {
-
+			uint32_t nIndices;
+			const DrawIndexedInstancedConfig& config;
 		};
 
 		struct CmdExecuteIndirect {
@@ -81,26 +86,32 @@ namespace RGL {
 
 		};
 
-		struct CmdBegin {
-
+		struct CmdBeginRendering {
+			RGLRenderPassPtr pass;
 		};
 
 		std::vector<std::variant<
 			CmdSetVertexBuffer, 
+			CmdBeginRendering,
 			CmdSetIndexBuffer,
-			CmdBindRenderPipeline,
-			CmdBindRenderBuffer,
-			CmdSetPushConstantData,
 			CmdSetSampler,
 			CmdSetTexture,
 			CmdDraw,
-			CmdDrawIndexed,
+			CmdDrawIndexed
+			/*CmdBindRenderPipeline,
+			CmdBindRenderBuffer,
+			CmdSetPushConstantData,
+			
 			CmdExecuteIndirect,
 			CmdExecuteIndirectIndexed,
 			CmdDebugMarker,
-			CmdBegin
+			*/
 			>
 		> renderCommands;
+
+		void EncodeCommand(auto&& commandValue) {
+			renderCommands.push_back(commandValue);
+		}
 
 		CommandBufferVk(decltype(owningQueue) owningQueue);
 
@@ -167,6 +178,7 @@ namespace RGL {
 	private:
 		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);
 		void RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage);
-		void RecordTextureBinding(const TextureVk texture, TextureLastUse usage);
+		void RecordTextureBinding(const TextureVk* texture, TextureLastUse usage);
+		void EndContext();
 	};
 }
