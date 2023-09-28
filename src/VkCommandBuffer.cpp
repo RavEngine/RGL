@@ -10,6 +10,7 @@
 #include "VkSwapchain.hpp"
 #include "VkComputePipeline.hpp"
 #include <cstring>
+#include <iostream>
 
 namespace RGL {
 	VkAttachmentLoadOp RGL2LoadOp(LoadAccessOperation op) {
@@ -184,11 +185,12 @@ namespace RGL {
 		EncodeCommand(CmdSetTexture{ texture, index });
 		
 		auto vktexture = static_cast<const TextureVk*>(texture);
+
+		auto nextLayout = vktexture->createdConfig.usage.DepthStencilAttachment ? VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		RecordTextureBinding(vktexture, {
-					.lastLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL,
-					.written = true
-			}
-		);
+			.lastLayout = nextLayout,
+			.written = true
+		});
 	}
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
@@ -499,6 +501,7 @@ namespace RGL {
 		if (current == needed) {
 			return;
 		}
+		std::cout << texture << " " << current << " => " << needed << "\n";
 
 		VkImageMemoryBarrier transitionbarrier{
 					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -671,11 +674,6 @@ namespace RGL {
 				auto texture = arg.texture;
 				auto index = arg.index;
 				auto castedImage = static_cast<const TextureVk*>(texture);
-				auto nextLayout = castedImage->createdConfig.usage.DepthStencilAttachment ? VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
-				RecordTextureBinding(castedImage, {
-					.lastLayout = nextLayout,
-					.written = true
-					});
 				VkDescriptorImageInfo imginfo{
 							.sampler = VK_NULL_HANDLE,
 							.imageView = castedImage->vkImageView,
