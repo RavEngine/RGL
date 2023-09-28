@@ -36,22 +36,28 @@ namespace RGL {
 
 		struct CmdSetVertexBuffer {
 			RGLBufferPtr buffer;
-			const VertexBufferBinding& bindingInfo;
+			const VertexBufferBinding bindingInfo;
 		};
 		struct CmdSetIndexBuffer {
 			RGLBufferPtr buffer;
 		};
 
 		struct CmdBindRenderPipeline {
-
+			RGLRenderPipelinePtr generic_pipeline;
 		};
 
-		struct CmdBindRenderBuffer {
-
+		struct CmdBindBuffer {
+			RGLBufferPtr buffer;
+			const uint32_t offsetIntoBuffer;
+			const uint32_t bindingOffset;
+			VkPipelineBindPoint bindPoint;
 		};
 
 		struct CmdSetPushConstantData {
-
+			std::byte data[128]{ };
+			uint32_t size = 0;
+			uint32_t offset = 0;
+			VkShaderStageFlags stages;
 		};
 		
 		struct CmdSetSampler {
@@ -66,25 +72,26 @@ namespace RGL {
 
 		struct CmdDraw {
 			uint32_t nVertices;
-			const DrawInstancedConfig& config;
+			const DrawInstancedConfig config;
 		};
 
 		struct CmdDrawIndexed {
 			uint32_t nIndices;
-			const DrawIndexedInstancedConfig& config;
+			const DrawIndexedInstancedConfig config;
 		};
 
 		struct CmdExecuteIndirect {
-
+			const IndirectConfig config;
 		};
 
 		struct CmdExecuteIndirectIndexed {
-
+			const IndirectConfig config;
 		};
 
-		struct CmdDebugMarker {
-
+		struct CmdBeginDebugMarker {
+			const std::string label;
 		};
+		struct CmdEndDebugMarker {};
 
 		struct CmdBeginRendering {
 			RGLRenderPassPtr pass;
@@ -97,15 +104,14 @@ namespace RGL {
 			CmdSetSampler,
 			CmdSetTexture,
 			CmdDraw,
-			CmdDrawIndexed
-			/*CmdBindRenderPipeline,
-			CmdBindRenderBuffer,
-			CmdSetPushConstantData,
-			
+			CmdDrawIndexed,
+			CmdBindBuffer,
 			CmdExecuteIndirect,
 			CmdExecuteIndirectIndexed,
-			CmdDebugMarker,
-			*/
+			CmdSetPushConstantData,
+			CmdBindRenderPipeline,
+			CmdBeginDebugMarker,
+			CmdEndDebugMarker
 			>
 		> renderCommands;
 

@@ -60,17 +60,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::BindRenderPipeline(RGLRenderPipelinePtr generic_pipeline)
 	{
-		auto pipeline = std::static_pointer_cast<RenderPipelineVk>(generic_pipeline);
-		
-
-		// drawing commands
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
-
-		/*
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout->layout, 0, 1, &pipeline->pipelineLayout->descriptorSet, 0, nullptr);
-		*/
-		currentRenderPipeline = pipeline;
-
+		EncodeCommand(CmdBindRenderPipeline{ generic_pipeline });
 	}
 	void CommandBufferVk::BeginRendering(RGLRenderPassPtr renderPassPtr)
 	{
@@ -128,36 +118,11 @@ namespace RGL {
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
 		GenericBindBuffer(buffer, offsetIntoBuffer, bindingOffset, VK_PIPELINE_BIND_POINT_GRAPHICS);
-		//vkUpdateDescriptorSets(currentRenderPipeline->owningDevice->device, 1, &writeinfo, 0, nullptr);
 	}
 
 	void CommandBufferVk::GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint)
 	{
-		auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
-		VkDescriptorBufferInfo bufferInfo{
-			.buffer = vkbuffer->buffer,
-			.offset = offsetIntoBuffer * vkbuffer->stride,
-			.range = VK_WHOLE_SIZE,
-		};
-		VkWriteDescriptorSet writeinfo{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = VK_NULL_HANDLE,	// we push descriptors instead
-			.dstBinding = bindingOffset,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-			.pImageInfo = nullptr,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = nullptr
-		};
-		owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
-			commandBuffer,
-			bindPoint,
-			(bindPoint == VK_PIPELINE_BIND_POINT_COMPUTE? currentComputePipeline->pipelineLayout->layout : currentRenderPipeline->pipelineLayout->layout),
-			0,
-			1,
-			&writeinfo
-		);
+		EncodeCommand(CmdBindBuffer{buffer, offsetIntoBuffer, bindingOffset, bindPoint});
 	}
 
 	void CommandBufferVk::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer)
@@ -173,16 +138,16 @@ namespace RGL {
 
 	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages)
 	{
-		// size must be a multiple of 4
-		// need to get a little extra space for safety
-		auto size = data.size() + (data.size() % 4 != 0 ? 4 : 0);
-		stackarray(localdata, std::byte, size);
-		std::memset(localdata, 0, size);
-		std::memcpy(localdata, data.data(), data.size());
-
-		auto layout = (stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
-
-		vkCmdPushConstants(commandBuffer, layout, stages, offset, size, localdata);
+		assert(data.size() <= 128, "Push constant data size must be no more than 128 bytes");
+		CmdSetPushConstantData cmd{
+			// size must be a multiple of 4
+			// need to get a little extra space for safety
+			.size = uint32_t((data.size() + (data.size() % 4 != 0 ? 4 : 0))),
+			.offset = offset,
+			.stages = stages
+		};
+		std::memcpy(cmd.data, data.data(), data.size());
+		EncodeCommand(cmd);
 	}
 
 	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
@@ -469,22 +434,12 @@ namespace RGL {
 	}
 	void CommandBufferVk::ExecuteIndirect(const IndirectConfig& config)
 	{
-		const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
-		vkCmdDrawIndirect(commandBuffer,
-			buffer->buffer,
-			config.offsetIntoBuffer,
-			config.nDraws,
-			sizeof(IndirectCommand)
-		);
+		EncodeCommand(CmdExecuteIndirect{ config });
 	}
 	void CommandBufferVk::BeginRenderDebugMarker(const std::string& label)
 	{
 #ifndef NDEBUG
-		VkDebugUtilsLabelEXT markerInfo = {
-			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-			.pLabelName = label.c_str()
-		};
-		owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &markerInfo);
+		EncodeCommand(CmdBeginDebugMarker{ label });
 #endif
 	}
 	void CommandBufferVk::BeginComputeDebugMarker(const std::string& label)
@@ -494,7 +449,7 @@ namespace RGL {
 	void CommandBufferVk::EndRenderDebugMarker()
 	{
 #ifndef NDEBUG
-		owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+		EncodeCommand( CmdEndDebugMarker{} );
 #endif
 	}
 	void CommandBufferVk::EndComputeDebugMarker()
@@ -503,13 +458,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{
-		const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
-		vkCmdDrawIndexedIndirect(commandBuffer,
-			buffer->buffer,
-			config.offsetIntoBuffer,
-			config.nDraws,
-			sizeof(IndirectIndexedCommand)
-		);
+		EncodeCommand(CmdExecuteIndirectIndexed{ config });
 	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
 	{
@@ -760,6 +709,80 @@ namespace RGL {
 			},
 			[this](const CmdDrawIndexed& arg) {
 				vkCmdDrawIndexed(commandBuffer, arg.nIndices, arg.config.nInstances, arg.config.firstIndex, arg.config.startVertex, arg.config.firstInstance);
+			},
+			[this](const CmdBindBuffer& arg) {
+				auto buffer = arg.buffer;
+				auto offsetIntoBuffer = arg.offsetIntoBuffer;
+				auto bindingOffset = arg.bindingOffset;
+				auto bindPoint = arg.bindPoint;
+				auto vkbuffer = std::static_pointer_cast<BufferVk>(buffer);
+				VkDescriptorBufferInfo bufferInfo{
+					.buffer = vkbuffer->buffer,
+					.offset = offsetIntoBuffer * vkbuffer->stride,
+					.range = VK_WHOLE_SIZE,
+				};
+				VkWriteDescriptorSet writeinfo{
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.dstSet = VK_NULL_HANDLE,	// we push descriptors instead
+					.dstBinding = bindingOffset,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = &bufferInfo,
+					.pTexelBufferView = nullptr
+				};
+				owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
+					commandBuffer,
+					bindPoint,
+					(bindPoint == VK_PIPELINE_BIND_POINT_COMPUTE ? currentComputePipeline->pipelineLayout->layout : currentRenderPipeline->pipelineLayout->layout),
+					0,
+					1,
+					&writeinfo
+				);
+			},
+			[this](const CmdExecuteIndirectIndexed& arg) {
+				auto& config = arg.config;
+				const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
+				vkCmdDrawIndexedIndirect(commandBuffer,
+					buffer->buffer,
+					config.offsetIntoBuffer,
+					config.nDraws,
+					sizeof(IndirectIndexedCommand)
+				);
+			},
+			[this](const CmdExecuteIndirect& arg) {
+				auto& config = arg.config;
+				const auto buffer = std::static_pointer_cast<BufferVk>(config.indirectBuffer);
+				vkCmdDrawIndirect(commandBuffer,
+					buffer->buffer,
+					config.offsetIntoBuffer,
+					config.nDraws,
+					sizeof(IndirectCommand)
+				);
+			},
+			[this](const CmdSetPushConstantData& arg) {
+				auto data = arg.data;
+
+				auto layout = (arg.stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
+
+				vkCmdPushConstants(commandBuffer, layout, arg.stages, arg.offset, arg.size, data);
+			},
+			[this](const CmdBindRenderPipeline& arg) {
+				auto pipeline = std::static_pointer_cast<RenderPipelineVk>(arg.generic_pipeline);
+				// drawing commands
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
+				currentRenderPipeline = pipeline;
+			},
+			[this](const CmdBeginDebugMarker& arg) {
+				VkDebugUtilsLabelEXT markerInfo = {
+				.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+				.pLabelName = arg.label.c_str()
+					};
+				owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &markerInfo);
+			},
+			[this](const CmdEndDebugMarker& ) {
+				owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
 			}
 		};
 
