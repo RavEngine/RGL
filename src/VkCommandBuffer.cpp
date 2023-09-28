@@ -763,11 +763,28 @@ namespace RGL {
 			[this](const CmdSetPushConstantData& arg) {
 				auto data = arg.data;
 
-				auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(arg.offset);
+				if (currentRenderPipeline) {
+					const auto& flagsStore = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags;
 
-				auto layout = (stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
+					auto stages = flagsStore.contains(arg.offset) ? flagsStore.at(arg.offset) : VK_SHADER_STAGE_COMPUTE_BIT;
 
-				vkCmdPushConstants(commandBuffer, layout, stages, arg.offset, arg.size, data);
+					auto layout = currentRenderPipeline->pipelineLayout->layout;
+
+					vkCmdPushConstants(commandBuffer, layout, stages, arg.offset, arg.size, data);
+				}
+				else {
+					const auto& flagsStore = currentComputePipeline->pipelineLayout->pushConstantBindingStageFlags;
+
+					auto stages = VK_SHADER_STAGE_COMPUTE_BIT;
+
+					auto layout = currentComputePipeline->pipelineLayout->layout;
+
+					vkCmdPushConstants(commandBuffer, layout, stages, arg.offset, arg.size, data);
+
+					assert(currentComputePipeline != nullptr);
+				}
+
+				
 			},
 			[this](const CmdBindRenderPipeline& arg) {
 				auto pipeline = std::static_pointer_cast<RenderPipelineVk>(arg.generic_pipeline);
