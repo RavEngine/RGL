@@ -57,7 +57,6 @@ namespace RGL {
 			std::byte data[128]{ };
 			uint32_t size = 0;
 			uint32_t offset = 0;
-			VkShaderStageFlags stages;
 		};
 		
 		struct CmdSetSampler {
@@ -97,6 +96,18 @@ namespace RGL {
 			RGLRenderPassPtr pass;
 		};
 
+		struct CmdBeginCompute {
+			RGLComputePipelinePtr inPipeline;
+		};
+
+		struct CmdEndCompute {};
+
+		struct CmdDispatch {
+			uint32_t threadsX;
+			uint32_t threadsY;
+			uint32_t threadsZ;
+		};
+
 		std::vector<std::variant<
 			CmdSetVertexBuffer, 
 			CmdBeginRendering,
@@ -111,7 +122,10 @@ namespace RGL {
 			CmdSetPushConstantData,
 			CmdBindRenderPipeline,
 			CmdBeginDebugMarker,
-			CmdEndDebugMarker
+			CmdEndDebugMarker,
+			CmdBeginCompute,
+			CmdEndCompute,
+			CmdDispatch
 			>
 		> renderCommands;
 
@@ -141,7 +155,7 @@ namespace RGL {
 		void BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer = 0) final;
 		void SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo = {}) final;
 
-		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages);
+		void setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset);
 
 		void SetVertexBytes(const untyped_span data, uint32_t offset) final;
 		void SetFragmentBytes(const untyped_span data, uint32_t offset) final;

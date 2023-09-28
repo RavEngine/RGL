@@ -56,6 +56,8 @@ namespace RGL {
 	}
 	void CommandBufferVk::End()
 	{		
+		//TODO: put swapchain textures into Present state
+
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
 	}
 	void CommandBufferVk::BindRenderPipeline(RGLRenderPipelinePtr generic_pipeline)
@@ -104,16 +106,15 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginCompute(RGLComputePipelinePtr inPipeline)
 	{
-		currentComputePipeline = std::static_pointer_cast<ComputePipelineVk>(inPipeline);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, currentComputePipeline->computePipeline);
+		EncodeCommand(CmdBeginCompute{ inPipeline });
 	}
 	void CommandBufferVk::EndCompute()
 	{
-		currentComputePipeline = nullptr;
+		EncodeCommand(CmdEndCompute{});
 	}
 	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ,  uint32_t threadsPerThreadgroupX, uint32_t threadsPerThreadgroupY, uint32_t threadsPerThreadgroupZ)
 	{
-		vkCmdDispatch(commandBuffer, threadsX, threadsY, threadsZ);
+		EncodeCommand(CmdDispatch{ threadsX, threadsY, threadsZ });
 	}
 	void CommandBufferVk::BindBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
@@ -136,7 +137,7 @@ namespace RGL {
 		EncodeCommand(CmdSetVertexBuffer{ buffer,bindingInfo });
 	}
 
-	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset, VkShaderStageFlags stages)
+	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset)
 	{
 		assert(data.size() <= 128, "Push constant data size must be no more than 128 bytes");
 		CmdSetPushConstantData cmd{
@@ -144,7 +145,6 @@ namespace RGL {
 			// need to get a little extra space for safety
 			.size = uint32_t((data.size() + (data.size() % 4 != 0 ? 4 : 0))),
 			.offset = offset,
-			.stages = stages
 		};
 		std::memcpy(cmd.data, data.data(), data.size());
 		EncodeCommand(cmd);
@@ -152,17 +152,15 @@ namespace RGL {
 
 	void CommandBufferVk::SetVertexBytes(const untyped_span data, uint32_t offset)
 	{
-		auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(offset);
-		setPushConstantData(data, offset, stages);
+		setPushConstantData(data, offset);
 	}
 	void CommandBufferVk::SetFragmentBytes(const untyped_span data, uint32_t offset)
 	{
-		auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(offset);
-		setPushConstantData(data, offset, stages);
+		setPushConstantData(data, offset);
 	}
 	void CommandBufferVk::SetComputeBytes(const untyped_span data, uint32_t offset)
 	{
-		setPushConstantData(data, offset, VK_SHADER_STAGE_COMPUTE_BIT);
+		setPushConstantData(data, offset);
 	}
 	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
@@ -319,6 +317,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetResourceBarrier(const ResourceBarrierConfig& config)
 	{
+		/*
 		stackarray(bufferBarriers, VkBufferMemoryBarrier2, config.buffers.size());
 
 		uint32_t i = 0;
@@ -394,9 +393,10 @@ namespace RGL {
 			commandBuffer,
 			&depInfo
 		);
+		*/
 	}
 	void CommandBufferVk::SetRenderPipelineBarrier(const PipelineBarrierConfig& config)
-	{
+	{/*
 		VkPipelineStageFlagBits2 stageFlags = 0;
 		if (config.Vertex) {
 			stageFlags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
@@ -431,6 +431,7 @@ namespace RGL {
 			commandBuffer,
 			&depInfo
 		);
+		*/
 	}
 	void CommandBufferVk::ExecuteIndirect(const IndirectConfig& config)
 	{
@@ -764,9 +765,11 @@ namespace RGL {
 			[this](const CmdSetPushConstantData& arg) {
 				auto data = arg.data;
 
-				auto layout = (arg.stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
+				auto stages = currentRenderPipeline->pipelineLayout->pushConstantBindingStageFlags.at(arg.offset);
 
-				vkCmdPushConstants(commandBuffer, layout, arg.stages, arg.offset, arg.size, data);
+				auto layout = (stages == VK_SHADER_STAGE_COMPUTE_BIT ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout)->layout;
+
+				vkCmdPushConstants(commandBuffer, layout, stages, arg.offset, arg.size, data);
 			},
 			[this](const CmdBindRenderPipeline& arg) {
 				auto pipeline = std::static_pointer_cast<RenderPipelineVk>(arg.generic_pipeline);
@@ -783,6 +786,16 @@ namespace RGL {
 			},
 			[this](const CmdEndDebugMarker& ) {
 				owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+			},
+			[this](const CmdBeginCompute& arg) {
+				currentComputePipeline = std::static_pointer_cast<ComputePipelineVk>(arg.inPipeline);
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, currentComputePipeline->computePipeline);
+			},
+			[this](const CmdEndCompute&) {
+				currentComputePipeline = nullptr;
+			},
+			[this](const CmdDispatch& arg) {
+				vkCmdDispatch(commandBuffer, arg.threadsX, arg.threadsY, arg.threadsZ);
 			}
 		};
 
