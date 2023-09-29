@@ -10,7 +10,6 @@
 #include "VkSwapchain.hpp"
 #include "VkComputePipeline.hpp"
 #include <cstring>
-#include <iostream>
 
 namespace RGL {
 	VkAttachmentLoadOp RGL2LoadOp(LoadAccessOperation op) {
@@ -58,6 +57,10 @@ namespace RGL {
 	void CommandBufferVk::End()
 	{		
 		//TODO: put swapchain textures into Present state
+		for (const auto swapRsc : swapchainImages) {
+			RecordTextureBinding(swapRsc, { VK_IMAGE_LAYOUT_PRESENT_SRC_KHR , true});
+		}
+		swapchainImages.clear();
 
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
 	}
@@ -202,53 +205,9 @@ namespace RGL {
 	}
 	void CommandBufferVk::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
 	{
-		TransitionResources({
-			{
-				.texture = texture,
-				.from = current,
-				.to = target
-			},
-		}, position);
 	}
 	void CommandBufferVk::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
 	{
-		const auto transitionCount = transitions.size();
-		stackarray(allTransitions, VkImageMemoryBarrier, transitionCount);
-		uint32_t i = 0;
-		for (const auto& transition : transitions) {
-			auto img = static_cast<const TextureVk*>(transition.texture);
-
-			//TODO: don't use generic MEMORY flags
-			allTransitions[i] = {
-					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-					.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-					.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-					.oldLayout = rgl2vkImageLayout(transition.from),
-					.newLayout = rgl2vkImageLayout(transition.to),
-					.image = img->vkImage,
-					.subresourceRange = {
-					  .aspectMask = img->createdAspectVk,
-					  .baseMipLevel = 0,
-					  .levelCount = 1,
-					  .baseArrayLayer = 0,
-					  .layerCount = 1,
-					}
-			};
-			//TODO: don't use ALL_COMMANDS
-			i++;
-		}
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,  // srcStageMask	
-			VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, // dstStageMask
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			transitionCount, // imageMemoryBarrierCount
-			allTransitions // pImageMemoryBarriers
-		);
 		
 	}
 
@@ -256,29 +215,15 @@ namespace RGL {
 	{
 		auto casted = static_cast<TextureVk*>(sourceTexture);
 		auto castedDest = std::static_pointer_cast<BufferVk>(destBuffer);
-		VkBufferImageCopy region{
-			.bufferOffset = 0,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.mipLevel = 0,
-				.baseArrayLayer = 0,
-				.layerCount = 1
-			},
-			.imageOffset = {
-				.x = sourceRect.offset[0],
-				.y = sourceRect.offset[1],
-				.z = 0
-			},
-			.imageExtent = {
-				.width = sourceRect.extent[0],
-				.height = sourceRect.extent[1],
-				.depth = 1
-			}	
-		};
 
-		vkCmdCopyImageToBuffer(commandBuffer, casted->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
+		EncodeCommand(CmdCopyTextureToBuffer{
+			casted,
+			sourceRect,
+			offset,
+			destBuffer
+		});
+
+		RecordTextureBinding(casted, { VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, true });
 	}
 	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
@@ -501,7 +446,6 @@ namespace RGL {
 		if (current == needed) {
 			return;
 		}
-		std::cout << texture << " " << current << " => " << needed << "\n";
 
 		VkImageMemoryBarrier transitionbarrier{
 					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -579,6 +523,7 @@ namespace RGL {
 
 					if (castedImage->owningSwapchain) {
 						swapchainsToSignal.insert(castedImage->owningSwapchain);
+						swapchainImages.insert(castedImage);
 					}
 
 					i++;
@@ -701,6 +646,7 @@ namespace RGL {
 
 				if (castedImage->owningSwapchain) {
 					swapchainsToSignal.insert(castedImage->owningSwapchain);
+					swapchainImages.insert(castedImage);
 				}
 			},
 			[this](const CmdDraw& arg) {
@@ -811,6 +757,33 @@ namespace RGL {
 			},
 			[this](const CmdDispatch& arg) {
 				vkCmdDispatch(commandBuffer, arg.threadsX, arg.threadsY, arg.threadsZ);
+			},
+			[this](const CmdCopyTextureToBuffer& arg) {
+				auto castedDest = std::static_pointer_cast<BufferVk>(arg.destBuffer);
+
+				VkBufferImageCopy region{
+					.bufferOffset = 0,
+					.bufferRowLength = 0,
+					.bufferImageHeight = 0,
+					.imageSubresource = {
+						.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+						.mipLevel = 0,
+						.baseArrayLayer = 0,
+						.layerCount = 1
+					},
+					.imageOffset = {
+						.x = arg.sourceRect.offset[0],
+						.y = arg.sourceRect.offset[1],
+						.z = 0
+					},
+					.imageExtent = {
+						.width = arg.sourceRect.extent[0],
+						.height = arg.sourceRect.extent[1],
+						.depth = 1
+					}
+				};
+
+				vkCmdCopyImageToBuffer(commandBuffer, arg.sourceTexture->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
 			}
 		};
 

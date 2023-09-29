@@ -21,6 +21,7 @@ namespace RGL {
 		std::shared_ptr<struct ComputePipelineVk> currentComputePipeline = nullptr;
 
 		std::unordered_set<struct SwapchainVK*> swapchainsToSignal;
+		std::unordered_set<const struct TextureVk*> swapchainImages;
 
 		struct TextureLastUse {
 			VkImageLayout lastLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -108,6 +109,13 @@ namespace RGL {
 			uint32_t threadsZ;
 		};
 
+		struct CmdCopyTextureToBuffer {
+			struct TextureVk* sourceTexture;
+			const Rect sourceRect;
+			size_t offset;
+			RGLBufferPtr destBuffer;
+		};
+
 		std::vector<std::variant<
 			CmdSetVertexBuffer, 
 			CmdBeginRendering,
@@ -125,7 +133,8 @@ namespace RGL {
 			CmdEndDebugMarker,
 			CmdBeginCompute,
 			CmdEndCompute,
-			CmdDispatch
+			CmdDispatch,
+			CmdCopyTextureToBuffer
 			>
 		> renderCommands;
 
