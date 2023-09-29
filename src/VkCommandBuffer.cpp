@@ -220,34 +220,15 @@ namespace RGL {
 	}
 	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
-		VkBufferCopy bufferCopyData{
-				   .srcOffset = from.offset,
-				   .dstOffset = to.offset,
-				   .size = size
-		};
-		auto fromBuffer = std::static_pointer_cast<BufferVk>(from.buffer);
-		auto toBuffer = std::static_pointer_cast<BufferVk>(to.buffer);
-		vkCmdCopyBuffer(commandBuffer, fromBuffer->buffer, toBuffer->buffer, 1, &bufferCopyData);
+		EncodeCommand(CmdCopyBufferToBuffer{ from,to,size });
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{
-		VkViewport vp{
-			.x = viewport.x,
-			.y = viewport.height - viewport.y,
-			.width = viewport.width,
-			.height = -viewport.height, // make Vulkan a Y-up system
-			.minDepth = viewport.minDepth,
-			.maxDepth = viewport.maxDepth
-		};
-		vkCmdSetViewport(commandBuffer, 0, 1, &vp);
+		EncodeCommand(CmdSetViewport{ viewport });
 	}
 	void CommandBufferVk::SetScissor(const Rect& scissorin)
 	{
-		VkRect2D scissor{
-		.offset = {scissorin.offset[0], scissorin.offset[1]},
-		.extent = {scissorin.extent[0], scissorin.extent[1]},
-		};
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		EncodeCommand(CmdSetScissor{ scissorin });
 	}
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{
@@ -781,6 +762,36 @@ namespace RGL {
 				};
 
 				vkCmdCopyImageToBuffer(commandBuffer, arg.sourceTexture->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
+			},
+			[this](const CmdSetViewport& arg) {
+				auto& viewport = arg.viewport;
+				VkViewport vp{
+					.x = viewport.x,
+					.y = viewport.height - viewport.y,
+					.width = viewport.width,
+					.height = -viewport.height, // make Vulkan a Y-up system
+					.minDepth = viewport.minDepth,
+					.maxDepth = viewport.maxDepth
+				};
+				vkCmdSetViewport(commandBuffer, 0, 1, &vp);
+			},
+			[this](const CmdSetScissor& arg) {
+				auto& scissorin = arg.scissor;
+				VkRect2D scissor{
+				.offset = {scissorin.offset[0], scissorin.offset[1]},
+				.extent = {scissorin.extent[0], scissorin.extent[1]},
+				};
+				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+			},
+			[this](const CmdCopyBufferToBuffer& arg) {
+				VkBufferCopy bufferCopyData{
+				   .srcOffset = arg.from.offset,
+				   .dstOffset = arg.to.offset,
+				   .size = arg.size
+				};
+				auto fromBuffer = std::static_pointer_cast<BufferVk>(arg.from.buffer);
+				auto toBuffer = std::static_pointer_cast<BufferVk>(arg.to.buffer);
+				vkCmdCopyBuffer(commandBuffer, fromBuffer->buffer, toBuffer->buffer, 1, &bufferCopyData);
 			}
 		};
 

@@ -109,11 +109,25 @@ namespace RGL {
 			uint32_t threadsZ;
 		};
 
+		struct CmdSetViewport {
+			const Viewport viewport;
+		};
+
+		struct CmdSetScissor {
+			const Rect scissor;
+		};
+
 		struct CmdCopyTextureToBuffer {
 			struct TextureVk* sourceTexture;
 			const Rect sourceRect;
 			size_t offset;
 			RGLBufferPtr destBuffer;
+		};
+
+		struct CmdCopyBufferToBuffer {
+			BufferCopyConfig from;
+			BufferCopyConfig to;
+			uint32_t size;
 		};
 
 		std::vector<std::variant<
@@ -134,7 +148,10 @@ namespace RGL {
 			CmdBeginCompute,
 			CmdEndCompute,
 			CmdDispatch,
-			CmdCopyTextureToBuffer
+			CmdCopyTextureToBuffer,
+			CmdSetViewport,
+			CmdSetScissor,
+			CmdCopyBufferToBuffer
 			>
 		> renderCommands;
 
