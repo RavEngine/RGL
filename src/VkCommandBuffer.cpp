@@ -203,13 +203,6 @@ namespace RGL {
 	{
 		EncodeCommand(CmdDrawIndexed{nIndices, config});
 	}
-	void CommandBufferVk::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
-	{
-	}
-	void CommandBufferVk::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
-	{
-		
-	}
 
 	void CommandBufferVk::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr destBuffer)
 	{
@@ -262,6 +255,7 @@ namespace RGL {
 		vmaSetCurrentFrameIndex(owningQueue->owningDevice->vkallocator, owningQueue->owningDevice->frameIndex++);
 		swapchainsToSignal.clear();
 	}
+	/*
 	void CommandBufferVk::SetResourceBarrier(const ResourceBarrierConfig& config)
 	{
 		/*
@@ -340,10 +334,12 @@ namespace RGL {
 			commandBuffer,
 			&depInfo
 		);
-		*/
+		
 	}
+	*/
+	/*
 	void CommandBufferVk::SetRenderPipelineBarrier(const PipelineBarrierConfig& config)
-	{/*
+	{
 		VkPipelineStageFlagBits2 stageFlags = 0;
 		if (config.Vertex) {
 			stageFlags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
@@ -378,8 +374,9 @@ namespace RGL {
 			commandBuffer,
 			&depInfo
 		);
-		*/
+		
 	}
+	*/
 	void CommandBufferVk::ExecuteIndirect(const IndirectConfig& config)
 	{
 		EncodeCommand(CmdExecuteIndirect{ config });

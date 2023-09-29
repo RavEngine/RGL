@@ -72,16 +72,9 @@ namespace RGL {
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Rect&) final;
 
-		void SetResourceBarrier(const ResourceBarrierConfig&) final;
-
-		void SetRenderPipelineBarrier(const PipelineBarrierConfig&) final;
-
 		void CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) final;
 
 		void CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) final;
-
-		void TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position) final;
-		void TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position) final;
 
 		// submit onto the queue that created this command buffer
 		void Commit(const CommitConfig&) final;

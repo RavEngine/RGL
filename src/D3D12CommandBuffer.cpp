@@ -263,14 +263,7 @@ namespace RGL {
 
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
 	}
-	void CommandBufferD3D12::SetResourceBarrier(const ResourceBarrierConfig& config)
-	{
-		
-	}
-	void CommandBufferD3D12::SetRenderPipelineBarrier(const PipelineBarrierConfig&)
-	{
 
-	}
 	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
 		auto casted = static_cast<TextureD3D12*>(sourceTexture);
@@ -329,13 +322,6 @@ namespace RGL {
 			oldState
 		);
 		commandList->ResourceBarrier(1, &postBarrier);
-	}
-	void CommandBufferD3D12::TransitionResource(const ITexture* texture, RGL::ResourceLayout current, RGL::ResourceLayout target, TransitionPosition position)
-	{
-		
-	}
-	void CommandBufferD3D12::TransitionResources(std::initializer_list<ResourceTransition> transitions, TransitionPosition position)
-	{
 	}
 
 	void CommandBufferD3D12::Commit(const CommitConfig& config)
