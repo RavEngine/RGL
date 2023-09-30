@@ -56,11 +56,18 @@ namespace RGL {
 	}
 	void CommandBufferVk::End()
 	{		
-		//TODO: put swapchain textures into Present state
 		for (const auto swapRsc : swapchainImages) {
 			RecordTextureBinding(swapRsc, { VK_IMAGE_LAYOUT_PRESENT_SRC_KHR , true});
 		}
+
+		// place resources back in their native state
+		for (const auto [texture, written] : activeTextures) {
+			if (!swapchainImages.contains(texture)) {
+				RecordTextureBinding(texture, {texture->nativeFormat , true});
+			}
+		}
 		swapchainImages.clear();
+		activeTextures.clear();
 
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
 	}
