@@ -13,6 +13,12 @@
 
 using namespace Microsoft::WRL;
 
+#if _UWP
+#include <winrt/Windows.UI.h>
+#include <winrt/Windows.UI.Core.h>
+using namespace winrt;
+#endif
+
 namespace RGL {
     // gsync, freesync, etc
     bool CheckTearingSupport()
@@ -85,9 +91,13 @@ namespace RGL {
        // will be handled manually.
         DX_CHECK(dxgiFactory4->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER));
 #else
+        using cwt = winrt::Windows::UI::Core::CoreWindow;
+        auto ptr_c = static_cast<const cwt*>(hWndPtr);
+        auto ptr = const_cast<cwt*>(ptr_c);
+
         DX_CHECK(dxgiFactory4->CreateSwapChainForCoreWindow(
             commandQueue.Get(),
-            static_cast<IUnknown*>(hWndPtr),
+            reinterpret_cast<IUnknown*>(ptr),
             &swapChainDesc,
             nullptr,
             &swapChain1
