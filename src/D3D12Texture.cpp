@@ -34,12 +34,13 @@ namespace RGL {
 	{
 
 	}
-	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
+	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice, D3D12_RESOURCE_STATES nativeStateOverride) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
 	{
 		// make the heap and SRV 
 		bool canBeshadervisible = config.usage.Sampled;
 		auto format = rgl2dxgiformat_texture(config.format);
 		PlaceInHeaps(owningDevice, format, config);
+		nativeState = nativeStateOverride;
 	}
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
 	{
