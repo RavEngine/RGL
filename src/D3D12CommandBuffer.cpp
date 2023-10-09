@@ -306,6 +306,9 @@ namespace RGL {
 		auto fromBuffer = std::static_pointer_cast<BufferD3D12>(from.buffer);
 		auto toBuffer = std::static_pointer_cast<BufferD3D12>(to.buffer);
 
+		auto fromBufferCurrentState = GetCurrentResourceState(fromBuffer.get());
+		SyncIfNeeded(fromBuffer.get(), D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+
 		auto oldState = GetCurrentResourceState(toBuffer.get());
 
 		auto preBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -322,6 +325,7 @@ namespace RGL {
 			oldState
 		);
 		commandList->ResourceBarrier(1, &postBarrier);
+		SyncIfNeeded(fromBuffer.get(), fromBufferCurrentState, true);
 	}
 
 	void CommandBufferD3D12::Commit(const CommitConfig& config)
@@ -389,7 +393,7 @@ namespace RGL {
 	void CommandBufferD3D12::SyncIfNeeded(const BufferD3D12* buffer, D3D12_RESOURCE_STATES needed, bool written)
 	{
 		// only UAV buffers need to be transitioned
-		if (!buffer->isWritable) {
+		if (!buffer->isWritable && !buffer->myType.StorageBuffer && !buffer->myType.IndirectBuffer) {
 			return;
 		}
 
@@ -399,28 +403,19 @@ namespace RGL {
 		if (it == activeResources.end()) {
 			activeResources[buffer] = {
 				.state = buffer->nativeState,
-				.written = false
+				.written = written
 			};
 			it = activeResources.find(buffer);
 		}
 
 		auto current = (*it).second.state;
-		if (current == needed && (*it).second.written) {
-			// do a simple UAV barrier because access needs to be synchronized here
-			// do the resource transition
-			D3D12_RESOURCE_BARRIER barrier{
-				.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
-				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-				.UAV = {
-					.pResource = buffer->buffer.Get(),
-				}
-			};
-			//TODO: barriers of size 1 are inefficient. We should batch these somehow.
-			commandList->ResourceBarrier(1, &barrier);
-		}
+
+		CD3DX12_RESOURCE_BARRIER barriers[2];
+		uint32_t nBarriers = 0;
+
 		// a resource transition is in order
-		else {
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		if (buffer->canBeTransitioned && current != needed) {
+			barriers[nBarriers] = CD3DX12_RESOURCE_BARRIER::Transition(
 				buffer->buffer.Get(),
 				current,
 				needed
@@ -431,11 +426,22 @@ namespace RGL {
 				.written = written
 			};
 
-			//TODO: barriers of size 1 are inefficient. We should batch these somehow.
-			commandList->ResourceBarrier(1, &barrier);
+			nBarriers++;
 		}
-		
-		
+
+		if ((*it).second.written && buffer->isWritable) {
+			// do a simple UAV barrier because access needs to be synchronized here
+			barriers[nBarriers] = CD3DX12_RESOURCE_BARRIER::UAV(buffer->buffer.Get());
+			nBarriers++;
+		}
+
+		// update written state
+		it->second.written = written;
+
+		//TODO: barriers of size 1 are inefficient. We should batch these somehow.
+		if (nBarriers > 0) {
+			commandList->ResourceBarrier(nBarriers, barriers);
+		}
 	}
 	void CommandBufferD3D12::SyncIfNeeded(const TextureD3D12* texture, D3D12_RESOURCE_STATES needed, bool written)
 	{

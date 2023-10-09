@@ -56,6 +56,11 @@ namespace RGL {
 	}
 	void CommandBufferVk::End()
 	{		
+		// ensure that all commands have been encoded
+		if (renderCommands.size() > 0) {
+			EndContext();
+		}
+
 		for (const auto swapRsc : swapchainImages) {
 			RecordTextureBinding(swapRsc, { VK_IMAGE_LAYOUT_PRESENT_SRC_KHR , true});
 		}
@@ -70,9 +75,11 @@ namespace RGL {
 		activeTextures.clear();
 
 		VK_CHECK(vkEndCommandBuffer(commandBuffer));
+		activeBuffers.clear();
 	}
 	void CommandBufferVk::BindRenderPipeline(RGLRenderPipelinePtr generic_pipeline)
 	{
+		currentRenderPipeline = std::static_pointer_cast<RenderPipelineVk>(generic_pipeline);
 		EncodeCommand(CmdBindRenderPipeline{ generic_pipeline });
 	}
 	void CommandBufferVk::BeginRendering(RGLRenderPassPtr renderPassPtr)
@@ -117,11 +124,14 @@ namespace RGL {
 	}
 	void CommandBufferVk::BeginCompute(RGLComputePipelinePtr inPipeline)
 	{
+		currentComputePipeline = std::static_pointer_cast<ComputePipelineVk>(inPipeline);
 		EncodeCommand(CmdBeginCompute{ inPipeline });
 	}
 	void CommandBufferVk::EndCompute()
 	{
 		EncodeCommand(CmdEndCompute{});
+		EndContext();
+		currentComputePipeline = nullptr;
 	}
 	void CommandBufferVk::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ,  uint32_t threadsPerThreadgroupX, uint32_t threadsPerThreadgroupY, uint32_t threadsPerThreadgroupZ)
 	{
@@ -134,6 +144,7 @@ namespace RGL {
 
 	void CommandBufferVk::GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint)
 	{
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(buffer).get(), { .written = IsBufferSlotWritable(bindingOffset)});
 		EncodeCommand(CmdBindBuffer{buffer, offsetIntoBuffer, bindingOffset, bindPoint});
 	}
 
@@ -144,7 +155,7 @@ namespace RGL {
 
 	void CommandBufferVk::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo)
 	{
-		//TODO: check if buffer needs a barrier
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(buffer).get(), { .written = false });
 		EncodeCommand(CmdSetVertexBuffer{ buffer,bindingInfo });
 	}
 
@@ -175,7 +186,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::SetIndexBuffer(RGLBufferPtr buffer)
 	{
-		//TODO: check if buffer needs a barrier
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(buffer).get(), { .written = false });
 		EncodeCommand( CmdSetIndexBuffer{buffer} );
 	}
 	void CommandBufferVk::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index)
@@ -227,6 +238,8 @@ namespace RGL {
 	}
 	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(from.buffer).get(), {.written = false});
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(to.buffer).get(), {.written = true});
 		EncodeCommand(CmdCopyBufferToBuffer{ from,to,size });
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
@@ -243,130 +256,10 @@ namespace RGL {
 		vmaSetCurrentFrameIndex(owningQueue->owningDevice->vkallocator, owningQueue->owningDevice->frameIndex++);
 		swapchainsToSignal.clear();
 	}
-	/*
-	void CommandBufferVk::SetResourceBarrier(const ResourceBarrierConfig& config)
-	{
-		/*
-		stackarray(bufferBarriers, VkBufferMemoryBarrier2, config.buffers.size());
 
-		uint32_t i = 0;
-		for (const auto& bufferBase : config.buffers) {
-			auto buffer = std::static_pointer_cast<BufferVk>(bufferBase);
-			auto owningDeviceFamily = buffer->owningDevice->indices.graphicsFamily.value();
-			bufferBarriers[i] = {
-				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
-				.pNext = nullptr,
-				.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT | VK_ACCESS_2_HOST_WRITE_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_2_INDEX_READ_BIT | VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_TRANSFER_READ_BIT | VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_READ_BIT,
-				.srcQueueFamilyIndex = owningDeviceFamily,
-				.dstQueueFamilyIndex = owningDeviceFamily,
-				.buffer = buffer->buffer,
-				.offset = 0,
-				.size = buffer->getBufferSize()
-			};
-			i++;
-		}
-
-
-		stackarray(textureBarriers, VkImageMemoryBarrier2, config.textures.size());
-		i = 0;
-		for (const auto& textureBase : config.textures) {
-			auto image = std::static_pointer_cast<TextureVk>(textureBase);
-			textureBarriers[i] = {
-				.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-				.pNext = nullptr,
-				.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,
-				.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// if these are set to the same value, no transition is executed
-				.newLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.srcQueueFamilyIndex = 0,
-				.dstQueueFamilyIndex = 0,
-				.image = image->vkImage,
-				.subresourceRange = {
-					.aspectMask = image->createdAspectVk,
-					.baseMipLevel = 0,
-					.levelCount = 1,
-					.baseArrayLayer = 0,
-					.layerCount = 1,
-				}
-			};
-			i++;
-		}
-
-		//TODO: don't use all_commands or all_stages bit because it's inefficient
-		VkMemoryBarrier2 memBarrier{
-			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
-			.pNext = nullptr,
-			.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,		// wait for all work submitted before
-			.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,			// make writes available
-			.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,		// all work submitted after needs to wait for the results of this barrier
-			.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,			// make reads available
-		};
-
-		VkDependencyInfo depInfo{
-			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-			.pNext = nullptr,
-			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
-			.memoryBarrierCount = 1,
-			.pMemoryBarriers = &memBarrier,
-			.bufferMemoryBarrierCount = static_cast<uint32_t>(config.buffers.size()),
-			.pBufferMemoryBarriers = bufferBarriers,
-			.imageMemoryBarrierCount = static_cast<uint32_t>(config.textures.size()),
-			.pImageMemoryBarriers = textureBarriers
-		};
-		vkCmdPipelineBarrier2(
-			commandBuffer,
-			&depInfo
-		);
-		
-	}
-	*/
-	/*
-	void CommandBufferVk::SetRenderPipelineBarrier(const PipelineBarrierConfig& config)
-	{
-		VkPipelineStageFlagBits2 stageFlags = 0;
-		if (config.Vertex) {
-			stageFlags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-		}
-		if (config.Fragment) {
-			stageFlags |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
-		}
-		if (config.Compute) {
-			stageFlags |= VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-		}
-
-		VkMemoryBarrier2 memBarrier{
-			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
-			.pNext = nullptr,
-			.srcStageMask = 0,				// sync before
-			.srcAccessMask = 0,				// access before
-			.dstStageMask = stageFlags,		// sync after
-			.dstAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,				// access after
-		};
-
-		VkDependencyInfo depInfo{
-			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-			.pNext = nullptr,
-			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
-			.memoryBarrierCount = 1,
-			.pMemoryBarriers = &memBarrier,
-			.bufferMemoryBarrierCount = 0,
-			.imageMemoryBarrierCount = 0,
-		};
-
-		vkCmdPipelineBarrier2(
-			commandBuffer,
-			&depInfo
-		);
-		
-	}
-	*/
 	void CommandBufferVk::ExecuteIndirect(const IndirectConfig& config)
 	{
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(config.indirectBuffer).get(), { .written = false });
 		EncodeCommand(CmdExecuteIndirect{ config });
 	}
 	void CommandBufferVk::BeginRenderDebugMarker(const std::string& label)
@@ -391,6 +284,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(config.indirectBuffer).get(), { .written = false });
 		EncodeCommand(CmdExecuteIndirectIndexed{ config });
 	}
 	CommandBufferVk::CommandBufferVk(decltype(owningQueue) owningQueue) : owningQueue(owningQueue)
@@ -411,7 +305,42 @@ namespace RGL {
 
 	void CommandBufferVk::RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage)
 	{
+		auto recUsage = [&]() {
+			activeBuffers[buffer] = usage;
+		};
 
+		auto it = activeBuffers.find(buffer);
+
+		if (it == activeBuffers.end()) {
+			// record the usage but don't set a barrier
+			recUsage();
+			return;
+		}
+
+		if (!it->second.written) {
+			recUsage();
+			return;
+		}
+		
+		// a previous usage might have changed the data, so we need to sync
+		auto owningDeviceFamily = buffer->owningDevice->indices.graphicsFamily.value();
+		VkBufferMemoryBarrier2 bufferBarrier{
+			.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+				.pNext = nullptr,
+				.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT | VK_ACCESS_2_HOST_WRITE_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_2_INDEX_READ_BIT | VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_TRANSFER_READ_BIT | VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_READ_BIT,
+				.srcQueueFamilyIndex = owningDeviceFamily,
+				.dstQueueFamilyIndex = owningDeviceFamily,
+				.buffer = buffer->buffer,
+				.offset = 0,
+				.size = buffer->getBufferSize()
+		};
+		barriersToAdd.push_back(bufferBarrier);
+
+		
+		recUsage();
 	}
 
 	void CommandBufferVk::RecordTextureBinding(const TextureVk* texture, TextureLastUse usage)
@@ -478,6 +407,8 @@ namespace RGL {
 	{
 		auto visitor = Overload{
 			[this](const CmdBeginRendering& arg) mutable {
+				ApplyBarriers();
+
 				auto renderPass = std::static_pointer_cast<RenderPassVk>(arg.pass);
 
 				currentRenderPass = renderPass;
@@ -604,10 +535,17 @@ namespace RGL {
 				auto texture = arg.texture;
 				auto index = arg.index;
 				auto castedImage = static_cast<const TextureVk*>(texture);
+
+				auto it = activeTextures.find(castedImage);
+				auto layout = castedImage->nativeFormat;
+				if (it != activeTextures.end()) {
+					layout = it->second.lastLayout;
+				}
+
 				VkDescriptorImageInfo imginfo{
 							.sampler = VK_NULL_HANDLE,
 							.imageView = castedImage->vkImageView,
-							.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+							.imageLayout = layout,
 				};
 				VkWriteDescriptorSet writeinfo{
 						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -734,6 +672,7 @@ namespace RGL {
 				owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
 			},
 			[this](const CmdBeginCompute& arg) {
+				ApplyBarriers();
 				currentComputePipeline = std::static_pointer_cast<ComputePipelineVk>(arg.inPipeline);
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, currentComputePipeline->computePipeline);
 			},
@@ -807,6 +746,64 @@ namespace RGL {
 		}
 
 		renderCommands.clear();
+	}
+	bool CommandBufferVk::IsBufferSlotWritable(uint32_t slot)
+	{
+		auto findWritten = [&](auto&& bindingStore, bool& out) {
+			if (!bindingStore) {
+				out = false;
+				return;
+			}
+
+			auto it = bindingStore->find(slot);
+			if (it != bindingStore->end()) {
+				out = it->second.writable;
+			}
+			else {
+				out = false;
+			}
+		};
+
+		if (currentRenderPipeline) {
+			bool vsWritable = false, fsWritable = false;
+			
+			findWritten(currentRenderPipeline->vsBufferBindings, vsWritable);
+			findWritten(currentRenderPipeline->fsBufferBindings, fsWritable);
+
+			return vsWritable || fsWritable;
+		}
+		else if (currentComputePipeline) {
+			bool isWritable = false;
+			findWritten(currentComputePipeline->bufferBindings, isWritable);
+			return isWritable;
+		}
+		else {
+			Assert(false, "Invalid state!");
+		}
+
+	}
+	void CommandBufferVk::ApplyBarriers()
+	{
+		if (barriersToAdd.size() == 0) {
+			return;
+		}
+
+		VkDependencyInfo depInfo{
+			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+			.pNext = nullptr,
+			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
+			.memoryBarrierCount = 0,
+			.pMemoryBarriers = nullptr,
+			.bufferMemoryBarrierCount = uint32_t(barriersToAdd.size()),
+			.pBufferMemoryBarriers = barriersToAdd.data(),
+			.imageMemoryBarrierCount = 0,
+			.pImageMemoryBarriers = nullptr
+		};
+		vkCmdPipelineBarrier2(
+			commandBuffer,
+			&depInfo
+		);
+		barriersToAdd.clear();
 	}
 }
 
