@@ -58,6 +58,10 @@ namespace RGL {
 		upload.Begin();
 
 		D3D12_SUBRESOURCE_DATA initData = { bytes.data(), bytes.size() / config.height, bytes.size()};
+		upload.Transition(texture.Get(),
+			nativeState,
+			D3D12_RESOURCE_STATE_COPY_DEST
+		);
 		upload.Upload(texture.Get(), 0, &initData, 1);
 
 		constexpr static auto endState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
@@ -125,6 +129,10 @@ namespace RGL {
 		allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		// allocate the resource
+
+		if (nativeState == D3D12_RESOURCE_STATE_COMMON) {
+			nativeState = D3D12_RESOURCE_STATE_GENERIC_READ;
+		}
 
 		HRESULT hr = owningDevice->allocator->CreateResource(
 			&allocDesc, &resourceDesc,
