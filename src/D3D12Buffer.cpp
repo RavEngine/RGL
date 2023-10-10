@@ -58,8 +58,16 @@ namespace RGL {
             nativeState = D3D12_RESOURCE_STATE_GENERIC_READ;   // UPLOAD requires this state, and resources cannot leave this state
         }
 
+        if (config.type.VertexBuffer) {
+            nativeState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        }
+
         if (config.type.IndirectBuffer) {
-            nativeState |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+            nativeState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        }
+
+        if (config.type.IndexBuffer) {
+            nativeState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
         }
 
         if (config.options.PixelShaderResource) {

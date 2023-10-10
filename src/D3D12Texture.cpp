@@ -32,7 +32,15 @@ namespace RGL {
 
 	TextureD3D12::TextureD3D12(decltype(texture) image, const Dimension& size, decltype(rtvIDX) offset, decltype(owningDevice) device) : texture(image), ITexture(size), rtvIDX(offset), owningDevice(device)
 	{
+		nativeState = D3D12_RESOURCE_STATE_PRESENT;
 
+		DirectX::ResourceUploadBatch impromptuTransition(owningDevice->device.Get());
+		impromptuTransition.Begin();
+
+		impromptuTransition.Transition(texture.Get(), D3D12_RESOURCE_STATE_COMMON, nativeState);
+
+		auto finish = impromptuTransition.End(owningDevice->internalQueue->m_d3d12CommandQueue.Get());
+		finish.wait();
 	}
 	TextureD3D12::TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> indevice, D3D12_RESOURCE_STATES nativeStateOverride) : owningDevice(std::static_pointer_cast<DeviceD3D12>(indevice)), ITexture({config.width, config.height}), texture(image)
 	{
@@ -97,7 +105,7 @@ namespace RGL {
 			.Format = format,
 		};
 
-		nativeState = rgl2d3d12resourcestate(ResourceLayout::Undefined);
+		nativeState = D3D12_RESOURCE_STATE_COMMON;
 		if (isDS) {
 			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			optimizedClearValue.DepthStencil = { 1,0 };
@@ -130,6 +138,7 @@ namespace RGL {
 
 		// add the resource to the appropriate heaps
 		PlaceInHeaps(owningDevice, format, config);
+		
 	}
 	void TextureD3D12::PlaceInHeaps(const std::shared_ptr<RGL::DeviceD3D12>& owningDevice, DXGI_FORMAT format, const RGL::TextureConfig& config)
 	{
