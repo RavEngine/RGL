@@ -169,6 +169,7 @@ RGLRenderPipelinePtr DeviceWG::CreateRenderPipeline(const RenderPipelineDescript
 }
 
 RGLComputePipelinePtr DeviceWG::CreateComputePipeline(const RGL::ComputePipelineDescriptor& desc) {
+    FatalError("CreateComputePipeline not implemented");
 }
 
 RGLShaderLibraryPtr DeviceWG::CreateDefaultShaderLibrary() {
