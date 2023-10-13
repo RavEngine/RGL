@@ -22,9 +22,9 @@ option(RGL_DISABLE_WEBGPU "Force-disable the WebGPU backend" OFF)
 option(RGL_RUNTIME_COMPILATION "Enable runtime shader compilation" OFF)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten" AND NOT RGL_DISABLE_WEBGPU )
-	set(RGL_WEBGPU_ENABLED ON)
+	set(RGL_WEBGPU_AVAILABLE ON)
 else()
-	set(RGL_WEBGPU_ENABLED OFF)
+	set(RGL_WEBGPU_AVAILABLE OFF)
 endif()
 
 if (RGL_RUNTIME_COMPILATION)
@@ -52,7 +52,7 @@ endif()
 
 # setup compiler
 set(ST_BUNDLED_DXC OFF CACHE INTERNAL "")
-if (NOT RGL_WEBGPU_ENABLED)
+if (NOT RGL_WEBGPU_AVAILABLE)
 	set(ST_ENABLE_WGSL OFF CACHE INTERNAL "")
 else()
 	set(ST_ENABLE_WGSL ON CACHE INTERNAL "")
@@ -198,7 +198,7 @@ set_target_properties("RGL" ${rglc_exe} "librglc" PROPERTIES
 	XCODE_GENERATE_SCHEME ON
 )
 
-if (RGL_WEBGPU_ENABLED)
+if (RGL_WEBGPU_AVAILABLE)
 set_target_properties("SPIRV-Reflect" "ShaderTranspiler" "libtint" "tint_diagnostic_utils" PROPERTIES 
 	FOLDER "RGL/Libraries"
 )
