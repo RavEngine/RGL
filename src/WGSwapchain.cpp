@@ -5,7 +5,7 @@
 #include "RGLCommon.hpp"
 
 namespace RGL{
-    SwapchainWG::SwapchainWG(decltype(surface) surface, uint32_t width, uint32_t height, const std::shared_ptr<DeviceWG> owningDevice){
+    WGPUSwapChain makeSwapchain(std::shared_ptr<SurfaceWG> surface, uint32_t width, uint32_t height, const std::shared_ptr<DeviceWG> owningDevice){
         WGPUSwapChainDescriptor swapChainDesc{
             .nextInChain = nullptr,
             .width = width,
@@ -14,7 +14,11 @@ namespace RGL{
             .usage = WGPUTextureUsage_RenderAttachment,
             .presentMode = WGPUPresentMode_Fifo,
         };
-        swapchain = wgpuDeviceCreateSwapChain(owningDevice->device, surface->surface, &swapChainDesc);
+        return wgpuDeviceCreateSwapChain(owningDevice->device, surface->surface, &swapChainDesc);
+    }
+
+    SwapchainWG::SwapchainWG(decltype(surface) surface, uint32_t width, uint32_t height, const std::shared_ptr<DeviceWG> owningDevice) : surface(surface), owningDevice(owningDevice){
+        swapchain = makeSwapchain(surface, width, height, owningDevice);
     }
 
     SwapchainWG::~SwapchainWG(){
@@ -22,10 +26,13 @@ namespace RGL{
     }
 
     void SwapchainWG::Resize(uint32_t width, uint32_t height){
-        FatalError("Resize: not implemented");
+        wgpuSwapChainRelease(swapchain);
+        swapchain = makeSwapchain(surface, width, height, owningDevice);
     }
 
     void SwapchainWG::GetNextImage(uint32_t* index){
+        *index = 0;
+        WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(swapchain);
         FatalError("GetNextImage: not implemented");
     }
 
@@ -35,7 +42,7 @@ namespace RGL{
     }
 
     void SwapchainWG::Present(const SwapchainPresentConfig&){
-        
+        wgpuSwapChainPresent(swapchain);
     }
 }
 

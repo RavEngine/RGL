@@ -10,6 +10,7 @@ namespace RGL{
 	struct SwapchainWG : public ISwapchain{
         WGPUSwapChain swapchain;
 		std::shared_ptr<SurfaceWG> surface;
+        const std::shared_ptr<DeviceWG> owningDevice;
 		SwapchainWG(decltype(surface) surface, uint32_t width, uint32_t height, const std::shared_ptr<DeviceWG> owningDevice);
 		virtual ~SwapchainWG();
 		void Resize(uint32_t width, uint32_t height) final;
