@@ -1,0 +1,117 @@
+name: CI
+on: push
+
+jobs:
+  build-windows:
+    name: Windows Compile Check
+    runs-on: windows-latest
+    strategy:
+        fail-fast: false
+        matrix:
+            arch: [x64, ARM64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Configure
+        run: |
+            mkdir build
+            cd build
+            cmake -A${{ matrix.arch }} ..
+      - name: Build
+        run: |
+            cd build
+            cmake --build . --config release --target install
+
+  build-linux:
+    name: Linux Compile Check
+    runs-on: ubuntu-latest
+    strategy:
+        fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+          sudo apt update
+          sudo apt install cmake make clang ninja-build vulkan-sdk libx11-dev libx11-xcb-dev libxtst-dev xcb libxcb-xkb-dev x11-xkb-utils libxkbcommon-x11-dev --no-install-recommends -y
+      - name: Configure
+        run: |
+            mkdir build
+            cd build
+            CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Ninja" ..
+      - name: Build
+        run: |
+            cd build
+            cmake --build . --config release --target install --parallel
+
+  build-mac:
+    name: macOS Compile Check
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Configure
+        run: |
+            mkdir build
+            cd build
+            cmake -G "Xcode" ..
+      - name: Build
+        run: |
+            cd build
+            cmake --build . --config Release --target install -- -quiet
+                
+  build-apple-mobile:
+    name: Apple Mobile Compile Check
+    runs-on: macos-latest
+    strategy:
+        fail-fast: false
+        matrix:
+            tplatform: [iOS, tvOS]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Configure
+        run: |
+            mkdir build
+            cd build
+            cmake -G "Xcode" -DCMAKE_SYSTEM_NAME="${{ matrix.tplatform }}" -DCMAKE_XCODE_CODE_SIGNING_ALLOWED=NO -DCMAKE_XCODE_CODE_SIGNING_ENABLED=NO ..
+      - name: Build
+        run: |
+            cd build
+            cmake --build . --config Release --target install -- -quiet
+
+  build-web:
+    name: Web Compile Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: | 
+          sudo apt update
+          sudo apt install ninja-build
+      - name: Get Emscripten
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git --depth=1
+          cd emsdk
+          ./emsdk install tot
+          ./emsdk activate tot
+      - name: Build for web
+        run: |
+          source emsdk/emsdk_env.sh
+          mkdir build
+          cd build
+          emcmake cmake -G Ninja -DCMAKE_BUILD_TYPE=Release  ..
+          cmake --build . --target install --parallel
