@@ -22,7 +22,7 @@ jobs:
       - name: Build
         run: |
             cd build
-            cmake --build . --config release --target install
+            cmake --build . --config release --target RGL rglc
 
   build-linux:
     name: Linux Compile Check
@@ -48,7 +48,7 @@ jobs:
       - name: Build
         run: |
             cd build
-            cmake --build . --config release --target install --parallel
+            cmake --build . --config release --target RGL rglc --parallel
 
   build-mac:
     name: macOS Compile Check
@@ -66,7 +66,7 @@ jobs:
       - name: Build
         run: |
             cd build
-            cmake --build . --config Release --target install -- -quiet
+            cmake --build . --config Release --target RGL rglc -- -quiet
                 
   build-apple-mobile:
     name: Apple Mobile Compile Check
@@ -88,7 +88,7 @@ jobs:
       - name: Build
         run: |
             cd build
-            cmake --build . --config Release --target install -- -quiet
+            cmake --build . --config Release --target RGL rglc -- -quiet
 
   build-web:
     name: Web Compile Check
@@ -114,4 +114,4 @@ jobs:
           mkdir build
           cd build
           emcmake cmake -G Ninja -DCMAKE_BUILD_TYPE=Release  ..
-          cmake --build . --target install --parallel
+          cmake --build . --target RGL --parallel
