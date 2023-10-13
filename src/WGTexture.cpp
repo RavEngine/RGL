@@ -2,22 +2,22 @@
 #include "WGTexture.hpp"
 
 namespace RGL{
-TextureWG::TextureWG(decltype(drawable), const Dimension&){
-
-}
-TextureWG::TextureWG(const std::shared_ptr<DeviceWG>, const TextureConfig& config, const untyped_span){
-
-}
-TextureWG::TextureWG(const std::shared_ptr<DeviceWG>, const TextureConfig& config){
-
+TextureWG::~TextureWG(){
+    wgpuTextureViewRelease(texture);
 }
 
-Dimension GetSize() const{
+TextureWG::TextureWG(decltype(texture) texture, const Dimension& dim) : texture(texture), ITexture(dim){
+
+}
+TextureWG::TextureWG(const std::shared_ptr<DeviceWG> owningDevice, const TextureConfig& config, const untyped_span data) : TextureWG(owningDevice, config){
+
+}
+TextureWG::TextureWG(const std::shared_ptr<DeviceWG> owningDevice, const TextureConfig& config) : TextureWG(nullptr, {config.width,config.height}){
 
 }
 
-~TextureWG::~TextureWG(){
-    
+Dimension TextureWG::GetSize() const{
+    return size;
 }
 
 }

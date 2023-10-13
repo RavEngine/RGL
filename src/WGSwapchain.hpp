@@ -2,7 +2,7 @@
 #include <RGL/Types.hpp>
 #include <RGL/Swapchain.hpp>
 #include "WGSurface.hpp"
-//#include "WGTexture.hpp"
+#include "WGTexture.hpp"
 #include <array>
 
 namespace RGL{
@@ -17,8 +17,10 @@ namespace RGL{
         void GetNextImage(uint32_t* index) final;
         ITexture* ImageAtIndex(uint32_t index) final;
         void Present(const SwapchainPresentConfig&) final;
+
+        Dimension currentSize;
         
-        //std::array<TextureMTL,3> activeTextures;
+        std::array<TextureWG,3> activeTextures;
         uint32_t idx = 0;
 	};
 }

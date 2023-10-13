@@ -19,6 +19,7 @@ namespace RGL{
 
     SwapchainWG::SwapchainWG(decltype(surface) surface, uint32_t width, uint32_t height, const std::shared_ptr<DeviceWG> owningDevice) : surface(surface), owningDevice(owningDevice){
         swapchain = makeSwapchain(surface, width, height, owningDevice);
+        currentSize = {width, height};
     }
 
     SwapchainWG::~SwapchainWG(){
@@ -28,17 +29,20 @@ namespace RGL{
     void SwapchainWG::Resize(uint32_t width, uint32_t height){
         wgpuSwapChainRelease(swapchain);
         swapchain = makeSwapchain(surface, width, height, owningDevice);
+        currentSize = {width, height};
     }
 
     void SwapchainWG::GetNextImage(uint32_t* index){
-        *index = 0;
-        WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(swapchain);
-        FatalError("GetNextImage: not implemented");
+        auto next = wgpuSwapChainGetCurrentTextureView(swapchain);
+
+        activeTextures[idx] = TextureWG(next, {static_cast<uint32_t>(currentSize.width), static_cast<uint32_t>(currentSize.height)});
+
+        *index = this->idx;
+        idx = (idx + 1) % activeTextures.size();
     }
 
     ITexture* SwapchainWG::ImageAtIndex(uint32_t index){
-        FatalError("ImageAtIndex: not implemented");
-        return nullptr;
+       return &activeTextures[index];
     }
 
     void SwapchainWG::Present(const SwapchainPresentConfig&){
