@@ -18,7 +18,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake -A${{ matrix.arch }} ..
+            cmake -A${{ matrix.arch }} -DRGL_RUNTIME_COMPILATION=ON ..
       - name: Build
         run: |
             cd build
@@ -44,7 +44,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Ninja" ..
+            CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Ninja" -DRGL_RUNTIME_COMPILATION=ON ..
       - name: Build
         run: |
             cd build
@@ -62,7 +62,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake -G "Xcode" ..
+            cmake -G "Xcode" -DRGL_RUNTIME_COMPILATION=ON ..
       - name: Build
         run: |
             cd build
@@ -84,11 +84,11 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake -G "Xcode" -DCMAKE_SYSTEM_NAME="${{ matrix.tplatform }}" -DCMAKE_XCODE_CODE_SIGNING_ALLOWED=NO -DCMAKE_XCODE_CODE_SIGNING_ENABLED=NO ..
+            cmake -G "Xcode" -DCMAKE_SYSTEM_NAME="${{ matrix.tplatform }}" -DRGL_RUNTIME_COMPILATION=ON -DCMAKE_XCODE_CODE_SIGNING_ALLOWED=NO -DCMAKE_XCODE_CODE_SIGNING_ENABLED=NO ..
       - name: Build
         run: |
             cd build
-            cmake --build . --config Release --target RGL rglc -- -quiet
+            cmake --build . --config Release --target RGL -- -quiet
 
   build-web:
     name: Web Compile Check
@@ -113,5 +113,5 @@ jobs:
           source emsdk/emsdk_env.sh
           mkdir build
           cd build
-          emcmake cmake -G Ninja -DCMAKE_BUILD_TYPE=Release  ..
+          emcmake cmake -G Ninja -DRGL_RUNTIME_COMPILATION=ON -DCMAKE_BUILD_TYPE=Release  ..
           cmake --build . --target RGL --parallel
