@@ -8,9 +8,14 @@
 #include <wrl.h>
 #include <format>
 #include <iostream>
+#include <atlbase.h>
+#include <dxcapi.h>
+#pragma comment(lib, "dxcompiler.lib")	// to get access to new compiler api
 
 using namespace RGL;
 using namespace Microsoft::WRL;
+
+CComPtr<IDxcUtils> dxcUtilsPtr;
 
 constexpr std::string_view D3D12AutoBreadcrumbOpToString(D3D12_AUTO_BREADCRUMB_OP op)
 {
@@ -257,7 +262,7 @@ namespace RGL {
         debugInterface->EnableDebugLayer();
 
         // GPU-based validation
-#if 0
+#if 1
         ComPtr<ID3D12Debug1> spDebugController1;
         DX_CHECK(debugInterface->QueryInterface(IID_PPV_ARGS(&spDebugController1)));
         spDebugController1->SetEnableGPUBasedValidation(true);
@@ -277,6 +282,7 @@ namespace RGL {
         RGL::currentAPI = API::Direct3D12;
         EnableDebugLayer();
         InitializeAftermath();
+        DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtilsPtr));
     }
 
     void RGL::DeintD3D12()
