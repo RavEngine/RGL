@@ -19,7 +19,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake -A${{ matrix.arch }} -DCMAKE_SYSTEM_NAME=${{ matrix.sys }} -DRGL_RUNTIME_COMPILATION=ON ..
+            cmake -A${{ matrix.arch }} -DCMAKE_SYSTEM_NAME=${{ matrix.sys }} -DCMAKE_SYSTEM_VERSION="10.0" -DRGL_RUNTIME_COMPILATION=ON ..
       - name: Build
         run: |
             cd build
