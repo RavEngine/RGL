@@ -9,6 +9,7 @@ jobs:
         fail-fast: false
         matrix:
             arch: [x64, ARM64]
+            sys: [Windows, WindowsStore]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,7 +19,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake -A${{ matrix.arch }} -DRGL_RUNTIME_COMPILATION=ON ..
+            cmake -A${{ matrix.arch }} -DCMAKE_SYSTEM_NAME=${{ matrix.sys }} -DRGL_RUNTIME_COMPILATION=ON ..
       - name: Build
         run: |
             cd build
