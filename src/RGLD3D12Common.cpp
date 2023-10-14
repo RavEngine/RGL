@@ -262,7 +262,7 @@ namespace RGL {
         debugInterface->EnableDebugLayer();
 
         // GPU-based validation
-#if 1
+#if 0
         ComPtr<ID3D12Debug1> spDebugController1;
         DX_CHECK(debugInterface->QueryInterface(IID_PPV_ARGS(&spDebugController1)));
         spDebugController1->SetEnableGPUBasedValidation(true);
