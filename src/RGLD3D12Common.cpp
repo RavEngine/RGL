@@ -10,7 +10,10 @@
 #include <iostream>
 #include <atlbase.h>
 #include <dxcapi.h>
+
+#ifdef REFL_ENABLED
 #pragma comment(lib, "dxcompiler.lib")	// to get access to new compiler api
+#endif
 
 using namespace RGL;
 using namespace Microsoft::WRL;
@@ -282,7 +285,9 @@ namespace RGL {
         RGL::currentAPI = API::Direct3D12;
         EnableDebugLayer();
         InitializeAftermath();
+#ifdef REFL_ENABLED
         DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtilsPtr));
+#endif
     }
 
     void RGL::DeintD3D12()

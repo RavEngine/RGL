@@ -49,6 +49,7 @@ namespace RGL {
 	}
 	void ShaderLibraryD3D12::ShaderReflect()
 	{
+#ifdef REFL_ENABLED
 		DxcBuffer reflectionData{
 			.Ptr = shaderBytecode.pShaderBytecode,
 			.Size = shaderBytecode.BytecodeLength,
@@ -91,6 +92,7 @@ namespace RGL {
 				bufferBindingStore->insert(std::make_pair(i, info));
 			}
 		}
+#endif
 	}
 }
 

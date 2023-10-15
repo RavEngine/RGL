@@ -140,19 +140,16 @@ namespace RGL {
 		const auto layout = currentRenderPipeline->pipelineLayout;
 		const auto bindPoint = layout->slotForBufferIdx(bindingOffset);
 
-		D3D12_RESOURCE_STATES newState;
-		bool wasWritten = false;
-		if (layout->bufferIdxIsUAV(bindingOffset)) {
+		bool isUAV = layout->bufferIdxIsUAV(bindingOffset);
+
+		SyncIfNeeded(static_cast<const BufferD3D12*>(buffer.get()), isUAV ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS : D3D12_RESOURCE_STATE_GENERIC_READ, isUAV);
+
+		if (isUAV) {
 			commandList->SetGraphicsRootUnorderedAccessView(bindPoint, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
-			newState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			wasWritten = true;
 		}
 		else {
 			commandList->SetGraphicsRootShaderResourceView(bindPoint, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
-			newState = D3D12_RESOURCE_STATE_GENERIC_READ;
-			wasWritten = false;
 		}
-		SyncIfNeeded(static_cast<const BufferD3D12*>(buffer.get()), newState, wasWritten);
 	}
 	void CommandBufferD3D12::BindComputeBuffer(RGLBufferPtr buffer, uint32_t bindingOffset, uint32_t offsetIntoBuffer)
 	{
@@ -160,20 +157,17 @@ namespace RGL {
 		auto casted = std::static_pointer_cast<BufferD3D12>(buffer);
 		const auto currentLayout = currentComputePipeline->pipelineLayout;
 		const auto slotidx = currentLayout->slotForBufferIdx(bindingOffset);
+		 
+		bool isUAV = currentLayout->bufferIdxIsUAV(bindingOffset);
 
-		D3D12_RESOURCE_STATES newState;
-		bool wasWritten = false;
-		if (currentLayout->bufferIdxIsUAV(bindingOffset)) {
+		SyncIfNeeded(static_cast<const BufferD3D12*>(buffer.get()), isUAV ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS : D3D12_RESOURCE_STATE_GENERIC_READ, isUAV);
+
+		if (isUAV) {
 			commandList->SetComputeRootUnorderedAccessView(slotidx, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
-			newState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			wasWritten = true;
 		}
 		else {
 			commandList->SetComputeRootShaderResourceView(slotidx, casted->vertexBufferView.BufferLocation + offsetIntoBuffer);
-			newState = D3D12_RESOURCE_STATE_GENERIC_READ;
-			wasWritten = false;
 		}
-		SyncIfNeeded(static_cast<const BufferD3D12*>(buffer.get()), newState, wasWritten);
 
 	}
 	void CommandBufferD3D12::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo)
@@ -422,6 +416,12 @@ namespace RGL {
 
 		// a resource transition is in order
 		if (buffer->canBeTransitioned && current != needed) {
+
+			// is the transition possible?
+			if (needed == D3D12_RESOURCE_STATE_UNORDERED_ACCESS && !buffer->isWritable) {
+				goto barrierBail;
+			}
+
 			barriers[nBarriers] = CD3DX12_RESOURCE_BARRIER::Transition(
 				buffer->buffer.Get(),
 				current,
@@ -435,6 +435,7 @@ namespace RGL {
 
 			nBarriers++;
 		}
+	barrierBail:
 
 		if ((*it).second.written && buffer->isWritable) {
 			// do a simple UAV barrier because access needs to be synchronized here
@@ -442,13 +443,13 @@ namespace RGL {
 			nBarriers++;
 		}
 
-		// update written state
-		it->second.written = written;
-
 		//TODO: barriers of size 1 are inefficient. We should batch these somehow.
 		if (nBarriers > 0) {
 			commandList->ResourceBarrier(nBarriers, barriers);
 		}
+		// update written state
+		it->second.written = written;
+		
 	}
 	void CommandBufferD3D12::SyncIfNeeded(const TextureD3D12* texture, D3D12_RESOURCE_STATES needed, bool written)
 	{
