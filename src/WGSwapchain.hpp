@@ -24,5 +24,8 @@ namespace RGL{
         uint32_t idx = 0;
 
         void SetVsyncMode(bool mode) final;
+    private:
+        WGPUSwapChain makeSwapchain(uint32_t width, uint32_t height);
+        bool vsync = true;
 	};
 }
