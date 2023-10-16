@@ -22,5 +22,7 @@ namespace RGL{
         
         std::array<TextureWG,3> activeTextures;
         uint32_t idx = 0;
+
+        void SetVsyncMode(bool mode) final
 	};
 }

@@ -48,6 +48,10 @@ namespace RGL{
     void SwapchainWG::Present(const SwapchainPresentConfig&){
         wgpuSwapChainPresent(swapchain);
     }
+
+    void SwapchainWG::SetVsyncMode(bool mode){
+        // TODO: implement vsync for webgpu
+    }
 }
 
 #endif
