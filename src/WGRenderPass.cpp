@@ -42,6 +42,7 @@ RenderPassWG::RenderPassWG(const RenderPassConfig& config){
             auto& attachment = colorAttachments.at(i);
             attachment.loadOp = rgl2wgload(attachmentdesc.loadOp);
             attachment.storeOp = rgl2wgstore(attachmentdesc.storeOp);
+            attachment.clearValue = {attachmentdesc.clearColor[0],attachmentdesc.clearColor[1],attachmentdesc.clearColor[2],attachmentdesc.clearColor[3]};
             i++;
         }
     }
@@ -49,7 +50,7 @@ RenderPassWG::RenderPassWG(const RenderPassConfig& config){
 }
 
 void RenderPassWG::SetAttachmentTexture(uint32_t index, ITexture* texture){
-    colorAttachments.at(index).view = static_cast<TextureWG*>(texture)->texture; 
+    colorAttachments.at(index).view = static_cast<TextureWG*>(texture)->texture;
 }
         
 void RenderPassWG::SetDepthAttachmentTexture(ITexture* texture){
