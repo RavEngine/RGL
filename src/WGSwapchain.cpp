@@ -2,6 +2,7 @@
 #include "WGSwapchain.hpp"
 #include "WGDevice.hpp"
 #include <emscripten/html5_webgpu.h>
+#include <emscripten/html5.h>
 #include "RGLCommon.hpp"
 
 namespace RGL{
@@ -46,7 +47,13 @@ namespace RGL{
     }
 
     void SwapchainWG::Present(const SwapchainPresentConfig&){
-        wgpuSwapChainPresent(swapchain);
+        #if __EMSCRIPTEN__
+            emscripten_request_animation_frame([](double time, void* userData){
+                return 0;
+            },nullptr);
+        #else
+            wgpuSwapChainPresent(swapchain);
+        #endif
     }
 
     void SwapchainWG::SetVsyncMode(bool mode){
