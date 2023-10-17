@@ -62,6 +62,7 @@ namespace RGL{
 
     private:
         WGPUCommandEncoder currentCommandEncoder;
+        WGPURenderPassEncoder currentRenderPassEncoder;
         std::vector<WGPUCommandBuffer> commandBuffers;
     };
 }

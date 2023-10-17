@@ -1,6 +1,8 @@
 #if RGL_WEBGPU_AVAILABLE
 #include "WGCommandBuffer.hpp"
 #include "WGCommandQueue.hpp"
+#include "WGRenderPass.hpp"
+#include "WGBuffer.hpp"
 #include "WGDevice.hpp"
 
 namespace RGL{
@@ -20,25 +22,33 @@ namespace RGL{
         commandBuffers.clear();
     }
     void CommandBufferWG::Begin() { 
+        currentCommandEncoder = wgpuDeviceCreateCommandEncoder(owningQueue->owningDevice->device, nullptr);
     }
-    void CommandBufferWG::End() { }
+    void CommandBufferWG::End() {
+        commandBuffers.push_back(wgpuCommandEncoderFinish(currentCommandEncoder,nullptr));
+        wgpuCommandEncoderRelease(currentCommandEncoder);
+     }
     void CommandBufferWG::BindRenderPipeline(RGLRenderPipelinePtr) { }
     void CommandBufferWG::BeginCompute(RGLComputePipelinePtr) { }
     void CommandBufferWG::EndCompute() { }
     void CommandBufferWG::DispatchCompute(uint32_t threadsX, uint32_t threadsY, uint32_t threadsZ, uint32_t threadsPerThreadgroupX, uint32_t threadsPerThreadgroupY, uint32_t threadsPerThreadgroupZ) { }
 
     void CommandBufferWG::BeginRendering(RGLRenderPassPtr pass) {
-        currentCommandEncoder =  wgpuDeviceCreateCommandEncoder(owningQueue->owningDevice->device, nullptr);
+        auto casted = std::static_pointer_cast<RenderPassWG>(pass);
+        currentRenderPassEncoder = wgpuCommandEncoderBeginRenderPass(currentCommandEncoder,&casted->renderPass);
     }
     void CommandBufferWG::EndRendering() { 
 
-        commandBuffers.push_back(wgpuCommandEncoderFinish(currentCommandEncoder,nullptr));
-        wgpuCommandEncoderRelease(currentCommandEncoder);
+       wgpuRenderPassEncoderRelease(currentRenderPassEncoder);
     }
 
     void CommandBufferWG::BindBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer) { }
     void CommandBufferWG::BindComputeBuffer(RGLBufferPtr buffer, uint32_t binding, uint32_t offsetIntoBuffer) { }
-    void CommandBufferWG::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo) { }
+    void CommandBufferWG::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBinding& bindingInfo) {
+        auto casted =std::static_pointer_cast<BufferWG>(buffer);
+        wgpuRenderPassEncoderSetVertexBuffer(currentRenderPassEncoder, bindingInfo.bindingPosition, casted->buffer, bindingInfo.offsetIntoBuffer, casted->getBufferSize());
+
+     }
             
     void CommandBufferWG::SetIndexBuffer(RGLBufferPtr buffer) { }
 

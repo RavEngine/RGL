@@ -8,6 +8,13 @@ namespace RGL{
     
     struct RenderPassWG : public IRenderPass{
 
+        WGPURenderPassDescriptorMaxDrawCount maxDrawCount{
+            .chain = {
+                .next = nullptr,
+                .sType = WGPUSType_RenderPassDescriptorMaxDrawCount
+            },
+            .maxDrawCount = 65535
+        };
         WGPURenderPassDescriptor renderPass;
         std::vector<WGPURenderPassColorAttachment> colorAttachments;
         WGPURenderPassDepthStencilAttachment depthStencilAttachment;

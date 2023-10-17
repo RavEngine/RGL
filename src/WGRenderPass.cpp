@@ -35,7 +35,7 @@ RenderPassWG::RenderPassWG(const RenderPassConfig& config){
     colorAttachments.resize(config.attachments.size());
     renderPass.colorAttachmentCount = colorAttachments.size();
     renderPass.colorAttachments = colorAttachments.data();
-
+    renderPass.nextInChain = &maxDrawCount.chain;
     {
         uint32_t i = 0;
         for(const auto& attachmentdesc : config.attachments){
