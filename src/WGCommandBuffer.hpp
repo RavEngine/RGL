@@ -1,5 +1,6 @@
 #pragma once
 #include <RGL/CommandBuffer.hpp>
+#include <emscripten/html5_webgpu.h>
 
 namespace RGL{
     struct CommandQueueWG;
@@ -58,5 +59,9 @@ namespace RGL{
 
         void EndRenderDebugMarker() final;
         void EndComputeDebugMarker() final;
+
+    private:
+        WGPUCommandEncoder currentCommandEncoder;
+        std::vector<WGPUCommandBuffer> commandBuffers;
     };
 }
