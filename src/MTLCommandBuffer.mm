@@ -239,22 +239,23 @@ void CommandBufferMTL::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
 
-void CommandBufferMTL::SetVertexTexture(const ITexture* texture, uint32_t index){
-    [currentCommandEncoder setVertexTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
+void CommandBufferMTL::SetVertexTexture(const TextureView& texture, uint32_t index){
+    [currentCommandEncoder setVertexTexture:texture.texture.mtl atIndex:index];
 }
-void CommandBufferMTL::SetFragmentTexture(const ITexture* texture, uint32_t index){
-    [currentCommandEncoder setFragmentTexture:static_cast<const TextureMTL*>(texture)->texture atIndex:index];
+void CommandBufferMTL::SetFragmentTexture(const TextureView& texture, uint32_t index){
+    [currentCommandEncoder setFragmentTexture:texture.texture.mtl atIndex:index];
 }
 
-void CommandBufferMTL::CopyTextureToBuffer(RGL::ITexture *sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr destBuffer) {
+void CommandBufferMTL::CopyTextureToBuffer(TextureView& sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr destBuffer) {
     auto blitencoder = [currentCommandBuffer blitCommandEncoder];
-    auto castedTexture = static_cast<TextureMTL*>(sourceTexture);
     auto castedBuffer = std::static_pointer_cast<BufferMTL>(destBuffer);
     
-    auto bytesPerRow = bytesPerPixel([castedTexture->texture pixelFormat]);
-    bytesPerRow *= castedTexture->GetSize().width;
+    id<MTLTexture> castedtexture = id<MTLTexture>(sourceTexture.texture.mtl);
     
-    [blitencoder copyFromTexture:castedTexture->texture
+    auto bytesPerRow = bytesPerPixel([castedtexture pixelFormat]);
+    bytesPerRow *= [castedtexture width];
+    
+    [blitencoder copyFromTexture:castedtexture
                      sourceSlice:0
                      sourceLevel:0
                     sourceOrigin:MTLOriginMake(sourceRect.offset[0], sourceRect.offset[1], 0)

@@ -19,6 +19,20 @@ namespace RGL {
 		Linear
 	};
 
+struct TextureView{
+    union {
+#if RGL_MTL_AVAILABLE
+        id mtl;
+#endif
+    } texture;
+    
+#if RGL_MTL_AVAILABLE
+    TextureView(id tx){
+        texture.mtl = tx;
+    }
+#endif
+};
+
 	struct TextureConfig {
 		TextureUsage usage;
 		TextureAspect aspect;
@@ -37,5 +51,8 @@ namespace RGL {
 	public:
 		ITexture(decltype(size) size) : size(size) {}
 		virtual Dimension GetSize() const = 0;
+        virtual TextureView GetDefaultView() const = 0;
+        virtual TextureView GetViewForMip(uint32_t mip) const = 0;
 	};
+
 }
