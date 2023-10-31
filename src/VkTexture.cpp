@@ -195,27 +195,43 @@ namespace RGL {
 		VmaAllocationInfo allocInfo;
 		VK_CHECK(vmaCreateImage(owningDevice->vkallocator, &imageInfo, &allocCreateInfo, &vkImage, &alloc, &allocInfo));	// also binds memory
 
-		VkImageViewCreateInfo createInfo{
-		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-		.image = vkImage,
-		.viewType = VK_IMAGE_VIEW_TYPE_2D,
-		.format = format,
-		.components{
-			.r = VK_COMPONENT_SWIZZLE_IDENTITY, // we don't want any swizzling
-			.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-			.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-			.a = VK_COMPONENT_SWIZZLE_IDENTITY
-	},
-		.subresourceRange{
-			.aspectMask = rgl2vkAspectFlags(config.aspect),    // mipmap and layer info (we don't want any here)
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1
-		}
+		auto makeImageViewCreateInfo = [this,&config](uint32_t miplevel){
+
+			return VkImageViewCreateInfo{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+			.image = vkImage,
+			.viewType = VK_IMAGE_VIEW_TYPE_2D,
+			.format = format,
+			.components{
+				.r = VK_COMPONENT_SWIZZLE_IDENTITY, // we don't want any swizzling
+				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.a = VK_COMPONENT_SWIZZLE_IDENTITY
+			},
+			.subresourceRange{
+				.aspectMask = rgl2vkAspectFlags(config.aspect),    // mipmap and layer info (we don't want any here)
+				.baseMipLevel = miplevel,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			}
+			};
 			
 		};
+		auto createInfo = makeImageViewCreateInfo(0);
 		VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &vkImageView));
+
+		mipViews.reserve(config.mipLevels - 1);
+		Dimension dim = this->size;
+		for (int i = 1; i < config.mipLevels; i++) {
+			auto view = makeImageViewCreateInfo(i);
+			VkImageView mipView;
+			dim.width /= 2;
+			dim.height /= 2;
+			VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &mipView));
+			mipViews.push_back(TextureView{this, mipView, dim});
+		}
+
 		createdAspectVk = rgl2vkAspectFlags(config.aspect);
 
 		if (config.debugName) {
@@ -248,6 +264,21 @@ namespace RGL {
 			vmaFreeMemory(owningDevice->vkallocator, alloc);
 			alloc = VK_NULL_HANDLE;
 		}
+	}
+	TextureView TextureVk::GetDefaultView() const
+	{
+		TextureView view{this, vkImageView, size};
+		view.parent = this;
+		view.texture.vk = vkImageView;
+		return view;
+	}
+	TextureView TextureVk::GetViewForMip(uint32_t mip) const
+	{
+		if (mip == 0) {
+			return GetDefaultView();
+		}
+
+		return mipViews.at(mip-1);
 	}
 }
 

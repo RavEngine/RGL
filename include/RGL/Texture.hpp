@@ -2,6 +2,10 @@
 #include <cstdint>
 #include "TextureFormat.hpp"
 
+#if RGL_VK_AVAILABLE
+#include <vulkan/vulkan.h>
+#endif
+
 namespace RGL {
 
 	struct Dimension {
@@ -20,12 +24,31 @@ namespace RGL {
 	};
 
 struct TextureView{
+	const RGL::ITexture* parent = nullptr;
+
+#if RGL_VK_AVAILABLE || RGL_DX12_AVAILABLE
+	Dimension viewSize{ 0,0 };
+#endif
     union {
 #if RGL_MTL_AVAILABLE
         id mtl;
 #endif
+#if RGL_DX12_AVAILABLE
+		
+#endif
+#if RGL_VK_AVAILABLE
+		VkImageView vk;
+#endif
     } texture;
     
+#if RGL_VK_AVAILABLE
+	TextureView(decltype(parent) parent, VkImageView in_img, Dimension dim) : parent(parent), viewSize(dim) {
+		texture.vk = in_img;
+	}
+	TextureView() {
+		// intentionally blank
+	}
+#endif
 #if RGL_MTL_AVAILABLE
     TextureView(id tx){
         texture.mtl = tx;

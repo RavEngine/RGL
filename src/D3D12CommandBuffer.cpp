@@ -210,11 +210,11 @@ namespace RGL {
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
 		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
 	}
-	void CommandBufferD3D12::SetVertexTexture(const ITexture* texture, uint32_t index)
+	void CommandBufferD3D12::SetVertexTexture(const TextureView& texture, uint32_t index)
 	{
 		SetFragmentTexture(texture, index);
 	}
-	void CommandBufferD3D12::SetFragmentTexture(const ITexture* texture, uint32_t index)
+	void CommandBufferD3D12::SetFragmentTexture(const TextureView& texture, uint32_t index)
 	{
 		auto thisTexture = static_cast<const TextureD3D12*>(texture);
 
@@ -233,6 +233,9 @@ namespace RGL {
 		ID3D12DescriptorHeap* heapForThis[] = { srvheap->Heap() };
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
 		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture->srvIDX));
+	}
+	void CommandBufferD3D12::SetComputeTexture(const TextureView& texture, uint32_t index)
+	{
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
@@ -267,7 +270,7 @@ namespace RGL {
 		commandList->RSSetScissorRects(1, &m_ScissorRect);
 	}
 
-	void CommandBufferD3D12::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
+	void CommandBufferD3D12::CopyTextureToBuffer(TextureView& sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
 		auto casted = static_cast<TextureD3D12*>(sourceTexture);
 		auto castedDest = std::static_pointer_cast<BufferD3D12>(desetBuffer);
