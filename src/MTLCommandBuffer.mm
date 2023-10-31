@@ -15,6 +15,17 @@
 
 namespace RGL{
 
+/**
+ @param x the number to round
+ @param B the multiple base
+ @return the closest multiple of B to x in the upwards direction. If x is already a multiple of B, returns x.
+ */
+template<typename T>
+inline constexpr T closest_multiple_of(T x, T B) {
+    return ((x - 1) | (B - 1)) + 1;
+}
+
+
 MTLWinding rgl2mtlwinding(RGL::WindingOrder order){
     switch (order){
         case decltype(order)::Clockwise: return MTLWindingClockwise;
@@ -177,15 +188,27 @@ void CommandBufferMTL::SetVertexBuffer(RGLBufferPtr buffer, const VertexBufferBi
 }
 
 void CommandBufferMTL::SetVertexBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setVertexBytes: data.data() length:data.size() atIndex: offset+librglc::MTL_FIRST_BUFFER];
+    auto size = closest_multiple_of<uint64_t>(data.size(), 16);
+    stackarray(tmp, std::byte, size);
+    std::memcpy(tmp, data.data(), data.size());
+    
+    [currentCommandEncoder setVertexBytes: tmp length:size atIndex: offset+librglc::MTL_FIRST_BUFFER];
 }
 
 void CommandBufferMTL::SetComputeBytes(const untyped_span data, uint32_t offset){
-    [currentComputeCommandEncoder setBytes:data.data() length:data.size() atIndex:offset+librglc::MTL_FIRST_BUFFER];
+    auto size = closest_multiple_of<uint64_t>(data.size(), 16);
+    stackarray(tmp, std::byte, size);
+    std::memcpy(tmp, data.data(), data.size());
+    
+    [currentComputeCommandEncoder setBytes:tmp length:size atIndex:offset+librglc::MTL_FIRST_BUFFER];
 }
 
 void CommandBufferMTL::SetFragmentBytes(const untyped_span data, uint32_t offset){
-    [currentCommandEncoder setFragmentBytes: data.data() length:data.size() atIndex: offset+librglc::MTL_FIRST_BUFFER];
+    auto size = closest_multiple_of<uint64_t>(data.size(), 16);
+    stackarray(tmp, std::byte, size);
+    std::memcpy(tmp, data.data(), data.size());
+    
+    [currentCommandEncoder setFragmentBytes: tmp length:size atIndex: offset+librglc::MTL_FIRST_BUFFER];
 
 }
 
@@ -244,6 +267,9 @@ void CommandBufferMTL::SetVertexTexture(const TextureView& texture, uint32_t ind
 }
 void CommandBufferMTL::SetFragmentTexture(const TextureView& texture, uint32_t index){
     [currentCommandEncoder setFragmentTexture:texture.texture.mtl atIndex:index];
+}
+void CommandBufferMTL::SetComputeTexture(const TextureView& texture, uint32_t index){
+    [currentComputeCommandEncoder setTexture:texture.texture.mtl atIndex:index];
 }
 
 void CommandBufferMTL::CopyTextureToBuffer(TextureView& sourceTexture, const RGL::Rect &sourceRect, size_t offset, RGLBufferPtr destBuffer) {

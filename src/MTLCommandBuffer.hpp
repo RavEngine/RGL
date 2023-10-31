@@ -49,6 +49,7 @@ struct BufferMTL;
         
         void SetVertexTexture(const TextureView& texture, uint32_t index) final;
         void SetFragmentTexture(const TextureView& texture, uint32_t index) final;
+        void SetComputeTexture(const TextureView& texture, uint32_t index) final;
 
         void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) final;
         void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) final;
