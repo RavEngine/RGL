@@ -232,14 +232,22 @@ set_target_properties(
 	PROPERTIES 
 	FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Cross"
 )
+
 if(ST_BUNDLED_DXC)
-set_target_properties(
-	"DxcDisassembler" "DxcOptimizer" "DxilConstants" "DxilDocs" "DxilInstructions" "DxilIntrinsicTables"
-	"DxilMetadata" "DxilOperations" "DxilPIXPasses" "DxilShaderModel" "DxilShaderModelInc" "DxilSigPoint"
-	"DxilValidation" "DxilValidationInc" "HCTGen" "HLSLIntrinsicOp" "HLSLOptions" "RDAT_LibraryTypes"
-	PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries/DirectXShaderCompiler"
-)
+	function(dxc_set_for_dir DIR)
+		get_property(TGTS DIRECTORY "${DIR}" PROPERTY BUILDSYSTEM_TARGETS)
+		set_target_properties(
+			${TGTS}
+			PROPERTIES 
+			FOLDER "${RGL_IDE_ROOT}/Libraries/DirectXShaderCompiler"
+		)
+
+		get_property(SUBDIRS DIRECTORY "${DIR}" PROPERTY SUBDIRECTORIES)
+		foreach(SUBDIR IN LISTS SUBDIRS)
+			dxc_set_for_dir("${SUBDIR}")
+		endforeach()
+	endfunction()
+	dxc_set_for_dir("${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler")
 endif()
 
 if (RGL_VK_AVAILABLE)
