@@ -551,8 +551,8 @@ namespace RGL {
 				if (it != activeTextures.end()) {
 					layout = it->second.lastLayout;
 				}
-				bool isCompute = currentRenderPipeline ? true : false;
-				auto activeLayout = isCompute ? currentRenderPipeline->pipelineLayout : currentComputePipeline->pipelineLayout;
+				bool isCompute = currentRenderPipeline ? false : true;
+				auto activeLayout = isCompute ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout;
 
 				VkDescriptorImageInfo imginfo{
 							.sampler = VK_NULL_HANDLE,
