@@ -5,6 +5,9 @@
 #if RGL_VK_AVAILABLE
 #include <vulkan/vulkan.h>
 #endif
+#if RGL_DX12_AVAILABLE
+#include <limits>
+#endif
 
 namespace RGL {
 
@@ -22,6 +25,9 @@ namespace RGL {
 		Optimal,
 		Linear
 	};
+#if RGL_DX12_AVAILABLE
+	struct TextureD3D12;
+#endif
 
 struct TextureView{
 	const RGL::ITexture* parent = nullptr;
@@ -29,31 +35,57 @@ struct TextureView{
 #if RGL_VK_AVAILABLE || RGL_DX12_AVAILABLE
 	Dimension viewSize{ 0,0 };
 #endif
-    union {
+    union NativeHandles{
 #if RGL_MTL_AVAILABLE
         id mtl;
 #endif
 #if RGL_DX12_AVAILABLE
-		
+		struct {
+			constexpr static uint32_t unallocated = std::numeric_limits<uint32_t>::max();
+			uint32_t
+				dsvIDX = unallocated, 
+				rtvIDX = unallocated, 
+				srvIDX = unallocated, 
+				uavIDX = unallocated;
+
+			bool dsvAllocated() const {
+				return dsvIDX != unallocated;
+			}
+			bool rtvAllocated() const {
+				return rtvIDX != unallocated;
+			}
+			bool srvAllocated() const {
+				return srvIDX != unallocated;
+			}
+			bool uavAllocated() const {
+				return uavIDX != unallocated;
+			}
+			const TextureD3D12* parentResource;
+		} dx;
+		NativeHandles(const decltype(dx)& dx) : dx(dx) {}
 #endif
 #if RGL_VK_AVAILABLE
 		VkImageView vk;
+		NativeHandles(decltype(vk) vk) : vk(vk) {}
 #endif
+		NativeHandles() {}
+
     } texture;
     
 #if RGL_VK_AVAILABLE
-	TextureView(decltype(parent) parent, VkImageView in_img, Dimension dim) : parent(parent), viewSize(dim) {
-		texture.vk = in_img;
-	}
-	TextureView() {
-		// intentionally blank
-	}
+	TextureView(decltype(parent) parent, VkImageView in_img, Dimension dim) : parent(parent), viewSize(dim), texture(in_img) {}
 #endif
+
+#if RGL_DX12_AVAILABLE
+	TextureView(decltype(texture.dx) dx) : texture(dx) {}
+#endif
+
 #if RGL_MTL_AVAILABLE
     TextureView(id tx){
         texture.mtl = tx;
     }
 #endif
+	TextureView() {}
 };
 
 	struct TextureConfig {

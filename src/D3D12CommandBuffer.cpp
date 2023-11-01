@@ -71,13 +71,13 @@ namespace RGL {
 
 		uint32_t i = 0;
 		for (const auto& attachment : currentRenderPass->config.attachments) {
-			auto tx = static_cast<TextureD3D12*>(currentRenderPass->textures[i]);
+			auto& tx = currentRenderPass->textures[i].texture.dx;
 
-			SyncIfNeeded(tx, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			SyncIfNeeded(tx.parentResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-			Assert(tx->rtvAllocated(),"This texture was not allocated as a render target!");
+			Assert(tx.rtvAllocated(),"This texture was not allocated as a render target!");
 			
-			auto rtv = tx->owningDevice->RTVHeap->GetCpuHandle(tx->rtvIDX);
+			auto rtv = tx.parentResource->owningDevice->RTVHeap->GetCpuHandle(tx.rtvIDX);
 
 			if (currentRenderPass->config.attachments[i].loadOp == RGL::LoadAccessOperation::Clear) {
 				commandList->ClearRenderTargetView(rtv, attachment.clearColor.data(), 0, nullptr);
@@ -94,10 +94,10 @@ namespace RGL {
 		D3D12_CPU_DESCRIPTOR_HANDLE* dsvptr = nullptr;
 		{
 			if (currentRenderPass->depthTexture) {
-				auto tx = static_cast<TextureD3D12*>(currentRenderPass->depthTexture);
-				SyncIfNeeded(tx, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-				Assert(tx->dsvAllocated(), "Texture was not allocated as a depth stencil!");
-				dsv = tx->owningDevice->DSVHeap->GetCpuHandle(tx->dsvIDX);
+				auto& tx = currentRenderPass->depthTexture.value().texture.dx;
+				SyncIfNeeded(tx.parentResource, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				Assert(tx.dsvAllocated(), "Texture was not allocated as a depth stencil!");
+				dsv = tx.parentResource->owningDevice->DSVHeap->GetCpuHandle(tx.dsvIDX);
 				dsvptr = &dsv;
 				if (currentRenderPass->config.depthAttachment->loadOp == LoadAccessOperation::Clear) {
 					commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, currentRenderPass->config.depthAttachment->clearColor[0], 0, 0, nullptr);
@@ -216,23 +216,23 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SetFragmentTexture(const TextureView& texture, uint32_t index)
 	{
-		auto thisTexture = static_cast<const TextureD3D12*>(texture);
+		auto& thisTexture = texture.texture.dx;
 
 		constexpr static auto depthReadState = D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
 		constexpr static auto colorReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
-		auto neededState = thisTexture->dsvAllocated() ? depthReadState : colorReadState;
+		auto neededState = thisTexture.dsvAllocated() ? depthReadState : colorReadState;
 
-		SyncIfNeeded(thisTexture, neededState);
+		SyncIfNeeded(thisTexture.parentResource, neededState);
 
 		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
-		assert(thisTexture->srvAllocated(), "Cannot bind this texture because it is not in a heap!");
-		auto& srvheap = thisTexture->owningDevice->CBV_SRV_UAVHeap;
+		assert(thisTexture.srvAllocated(), "Cannot bind this texture because it is not in a heap!");
+		auto& srvheap = thisTexture.parentResource->owningDevice->CBV_SRV_UAVHeap;
 		ID3D12DescriptorHeap* heapForThis[] = { srvheap->Heap() };
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture->srvIDX));
+		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture.srvIDX));
 	}
 	void CommandBufferD3D12::SetComputeTexture(const TextureView& texture, uint32_t index)
 	{
@@ -272,7 +272,7 @@ namespace RGL {
 
 	void CommandBufferD3D12::CopyTextureToBuffer(TextureView& sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer)
 	{
-		auto casted = static_cast<TextureD3D12*>(sourceTexture);
+		auto casted = sourceTexture.texture.dx.parentResource;
 		auto castedDest = std::static_pointer_cast<BufferD3D12>(desetBuffer);
 		D3D12_TEXTURE_COPY_LOCATION destination{
 			.pResource = castedDest->buffer.Get(),
