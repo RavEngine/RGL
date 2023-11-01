@@ -206,7 +206,7 @@ namespace RGL {
                             .RegisterSpace = 0,
                             .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                             });
-                        textureBindingToRootSlot[item.binding] = rootParameters.size();
+                        textureBindingToRootSlot[item.binding] = { uint32_t(rootParameters.size()), false };
                         rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
                     }
                 break;
@@ -220,7 +220,7 @@ namespace RGL {
                         .RegisterSpace = 0,
                         .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                     });
-                    textureBindingToRootSlot[item.binding] = rootParameters.size();
+                    textureBindingToRootSlot[item.binding] = { uint32_t(rootParameters.size()), true };
                     rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
                 }
                 break;

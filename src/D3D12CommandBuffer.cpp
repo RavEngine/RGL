@@ -226,16 +226,30 @@ namespace RGL {
 
 		SyncIfNeeded(thisTexture.parentResource, neededState);
 
-		const auto pipelineLayout = currentRenderPipeline->pipelineLayout;
+		bool isGraphics = (bool)currentRenderPipeline;
+
+		const auto pipelineLayout = isGraphics ? currentRenderPipeline->pipelineLayout : currentComputePipeline->pipelineLayout;
 		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
-		assert(thisTexture.srvAllocated(), "Cannot bind this texture because it is not in a heap!");
-		auto& srvheap = thisTexture.parentResource->owningDevice->CBV_SRV_UAVHeap;
-		ID3D12DescriptorHeap* heapForThis[] = { srvheap->Heap() };
+
+		if (textureSlot.isUAV) {
+			assert(thisTexture.uavAllocated(), "Cannot bind this texture because it is not in a UAV heap!");
+		}
+		else {
+			assert(thisTexture.srvAllocated(), "Cannot bind this texture because it is not in a SRV heap!");
+		}
+		auto& heap = thisTexture.parentResource->owningDevice->CBV_SRV_UAVHeap;
+		ID3D12DescriptorHeap* heapForThis[] = { heap->Heap() };
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
-		commandList->SetGraphicsRootDescriptorTable(textureSlot, srvheap->GetGpuHandle(thisTexture.srvIDX));
+		if (isGraphics) {
+			commandList->SetGraphicsRootDescriptorTable(textureSlot.slot, heap->GetGpuHandle(textureSlot.isUAV ? thisTexture.uavIDX : thisTexture.srvIDX));
+		}
+		else {
+			commandList->SetComputeRootDescriptorTable(textureSlot.slot, heap->GetGpuHandle(textureSlot.isUAV ? thisTexture.uavIDX : thisTexture.srvIDX));
+		}
 	}
 	void CommandBufferD3D12::SetComputeTexture(const TextureView& texture, uint32_t index)
 	{
+		SetFragmentTexture(texture, index);
 	}
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{

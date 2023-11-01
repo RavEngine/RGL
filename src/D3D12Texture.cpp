@@ -102,7 +102,7 @@ namespace RGL {
 		resourceDesc.SampleDesc.Count = 1;
 		resourceDesc.SampleDesc.Quality = 0;
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		resourceDesc.Flags = config.usage.Storage ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
 
 		D3D12_CLEAR_VALUE optimizedClearValue = {
@@ -196,7 +196,8 @@ namespace RGL {
 			}
 		}
 		if (config.usage.Storage) {
-			auto createUAV = [&format,owningDevice, this](UINT& outSRV, UINT mip) {
+			auto createUAV = [&format,owningDevice, this](UINT& outHandle, UINT mip) {
+				outHandle = owningDevice->CBV_SRV_UAVHeap->AllocateSingle();
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {
 					.Format = format,
 					.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D,
@@ -205,6 +206,8 @@ namespace RGL {
 						.PlaneSlice = 0
 					}
 				};
+				auto handle = owningDevice->CBV_SRV_UAVHeap->GetCpuHandle(outHandle);
+				owningDevice->device->CreateUnorderedAccessView(texture.Get(), nullptr, &uavDesc, handle);
 			};
 			createUAV(uavIDX, 0);
 			for (UINT i = 1; i < config.mipLevels; i++) {
