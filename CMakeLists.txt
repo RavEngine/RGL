@@ -21,6 +21,10 @@ option(RGL_DISABLE_DX "Force-disable the D3D12 backend" OFF)
 option(RGL_DISABLE_WEBGPU "Force-disable the WebGPU backend" OFF)
 option(RGL_ENABLE_WEBGPU "Force-enable the WebGPU backend" OFF)
 option(RGL_RUNTIME_COMPILATION "Enable runtime shader compilation" OFF)
+option(RGL_IDE_ROOT "IDE parent folder for targets" "RGL")
+if (NOT RGL_IDE_ROOT)
+	set(RGL_IDE_ROOT "RGL") # CMake sets this to "OFF" for some insane reason
+endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten" AND NOT RGL_DISABLE_WEBGPU )
 	set(RGL_WEBGPU_AVAILABLE ON CACHE INTERNAL "RGL WebGPU")
@@ -131,7 +135,7 @@ if(MSVC AND NOT RGL_DISABLE_DX)
 	add_subdirectory("deps/DirectXTK12" EXCLUDE_FROM_ALL)
 
 	set_target_properties("DirectX-Guids"  "DirectXTK12"  PROPERTIES 
-		FOLDER "RGL/Libraries"
+		FOLDER "${RGL_IDE_ROOT}/Libraries"
 	)
 	target_include_directories(${PROJECT_NAME} PUBLIC "deps/DirectXTK12/Inc")
 else()
@@ -199,32 +203,34 @@ target_include_directories(${PROJECT_NAME}
 )
 
 set_target_properties("RGL" ${rglc_exe} "librglc" PROPERTIES 
-	FOLDER "RGL"
+	FOLDER "${RGL_IDE_ROOT}"
 	XCODE_GENERATE_SCHEME ON
 )
-
+set_target_properties("SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
+	FOLDER "${RGL_IDE_ROOT}/Libraries"
+)
 if (RGL_WEBGPU_AVAILABLE)
-set_target_properties("SPIRV-Reflect" "ShaderTranspiler" "libtint" "tint_diagnostic_utils" PROPERTIES 
-	FOLDER "RGL/Libraries"
+set_target_properties("libtint" "tint_diagnostic_utils" PROPERTIES 
+	FOLDER "${RGL_IDE_ROOT}/Libraries"
 )
 endif()
 
 set_target_properties("GenericCodeGen" "glslang" "MachineIndependent" "OGLCompiler" "OSDependent" "SPIRV" PROPERTIES 
-	FOLDER "RGL/Libraries/glslang"
+	FOLDER "${RGL_IDE_ROOT}/Libraries/glslang"
 )
 
 
 set_target_properties(
 	"SPIRV-Tools-opt" "SPIRV-Tools-reduce" "SPIRV-Tools-static"
 	PROPERTIES 
-	FOLDER "RGL/Libraries/SPIRV-Tools Libraries"
+	FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Tools Libraries"
 )
 
 set_target_properties(
 	"spirv-cross-core"
 	"spirv-cross-glsl" "spirv-cross-hlsl" "spirv-cross-msl" "spirv-cross-reflect"
 	PROPERTIES 
-	FOLDER "RGL/Libraries/SPIRV-Cross"
+	FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Cross"
 )
 if(ST_BUNDLED_DXC)
 set_target_properties(
@@ -232,21 +238,21 @@ set_target_properties(
 	"DxilMetadata" "DxilOperations" "DxilPIXPasses" "DxilShaderModel" "DxilShaderModelInc" "DxilSigPoint"
 	"DxilValidation" "DxilValidationInc" "HCTGen" "HLSLIntrinsicOp" "HLSLOptions" "RDAT_LibraryTypes"
 	PROPERTIES 
-	FOLDER "RGL/Libraries/DirectXShaderCompiler"
+	FOLDER "${RGL_IDE_ROOT}/Libraries/DirectXShaderCompiler"
 )
 endif()
 
 if (RGL_VK_AVAILABLE)
-	set_target_properties(VulkanMemoryAllocator PROPERTIES FOLDER "RGL/Libraries")
+	set_target_properties(VulkanMemoryAllocator PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
 	if (TARGET loader-opt)
-		set_target_properties(loader-opt loader-unknown-chain PROPERTIES FOLDER "RGL/Libraries")
+		set_target_properties(loader-opt loader-unknown-chain PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
 	endif()
 	if(RGL_USE_MINIVKSDK)
-		set_target_properties(vulkan vvl VkLayer_utils loader_asm_gen_files PROPERTIES FOLDER "RGL/Libraries")
+		set_target_properties(vulkan vvl VkLayer_utils loader_asm_gen_files PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
 	endif()
 endif()
 if (RGL_DX12_AVAILABLE)
-	set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "RGL/Libraries")
+	set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
 endif()
 
 

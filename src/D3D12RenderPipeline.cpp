@@ -224,8 +224,6 @@ namespace RGL {
                     rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
                 }
                 break;
-                default:
-                    FatalError("A binding type specified is not supported!");
                 }
             }
         }
