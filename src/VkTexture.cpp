@@ -237,6 +237,9 @@ namespace RGL {
 		if (config.debugName) {
 			owningDevice->SetDebugNameForResource(vkImage, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, config.debugName);
 			owningDevice->SetDebugNameForResource(vkImageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, config.debugName);
+			for (int i = 0; i < mipViews.size(); i++) {
+				owningDevice->SetDebugNameForResource(mipViews[i].texture.vk, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, config.debugName);
+			}
 		}
 
 		if (createdConfig.usage.ColorAttachment) {
@@ -261,6 +264,10 @@ namespace RGL {
 		if (owning) {
 			vkDestroyImage(owningDevice->device, vkImage, nullptr);
 			vkDestroyImageView(owningDevice->device, vkImageView, nullptr);
+
+			for (const auto view : mipViews) {
+				vkDestroyImageView(owningDevice->device, view.texture.vk, nullptr);
+			}
 			vmaFreeMemory(owningDevice->vkallocator, alloc);
 			alloc = VK_NULL_HANDLE;
 		}
