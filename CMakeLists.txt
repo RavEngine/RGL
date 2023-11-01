@@ -60,7 +60,6 @@ if (APPLE)
 endif()
 
 # setup compiler
-set(ST_BUNDLED_DXC OFF CACHE INTERNAL "")
 if (RGL_WEBGPU_AVAILABLE)
 	set(ST_ENABLE_WGSL ON CACHE INTERNAL "")
 else()
