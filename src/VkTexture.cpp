@@ -100,9 +100,9 @@ namespace RGL {
 		barrier.image = image;
 		barrier.subresourceRange.aspectMask = createdAspect;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
 		barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -228,7 +228,7 @@ namespace RGL {
 			VkImageView mipView;
 			dim.width /= 2;
 			dim.height /= 2;
-			VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &mipView));
+			VK_CHECK(vkCreateImageView(owningDevice->device, &view, nullptr, &mipView));
 			mipViews.push_back(TextureView{this, mipView, dim});
 		}
 
