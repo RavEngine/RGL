@@ -268,6 +268,7 @@ namespace RGL {
 			for (const auto view : mipViews) {
 				vkDestroyImageView(owningDevice->device, view.texture.vk, nullptr);
 			}
+			mipViews.clear();
 			vmaFreeMemory(owningDevice->vkallocator, alloc);
 			alloc = VK_NULL_HANDLE;
 		}

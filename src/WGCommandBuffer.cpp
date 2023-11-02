@@ -59,8 +59,8 @@ namespace RGL{
     void CommandBufferWG::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) { }
     void CommandBufferWG::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) { }
     
-    void CommandBufferWG::SetVertexTexture(const ITexture* texture, uint32_t index) { }
-    void CommandBufferWG::SetFragmentTexture(const ITexture* texture, uint32_t index) { }
+    void CommandBufferWG::SetVertexTexture(const TextureView& texture, uint32_t index) { }
+    void CommandBufferWG::SetFragmentTexture(const TextureView& texture, uint32_t index) { }
 
     void CommandBufferWG::Draw(uint32_t nVertices, const DrawInstancedConfig&) { }
     void CommandBufferWG::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig&) { }
@@ -68,7 +68,7 @@ namespace RGL{
     void CommandBufferWG::SetViewport(const Viewport&) { }
     void CommandBufferWG::SetScissor(const Rect&) { }
     
-    void CommandBufferWG::CopyTextureToBuffer(RGL::ITexture* sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) { }
+    void CommandBufferWG::CopyTextureToBuffer(TextureView& sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) { }
     void CommandBufferWG::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) { }
 
     void CommandBufferWG::Commit(const CommitConfig& config) { 

@@ -49,14 +49,14 @@ RenderPassWG::RenderPassWG(const RenderPassConfig& config){
     //TODO: depthstencil
 }
 
-void RenderPassWG::SetAttachmentTexture(uint32_t index, ITexture* texture){
-    colorAttachments.at(index).view = static_cast<TextureWG*>(texture)->texture;
+void RenderPassWG::SetAttachmentTexture(uint32_t index, const TextureView& texture){
+    colorAttachments.at(index).view = texture.texture.wg;
 }
         
-void RenderPassWG::SetDepthAttachmentTexture(ITexture* texture){
-    depthStencilAttachment.view = static_cast<TextureWG*>(texture)->texture;
+void RenderPassWG::SetDepthAttachmentTexture(const TextureView& texture){
+    depthStencilAttachment.view = texture.texture.wg;
 }
-void RenderPassWG::SetStencilAttachmentTexture(ITexture* texture){
+void RenderPassWG::SetStencilAttachmentTexture(const TextureView& texture){
     SetDepthAttachmentTexture(texture);
 }
 

@@ -9,6 +9,10 @@
 #include <limits>
 #endif
 
+#if RGL_WEBGPU_AVAILABLE
+#include <emscripten/html5_webgpu.h>
+#endif
+
 namespace RGL {
 
 	struct Dimension {
@@ -30,14 +34,16 @@ namespace RGL {
 #endif
 
 struct TextureView{
-	const RGL::ITexture* parent = nullptr;
-
 #if RGL_VK_AVAILABLE || RGL_DX12_AVAILABLE
 	Dimension viewSize{ 0,0 };
 #endif
     union NativeHandles{
 #if RGL_MTL_AVAILABLE
         id mtl;
+#endif
+#if RGL_WEBGPU_AVAILABLE
+		WGPUTextureView wg;
+		NativeHandles(decltype(wg) wg) : wg(wg) {}
 #endif
 #if RGL_DX12_AVAILABLE
 		struct {
@@ -73,11 +79,16 @@ struct TextureView{
     } texture;
     
 #if RGL_VK_AVAILABLE
+	const RGL::ITexture* parent = nullptr;
 	TextureView(decltype(parent) parent, VkImageView in_img, Dimension dim) : parent(parent), viewSize(dim), texture(in_img) {}
 #endif
 
 #if RGL_DX12_AVAILABLE
 	TextureView(decltype(texture.dx) dx) : texture(dx) {}
+#endif
+
+#if RGL_WEBGPU_AVAILABLE
+	TextureView(decltype(texture.wg) wg) : texture(wg){}
 #endif
 
 #if RGL_MTL_AVAILABLE
