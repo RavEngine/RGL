@@ -61,6 +61,7 @@ namespace RGL{
     
     void CommandBufferWG::SetVertexTexture(const TextureView& texture, uint32_t index) { }
     void CommandBufferWG::SetFragmentTexture(const TextureView& texture, uint32_t index) { }
+    void CommandBufferWG::SetComputeTexture(const TextureView& texture, uint32_t index) {}
 
     void CommandBufferWG::Draw(uint32_t nVertices, const DrawInstancedConfig&) { }
     void CommandBufferWG::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig&) { }
