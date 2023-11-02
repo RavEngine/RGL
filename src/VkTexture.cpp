@@ -195,7 +195,7 @@ namespace RGL {
 		VmaAllocationInfo allocInfo;
 		VK_CHECK(vmaCreateImage(owningDevice->vkallocator, &imageInfo, &allocCreateInfo, &vkImage, &alloc, &allocInfo));	// also binds memory
 
-		auto makeImageViewCreateInfo = [this,&config](uint32_t miplevel){
+		auto makeImageViewCreateInfo = [this,&config](uint32_t miplevel, uint32_t levelCount = 1){
 
 			return VkImageViewCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -211,19 +211,19 @@ namespace RGL {
 			.subresourceRange{
 				.aspectMask = rgl2vkAspectFlags(config.aspect),    // mipmap and layer info (we don't want any here)
 				.baseMipLevel = miplevel,
-				.levelCount = 1,
+				.levelCount = levelCount,
 				.baseArrayLayer = 0,
 				.layerCount = 1
 			}
 			};
 			
 		};
-		auto createInfo = makeImageViewCreateInfo(0);
+		auto createInfo = makeImageViewCreateInfo(0, VK_REMAINING_MIP_LEVELS);
 		VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &vkImageView));
 
-		mipViews.reserve(config.mipLevels - 1);
+		mipViews.reserve(config.mipLevels);
 		Dimension dim = this->size;
-		for (int i = 1; i < config.mipLevels; i++) {
+		for (int i = 0; i < config.mipLevels; i++) {
 			auto view = makeImageViewCreateInfo(i);
 			VkImageView mipView;
 			dim.width /= 2;
@@ -281,11 +281,7 @@ namespace RGL {
 	}
 	TextureView TextureVk::GetViewForMip(uint32_t mip) const
 	{
-		if (mip == 0) {
-			return GetDefaultView();
-		}
-
-		return mipViews.at(mip-1);
+		return mipViews.at(mip);
 	}
 }
 
