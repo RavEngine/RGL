@@ -58,10 +58,14 @@ namespace RGL{
     
     void CommandBufferWG::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) { }
     void CommandBufferWG::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) { }
-    
+    void CommandBufferWG::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) {}
+
     void CommandBufferWG::SetVertexTexture(const TextureView& texture, uint32_t index) { }
     void CommandBufferWG::SetFragmentTexture(const TextureView& texture, uint32_t index) { }
     void CommandBufferWG::SetComputeTexture(const TextureView& texture, uint32_t index) {}
+    void CommandBufferWG::CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to){
+
+    }
 
     void CommandBufferWG::Draw(uint32_t nVertices, const DrawInstancedConfig&) { }
     void CommandBufferWG::DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig&) { }
