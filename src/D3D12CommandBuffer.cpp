@@ -210,6 +210,16 @@ namespace RGL {
 		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
 		commandList->SetGraphicsRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
 	}
+	void CommandBufferD3D12::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index)
+	{
+		auto thisSampler = std::static_pointer_cast<SamplerD3D12>(sampler);
+		const auto pipelineLayout = currentComputePipeline->pipelineLayout;
+		const auto samplerSlot = pipelineLayout->slotForSamplerIdx(index);
+		auto& samplerHeap = thisSampler->owningDevice->SamplerHeap;
+		ID3D12DescriptorHeap* heapForThis[] = { samplerHeap->Heap() };
+		commandList->SetDescriptorHeaps(std::size(heapForThis), heapForThis);
+		commandList->SetComputeRootDescriptorTable(samplerSlot, samplerHeap->GetGpuHandle(thisSampler->descriptorIndex));
+	}
 	void CommandBufferD3D12::SetVertexTexture(const TextureView& texture, uint32_t index)
 	{
 		SetFragmentTexture(texture, index);
@@ -346,6 +356,37 @@ namespace RGL {
 		);
 		commandList->ResourceBarrier(1, &postBarrier);
 		SyncIfNeeded(fromBuffer.get(), fromBufferCurrentState, true);
+	}
+
+	void CommandBufferD3D12::CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to)
+	{
+		
+		// Create a source texture location
+		D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
+		srcLocation.pResource = from.texture.texture.dx.parentResource->texture.Get();
+		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		srcLocation.SubresourceIndex = 0;
+
+		// Create a destination texture location
+		D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
+		dstLocation.pResource = to.texture.texture.dx.parentResource->texture.Get();
+		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dstLocation.SubresourceIndex = 0;
+
+		// Create a box that specifies the region to copy
+		D3D12_BOX box = {};
+		box.left = 0;
+		box.top = 0;
+		box.front = 0;
+		box.right = srcLocation.pResource->GetDesc().Width;
+		box.bottom = srcLocation.pResource->GetDesc().Height;
+		box.back = 1;
+
+		// Copy the region from the source texture to the destination texture
+		SyncIfNeeded(from.texture.texture.dx.parentResource, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+		SyncIfNeeded(to.texture.texture.dx.parentResource, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, &box);
+
 	}
 
 	void CommandBufferD3D12::Commit(const CommitConfig& config)

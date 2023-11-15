@@ -13,6 +13,21 @@
 #include <emscripten/html5_webgpu.h>
 #endif
 
+#if __APPLE__
+#include <objc/objc.h>
+
+#ifdef __OBJC__
+#define OBJC_ID(a) id< a >
+#define APPLE_API_PTR(a) a *
+#define APPLE_API_TYPE(a) a
+#else
+#define OBJC_ID(a) id
+#define APPLE_API_PTR(a) void *
+#define APPLE_API_TYPE(a) int
+#endif
+#endif
+
+
 namespace RGL {
 
 	struct Dimension {
@@ -37,9 +52,14 @@ struct TextureView{
 #if RGL_VK_AVAILABLE || RGL_DX12_AVAILABLE
 	Dimension viewSize{ 0,0 };
 #endif
-    union NativeHandles{
 #if RGL_MTL_AVAILABLE
-        id mtl;
+    struct
+#else
+    union
+#endif
+    NativeHandles{
+#if RGL_MTL_AVAILABLE
+        OBJC_ID(MTLTexture) mtl;
 #endif
 #if RGL_WEBGPU_AVAILABLE
 		WGPUTextureView wg;

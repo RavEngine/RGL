@@ -262,6 +262,10 @@ void CommandBufferMTL::SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index)
     [currentCommandEncoder setFragmentSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
 
+void CommandBufferMTL::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) {
+    [currentComputeCommandEncoder setSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
+}
+
 void CommandBufferMTL::SetVertexTexture(const TextureView& texture, uint32_t index){
     [currentCommandEncoder setVertexTexture:texture.texture.mtl atIndex:index];
 }
@@ -299,6 +303,12 @@ void CommandBufferMTL::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfi
     auto fromBuffer = std::static_pointer_cast<BufferMTL>(from.buffer);
     auto toBuffer = std::static_pointer_cast<BufferMTL>(to.buffer);
     [blitEncoder copyFromBuffer:fromBuffer->buffer sourceOffset:from.offset toBuffer:toBuffer->buffer destinationOffset:to.offset size:size];
+    [blitEncoder endEncoding];
+}
+
+void CommandBufferMTL::CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to){
+    auto blitEncoder = [currentCommandBuffer blitCommandEncoder];
+    [blitEncoder copyFromTexture:from.texture.texture.mtl toTexture:to.texture.texture.mtl];
     [blitEncoder endEncoding];
 }
 

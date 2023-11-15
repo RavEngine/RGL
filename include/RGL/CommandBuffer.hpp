@@ -114,6 +114,7 @@ struct TextureView;
         
         virtual void SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) = 0;
         virtual void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) = 0;
+        virtual void SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) = 0;
         
         virtual void SetVertexTexture(const TextureView& texture, uint32_t index) = 0;
         virtual void SetFragmentTexture(const TextureView& texture, uint32_t index) = 0;
@@ -132,6 +133,11 @@ struct TextureView;
 			uint32_t offset = 0;
 		};
 		virtual void CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) = 0;
+        
+        struct TextureCopyConfig{
+            TextureView texture;
+        };
+        virtual void CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to) = 0;
 
 		// submit onto the queue that created this command buffer
 		virtual void Commit(const CommitConfig&) = 0;

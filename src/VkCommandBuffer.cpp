@@ -197,6 +197,10 @@ namespace RGL {
 	{
 		EncodeCommand(CmdSetSampler{ sampler, index });
 	}
+	void CommandBufferVk::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index)
+	{
+		EncodeCommand(CmdSetSampler{ sampler, index, true });
+	}
 	void CommandBufferVk::SetVertexTexture(const TextureView& texture, uint32_t index)
 	{
 		SetFragmentTexture(texture, index);
@@ -251,6 +255,12 @@ namespace RGL {
 		RecordBufferBinding(std::static_pointer_cast<BufferVk>(from.buffer).get(), {.written = false});
 		RecordBufferBinding(std::static_pointer_cast<BufferVk>(to.buffer).get(), {.written = true});
 		EncodeCommand(CmdCopyBufferToBuffer{ from,to,size });
+	}
+	void CommandBufferVk::CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to)
+	{
+		RecordTextureBinding(static_cast<const TextureVk*>(from.texture.parent), {}, true);
+		RecordTextureBinding(static_cast<const TextureVk*>(to.texture.parent), {}, true);
+		EncodeCommand(CmdCopyTextureToTexture{from,to});
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{
@@ -353,7 +363,7 @@ namespace RGL {
 		recUsage();
 	}
 
-	void CommandBufferVk::RecordTextureBinding(const TextureVk* texture, TextureLastUse usage)
+	void CommandBufferVk::RecordTextureBinding(const TextureVk* texture, TextureLastUse usage, bool recordOnly)
 	{
 		auto it = activeTextures.find(texture);
 		auto needed = usage.lastLayout;
@@ -368,6 +378,10 @@ namespace RGL {
 
 		auto current = (*it).second.lastLayout;
 		if (current == needed) {
+			return;
+		}
+
+		if (recordOnly) {
 			return;
 		}
 
@@ -534,8 +548,8 @@ namespace RGL {
 				};
 				owningQueue->owningDevice->vkCmdPushDescriptorSetKHR(
 					commandBuffer,
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					currentRenderPipeline->pipelineLayout->layout,
+					arg.isCompute ? VK_PIPELINE_BIND_POINT_COMPUTE :  VK_PIPELINE_BIND_POINT_GRAPHICS,
+					arg.isCompute ? currentComputePipeline->pipelineLayout->layout : currentRenderPipeline->pipelineLayout->layout,
 					0,
 					1,
 					&writeinfo
@@ -723,6 +737,44 @@ namespace RGL {
 				};
 
 				vkCmdCopyImageToBuffer(commandBuffer, castedImage->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, castedDest->buffer, 1, &region);
+			},
+			[this](const CmdCopyTextureToTexture& arg) {
+				auto src = static_cast<const TextureVk*>(arg.from.texture.parent);
+				auto dst = static_cast<const TextureVk*>(arg.to.texture.parent);
+
+				auto& srcLayout = activeTextures.at(src);
+				auto& dstLayout = activeTextures.at(dst);
+
+				auto dim = src->GetSize();
+				VkImageCopy2 region{
+					.sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
+					.pNext = nullptr,
+					.srcSubresource = {
+						.aspectMask = src->createdAspectVk,
+						.mipLevel = 0,
+						.baseArrayLayer = 0,
+						.layerCount = 1
+					},
+					.srcOffset = {0,0,0},
+					.dstSubresource = {
+						.aspectMask = dst->createdAspectVk,
+						.baseArrayLayer = 0,
+						.layerCount = 1
+					},
+					.dstOffset = {0,0,0},
+					.extent = {dim.width, dim.height ,1}
+				};
+				VkCopyImageInfo2 copyInfo{
+					.sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,
+					.pNext = nullptr,
+					.srcImage = src->vkImage,
+					.srcImageLayout = srcLayout.lastLayout,
+					.dstImage = dst->vkImage,
+					.dstImageLayout = dstLayout.lastLayout,
+					.regionCount = 1,
+					.pRegions = &region,
+				};
+				vkCmdCopyImage2(commandBuffer, &copyInfo);
 			},
 			[this](const CmdSetViewport& arg) {
 				auto& viewport = arg.viewport;
