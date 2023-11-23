@@ -88,6 +88,7 @@ namespace RGL{
 
     void CommandBufferWG::EndRenderDebugMarker() { }
     void CommandBufferWG::EndComputeDebugMarker() { }
+    void CommandBufferWG::BlockUntilCompleted(){ }
 }
 
 #endif

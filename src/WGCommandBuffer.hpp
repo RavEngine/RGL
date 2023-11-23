@@ -64,6 +64,9 @@ namespace RGL{
         void EndRenderDebugMarker() final;
         void EndComputeDebugMarker() final;
 
+
+        void BlockUntilCompleted() final;
+
     private:
         WGPUCommandEncoder currentCommandEncoder;
         WGPURenderPassEncoder currentRenderPassEncoder;
