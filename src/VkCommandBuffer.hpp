@@ -224,6 +224,8 @@ namespace RGL {
 		void EndRenderDebugMarker() final;
 		void EndComputeDebugMarker() final;
 
+		void BlockUntilCompleted() final;
+
 	private:
 		void GenericBindBuffer(RGLBufferPtr& buffer, const uint32_t& offsetIntoBuffer, const uint32_t& bindingOffset, VkPipelineBindPoint bindPoint);
 		void RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage);
@@ -232,5 +234,6 @@ namespace RGL {
 		bool IsBufferSlotWritable(uint32_t slot);
 		std::vector<VkBufferMemoryBarrier2> barriersToAdd;
 		void ApplyBarriers();
+		VkFence internalFence;
 	};
 }

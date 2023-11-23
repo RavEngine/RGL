@@ -44,6 +44,7 @@ namespace RGL {
 	void RGL::CommandBufferVk::Reset()
 	{
 		VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
+		vkResetFences(owningQueue->owningDevice->device, 1, &internalFence);
 	}
 	void CommandBufferVk::Begin()
 	{
@@ -272,7 +273,7 @@ namespace RGL {
 	}
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{
-		owningQueue->Submit(this, config);
+		owningQueue->Submit(this, config, internalFence);
 		vmaSetCurrentFrameIndex(owningQueue->owningDevice->vkallocator, owningQueue->owningDevice->frameIndex++);
 		swapchainsToSignal.clear();
 	}
@@ -302,6 +303,10 @@ namespace RGL {
 	{
 		EndRenderDebugMarker();
 	}
+	void CommandBufferVk::BlockUntilCompleted()
+	{
+		vkWaitForFences(owningQueue->owningDevice->device, 1, &internalFence, VK_TRUE, UINT64_MAX);
+	}
 	void CommandBufferVk::ExecuteIndirectIndexed(const IndirectConfig& config)
 	{
 		RecordBufferBinding(std::static_pointer_cast<BufferVk>(config.indirectBuffer).get(), { .written = false });
@@ -317,10 +322,16 @@ namespace RGL {
 		.commandBufferCount = 1,
 		};
 		VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer));
+
+		VkFenceCreateInfo fenceInfo{
+		  .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		  .flags = VkFenceCreateFlags(0)
+		};
+		VK_CHECK(vkCreateFence(owningQueue->owningDevice->device, &fenceInfo, nullptr, &internalFence));
 	}
 	CommandBufferVk::~CommandBufferVk()
 	{
-		
+		vkDestroyFence(owningQueue->owningDevice->device, internalFence, nullptr);
 	}
 
 	void CommandBufferVk::RecordBufferBinding(const BufferVk* buffer, BufferLastUse usage)

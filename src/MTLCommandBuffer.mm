@@ -265,7 +265,6 @@ void CommandBufferMTL::SetScissor(const Rect & scissor){
 
 void CommandBufferMTL::Commit(const CommitConfig & config){
     [currentCommandBuffer commit];
-    [currentCommandBuffer waitUntilCompleted]; // TODO: delete this
 }
 
 void CommandBufferMTL::SetVertexSampler(RGLSamplerPtr sampler, uint32_t index) {
@@ -363,6 +362,11 @@ void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {
     for(uint32_t i = 0; i < config.nDraws; i++){
         [currentCommandEncoder drawPrimitives:MTLPrimitiveType(currentPrimitiveType) indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectCommand)];
     }
+}
+
+void CommandBufferMTL::BlockUntilCompleted()
+{
+    [currentCommandBuffer waitUntilCompleted];
 }
 
 }
