@@ -50,32 +50,14 @@ jobs:
         run: |
             cd build
             cmake --build . --config release --target RGL rglc --parallel
-
-  build-mac:
-    name: macOS Compile Check
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Configure
-        run: |
-            mkdir build
-            cd build
-            cmake -G "Xcode" -DRGL_RUNTIME_COMPILATION=ON ..
-      - name: Build
-        run: |
-            cd build
-            cmake --build . --config Release --target RGL rglc -- -quiet
                 
-  build-apple-mobile:
-    name: Apple Mobile Compile Check
+  build-apple:
+    name: Apple Compile Check
     runs-on: macos-latest
     strategy:
         fail-fast: false
         matrix:
-            tplatform: [iOS, tvOS]
+            tplatform: [iOS, tvOS, '']
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
