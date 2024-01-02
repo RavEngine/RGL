@@ -39,7 +39,8 @@ namespace RGL {
 			return uavIDX != unallocated;
 		}
 
-		std::vector<UINT> mipHeapIndicesSRV, mipHeapIndicesUAV;
+		std::vector<UINT> mipHeapIndicesSRV, mipHeapIndicesUAV, mipHeapIndicesRTV;
+		uint32_t numMips = 1;
 
 		TextureD3D12(decltype(texture) image, const Dimension& size, decltype(rtvIDX), decltype(owningDevice));
 		TextureD3D12(decltype(texture) image, const TextureConfig& config, std::shared_ptr<IDevice> device, D3D12_RESOURCE_STATES nativeStateOverride = D3D12_RESOURCE_STATE_COMMON);	// for externally-managed rendertargets
@@ -58,5 +59,7 @@ namespace RGL {
 		ID3D12Resource* GetResource() const final {
 			return texture.Get();
 		}
+
+		std::string debugName;
 	};
 }

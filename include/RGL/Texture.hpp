@@ -6,30 +6,16 @@
 #if RGL_VK_AVAILABLE
 #include <vulkan/vulkan.h>
 #endif
-#if RGL_DX12_AVAILABLE
-#include <limits>
-#endif
 
 #if RGL_WEBGPU_AVAILABLE
 #include <emscripten/html5_webgpu.h>
 #endif
 
-#if __APPLE__
-#include <objc/objc.h>
-
-#ifdef __OBJC__
-#define OBJC_ID(a) id< a >
-#define APPLE_API_PTR(a) a *
-#define APPLE_API_TYPE(a) a
-#else
-#define OBJC_ID(a) id
-#define APPLE_API_PTR(a) void *
-#define APPLE_API_TYPE(a) int
-#endif
-#endif
-
-
 namespace RGL {
+
+#if RGL_MTL_AVAILABLE
+    struct TextureMTL;
+#endif
 
 	struct Dimension {
 		uint32_t width = 0, height = 0;
@@ -60,14 +46,18 @@ namespace RGL {
 #endif
 			NativeHandles {
 #if RGL_MTL_AVAILABLE
-			OBJC_ID(MTLTexture) mtl;
+            struct mtl_t {
+                const TextureMTL* texture;
+                uint32_t mip = 0;
+                constexpr static decltype(mip) ALL_MIPS = std::numeric_limits<decltype(mip)>::max();
+            } mtl;
 #endif
 #if RGL_WEBGPU_AVAILABLE
 			WGPUTextureView wg;
 			NativeHandles(decltype(wg) wg) : wg(wg) {}
 #endif
 #if RGL_DX12_AVAILABLE
-			struct {
+			struct dx {
 				constexpr static uint32_t unallocated = std::numeric_limits<uint32_t>::max();
 				uint32_t
 					dsvIDX = unallocated,
@@ -88,6 +78,8 @@ namespace RGL {
 					return uavIDX != unallocated;
 				}
 				const TextureD3D12* parentResource;
+				uint32_t mip = 0;
+				constexpr static decltype(mip) ALL_MIPS = std::numeric_limits<decltype(mip)>::max();
 			} dx;
 			NativeHandles(const decltype(dx)& dx) : dx(dx) {}
 #endif
@@ -118,8 +110,8 @@ namespace RGL {
 #endif
 
 #if RGL_MTL_AVAILABLE
-		TextureView(id tx) {
-			texture.mtl = tx;
+		TextureView(const decltype(texture.mtl)& inTexture) {
+			texture.mtl = inTexture;
 		}
 #endif
 		TextureView() {}
