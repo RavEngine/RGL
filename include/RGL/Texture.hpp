@@ -87,6 +87,7 @@ namespace RGL {
 			struct vk {
 				VkImageView view;
 				uint32_t mip = 0;
+				uint32_t layer = 0;
 				constexpr static decltype(mip) ALL_MIPS = std::numeric_limits<decltype(mip)>::max();
 			}
 			vk;

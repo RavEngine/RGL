@@ -255,6 +255,19 @@ namespace RGL {
 
 		RecordTextureBinding(sourceTexture, { VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, true });
 	}
+	void CommandBufferVk::CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest)
+	{
+		EncodeCommand(CmdCopyBuffertoTexture{
+			.srcBuffer = source,
+			.nBytes = size,
+			.destTexture = dest.view,
+			.destLoc = dest.destLoc,
+			.arrayLayer = dest.arrayLayer
+		});
+
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(source).get(), {.written = false});
+		RecordTextureBinding(dest.view, {VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL});
+	}
 	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
 		RecordBufferBinding(std::static_pointer_cast<BufferVk>(from.buffer).get(), { .written = false });
@@ -837,7 +850,34 @@ namespace RGL {
 				auto fromBuffer = std::static_pointer_cast<BufferVk>(arg.from.buffer);
 				auto toBuffer = std::static_pointer_cast<BufferVk>(arg.to.buffer);
 				vkCmdCopyBuffer(commandBuffer, fromBuffer->buffer, toBuffer->buffer, 1, &bufferCopyData);
-			}
+			},
+			[this](const CmdCopyBuffertoTexture& arg) {
+				VkBufferImageCopy region{};
+				region.bufferOffset = 0;
+				region.bufferRowLength = 0;
+				region.bufferImageHeight = 0;
+
+				region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				region.imageSubresource.mipLevel = 0;
+				region.imageSubresource.baseArrayLayer = 0;
+				region.imageSubresource.layerCount = 1;
+
+				region.imageOffset = { 0, 0, 0 };
+				region.imageExtent = {
+					arg.destLoc.extent[0],
+					arg.destLoc.extent[0],
+					1
+				};
+
+				vkCmdCopyBufferToImage(
+					commandBuffer,
+					std::static_pointer_cast<BufferVk>(arg.srcBuffer)->buffer,
+					static_cast<const TextureVk*>(arg.destTexture.parent)->vkImage,
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					1,
+					&region
+				);
+			},
 		};
 
 		for (const auto& item : renderCommands) {

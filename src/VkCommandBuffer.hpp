@@ -151,6 +151,14 @@ namespace RGL {
 			RGLBufferPtr destBuffer;
 		};
 
+		struct CmdCopyBuffertoTexture {
+			RGLBufferPtr srcBuffer;
+			uint32_t nBytes;
+			TextureView destTexture;
+			Rect destLoc;
+			uint32_t arrayLayer;
+		};
+
 		struct CmdCopyBufferToBuffer {
 			BufferCopyConfig from;
 			BufferCopyConfig to;
@@ -183,7 +191,8 @@ namespace RGL {
 			CmdCopyTextureToTexture,
 			CmdSetViewport,
 			CmdSetScissor,
-			CmdCopyBufferToBuffer
+			CmdCopyBufferToBuffer,
+			CmdCopyBuffertoTexture
 		>
 		> renderCommands;
 
@@ -236,6 +245,7 @@ namespace RGL {
 		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;
 
 		void CopyTextureToBuffer(TextureView& sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr destBuffer) final;
+		void CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest) final;
 		void CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size) final;
 		void CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to) final;
 

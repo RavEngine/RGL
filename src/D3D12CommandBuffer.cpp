@@ -358,6 +358,10 @@ namespace RGL {
 
 		commandList->CopyTextureRegion(&destination, 0, 0, 0, &source, &srcBox);
 	}
+	void CommandBufferD3D12::CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest)
+	{
+
+	}
 	void CommandBufferD3D12::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
 		auto fromBuffer = std::static_pointer_cast<BufferD3D12>(from.buffer);
