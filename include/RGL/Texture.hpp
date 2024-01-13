@@ -125,8 +125,9 @@ namespace RGL {
 		TextureFormat format;
 		TilingMode mode = decltype(mode)::Optimal;
 		ResourceLayout initialLayout = ResourceLayout::Undefined;
-		const char* debugName = nullptr;
+		bool isCubemap = false;
 		bool readbackEnabled = false;
+		const char* debugName = nullptr;
 	};
 
 	class ITexture {
