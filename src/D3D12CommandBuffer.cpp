@@ -361,6 +361,36 @@ namespace RGL {
 	void CommandBufferD3D12::CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest)
 	{
 
+		auto castedBuffer = std::static_pointer_cast<BufferD3D12>(source);
+		D3D12_TEXTURE_COPY_LOCATION destination{
+			.pResource = dest.view.texture.dx.parentResource->GetResource(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+			.SubresourceIndex = dest.arrayLayer
+		};
+
+		D3D12_TEXTURE_COPY_LOCATION srcLocation = {
+			.pResource = castedBuffer->buffer.Get(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+		};
+		D3D12_RESOURCE_DESC srcDesc = destination.pResource->GetDesc();
+		castedBuffer->owningDevice->device->GetCopyableFootprints(
+			&srcDesc, 0, 1, 0,
+			&srcLocation.PlacedFootprint,
+			NULL, NULL, NULL
+		);
+
+		D3D12_BOX box = {};
+		box.left = 0;
+		box.top = 0;
+		box.front = 0;
+		box.right = dest.destLoc.extent[0];
+		box.bottom = dest.destLoc.extent[1];
+		box.back = 1;
+
+		SyncIfNeeded(castedBuffer.get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+		SyncIfNeeded(dest.view.texture.dx, D3D12_RESOURCE_STATE_COPY_DEST, true);
+
+		commandList->CopyTextureRegion(&destination, 0, 0, 0, &srcLocation, &box);
 	}
 	void CommandBufferD3D12::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
