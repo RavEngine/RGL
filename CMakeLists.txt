@@ -101,12 +101,11 @@ endif()
 
 if (NOT VK_FORCE_DISABLED AND Vulkan_FOUND)
 
-	# Get our vendored headers 
 	
 	set(VK_LIBS ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
+		
+	# Get our vendored headers 
 	set(VK_INCLUDE deps/VulkanMemoryAllocator/include deps/Vulkan-Headers/include deps/Vulkan-Utility-Libraries/include)
-	message("Vulkan_LIBRARIES = ${VK_LIBS}")
-	message("Vulkan_INCLUDE_DIRS = ${VK_INCLUDE}" )
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=1)
 	set(RGL_VK_AVAILABLE ON CACHE INTERNAL "RGL Vulkan")
