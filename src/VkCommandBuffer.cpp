@@ -455,7 +455,7 @@ namespace RGL {
 
 		constexpr static auto iterateMask = [](auto mask, uint32_t max_index,  auto && func) {
 			uint32_t index = 0;
-			while (mask > 0 && mask < max_index) {
+			while (mask > 0 && index < max_index) {
 				// get the LSB
 				bool LSB = mask & 0b1;
 				if (LSB) {
@@ -612,7 +612,13 @@ namespace RGL {
 			[this](const CmdSetTexture& arg) {
 				auto texture = arg.texture;
 				auto index = arg.index;
-				auto key = TextureLastUseKey{ static_cast<const TextureVk*>(texture.parent), 0, 0 };
+				auto key = TextureLastUseKey{ static_cast<const TextureVk*>(texture.parent), texture.texture.vk.coveredMips, texture.texture.vk.coveredLayers };
+				if (key.coveredMips == ALL_MIPS) {
+					key.coveredLayers = MakeMipMaskForIndex(0);
+				}
+				if (key.coveredLayers == ALL_LAYERS) {
+					key.coveredLayers = MakeLayerMaskForIndex(0);
+				}
 
 				auto it = activeTextures.find(key);
 				auto layout = key.texture->nativeFormat;
