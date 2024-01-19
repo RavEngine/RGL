@@ -64,13 +64,13 @@ namespace RGL {
 		}
 
 		for (const auto swapRsc : swapchainImages) {
-			RecordTextureBinding(TextureView{ swapRsc,swapRsc->GetDefaultView().texture.vk.view,TextureView::NativeHandles::vk::ALL_MIPS,swapRsc->GetSize() }, { VK_IMAGE_LAYOUT_PRESENT_SRC_KHR , true });
+			RecordTextureBinding(TextureView{ swapRsc,swapRsc->GetDefaultView().texture.vk.view, ALL_MIPS, ALL_LAYERS, swapRsc->GetSize() }, { VK_IMAGE_LAYOUT_PRESENT_SRC_KHR , true });
 		}
 
 		// place resources back in their native state
 		for (const auto [texture, written] : activeTextures) {
 			if (!swapchainImages.contains(texture.texture)) {
-				TextureView view{ texture.texture,texture.texture->GetDefaultView().texture.vk.view,TextureView::NativeHandles::vk::ALL_MIPS,texture.texture->GetSize() };
+				TextureView view{ texture.texture,texture.texture->GetDefaultView().texture.vk.view, ALL_MIPS, ALL_LAYERS, texture.texture->GetSize() };
 				RecordTextureBinding(view, { texture.texture->nativeFormat , true });
 			}
 		}
@@ -393,20 +393,10 @@ namespace RGL {
 
 	void CommandBufferVk::RecordTextureBinding(const TextureView texture, TextureLastUse usage, bool recordOnly)
 	{
-		TextureLastUseKey key{ static_cast<const TextureVk*>(texture.parent),texture.texture.vk.mip };
+		auto parentVk = static_cast<const TextureVk*>(texture.parent);
+		TextureLastUseKey key{parentVk,texture.texture.vk.coveredMips, texture.texture.vk.coveredLayers };
 
-		if (keyIsAllMips(key)) {
-			// transition all the mips
-			// must be done individually because they could all be in different states
-			auto numMips = key.texture->mipViews.size();
-			for (uint32_t i = 0; i < numMips; i++) {
-				TextureView copy = texture;
-				copy.texture.vk.mip = i;
-				RecordTextureBinding(copy, usage, recordOnly);
-			}
-		}
-		else {
-
+		auto barrierForView = [this, usage, recordOnly](TextureLastUseKey key) {
 			auto it = activeTextures.find(key);
 			auto needed = usage.lastLayout;
 			if (it == activeTextures.end()) {
@@ -435,10 +425,10 @@ namespace RGL {
 					.image = key.texture->vkImage,
 					.subresourceRange = {
 					  .aspectMask = key.texture->createdAspectVk,
-					  .baseMipLevel = texture.texture.vk.mip,
+					  .baseMipLevel = MaskToMipLevel(key.coveredMips),
 					  .levelCount = 1,
-					  .baseArrayLayer = 0,
-					  .layerCount = VK_REMAINING_ARRAY_LAYERS,
+					  .baseArrayLayer = MaskToLayer(key.coveredLayers),
+					  .layerCount = 1,
 					}
 			};
 
@@ -461,7 +451,29 @@ namespace RGL {
 				.lastLayout = needed,
 				.written = usage.written
 			};
-		}
+		};
+
+		constexpr static auto iterateMask = [](auto mask, uint32_t max_index,  auto && func) {
+			uint32_t index = 0;
+			while (mask >= 0 && mask < max_index) {
+				// get the LSB
+				bool LSB = mask & 0b1;
+				if (LSB) {
+					func(index);
+				}
+				mask >>= 1;
+				index++;
+			}
+		};
+
+		iterateMask(key.coveredMips,parentVk->createdConfig.mipLevels, [&key = std::as_const(key), parentVk = std::as_const(parentVk), &barrierForView](auto mipLevel) {
+			iterateMask(key.coveredLayers, parentVk->createdConfig.arrayLayers, [&key = std::as_const(key), &mipLevel, &barrierForView](auto layerIndex) {
+				auto keyCopy = key;
+				keyCopy.coveredMips = MakeMipMaskForIndex(mipLevel);
+				keyCopy.coveredLayers = MakeLayerMaskForIndex(layerIndex);
+				barrierForView(keyCopy);
+			});
+		});
 	}
 
 	template<typename ... Ts>
@@ -600,10 +612,7 @@ namespace RGL {
 			[this](const CmdSetTexture& arg) {
 				auto texture = arg.texture;
 				auto index = arg.index;
-				auto key = TextureLastUseKey{ static_cast<const TextureVk*>(texture.parent), texture.texture.vk.mip };
-				if (key.mip == TextureView::NativeHandles::vk::ALL_MIPS) {
-					key.mip = 0;
-				}
+				auto key = TextureLastUseKey{ static_cast<const TextureVk*>(texture.parent), 0, 0 };
 
 				auto it = activeTextures.find(key);
 				auto layout = key.texture->nativeFormat;
@@ -787,8 +796,8 @@ namespace RGL {
 				auto src = static_cast<const TextureVk*>(arg.from.texture.parent);
 				auto dst = static_cast<const TextureVk*>(arg.to.texture.parent);
 
-				auto& srcLayout = activeTextures.at(TextureLastUseKey{src,arg.from.texture.texture.vk.mip});
-				auto& dstLayout = activeTextures.at(TextureLastUseKey{ src,arg.to.texture.texture.vk.mip });
+				auto& srcLayout = activeTextures.at(TextureLastUseKey{src, arg.from.texture.texture.vk.coveredMips, arg.from.texture.texture.vk.coveredLayers });
+				auto& dstLayout = activeTextures.at(TextureLastUseKey{ src,arg.to.texture.texture.vk.coveredMips, arg.to.texture.texture.vk.coveredLayers });
 
 				auto dim = src->GetSize();
 				VkImageCopy2 region{

@@ -53,7 +53,7 @@ namespace RGL {
 
 
 		bool keyIsAllMips(const D3D12TextureLastUseKey& key) {
-			return key.mip == TextureView::NativeHandles::dx::ALL_MIPS;
+			return key.mip == ALL_MIPS;
 		}
 
 		bool ended = false;

@@ -217,7 +217,7 @@ namespace RGL {
 			}
 			};
 
-			};
+		};
 		auto createInfo = makeImageViewCreateInfo(0, VK_REMAINING_MIP_LEVELS, config.isCubemap);
 		VK_CHECK(vkCreateImageView(owningDevice->device, &createInfo, nullptr, &vkImageView));
 
@@ -227,7 +227,7 @@ namespace RGL {
 			auto view = makeImageViewCreateInfo(i);
 			VkImageView mipView;
 			VK_CHECK(vkCreateImageView(owningDevice->device, &view, nullptr, &mipView));
-			mipViews.push_back(TextureView{ this, mipView, uint32_t(i), dim });
+			mipViews.push_back(TextureView{ this, mipView, MakeMipMaskForIndex(i), ALL_LAYERS, dim});
 			dim.width /= 2;
 			dim.height /= 2;
 		}
@@ -276,7 +276,7 @@ namespace RGL {
 	}
 	TextureView TextureVk::GetDefaultView() const
 	{
-		TextureView view{ this, vkImageView, TextureView::NativeHandles::vk::ALL_MIPS, size };
+		TextureView view{ this, vkImageView, ALL_MIPS, ALL_LAYERS, size };
 		view.parent = this;
 		return view;
 	}

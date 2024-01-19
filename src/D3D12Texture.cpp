@@ -243,7 +243,7 @@ namespace RGL {
 			.srvIDX = srvIDX,
 			.uavIDX = uavIDX,
 			.parentResource = this,
-			.mip = TextureView::NativeHandles::dx::ALL_MIPS
+			.mip = ALL_MIPS
 		}};
 	}
 	TextureView TextureD3D12::GetViewForMip(uint32_t mip) const
