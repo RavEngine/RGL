@@ -455,7 +455,7 @@ namespace RGL {
 
 		constexpr static auto iterateMask = [](auto mask, uint32_t max_index,  auto && func) {
 			uint32_t index = 0;
-			while (mask >= 0 && mask < max_index) {
+			while (mask > 0 && mask < max_index) {
 				// get the LSB
 				bool LSB = mask & 0b1;
 				if (LSB) {
