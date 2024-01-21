@@ -1,5 +1,7 @@
 # pragma once
 
+//#define APITRACE	// uncomment to enable command logging
+
 #include <RGL/Types.hpp>
 #include "RGLCommon.hpp"
 #include <RGL/TextureFormat.hpp>
@@ -25,7 +27,10 @@ true;
 #endif
 
 constexpr static const char* const validationLayers[] = {
-	"VK_LAYER_KHRONOS_validation"
+	"VK_LAYER_KHRONOS_validation",
+#ifdef APITRACE
+	"VK_LAYER_LUNARG_gfxreconstruct"
+#endif
 };
 
 
