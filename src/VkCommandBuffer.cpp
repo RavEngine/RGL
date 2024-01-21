@@ -257,6 +257,9 @@ namespace RGL {
 	}
 	void CommandBufferVk::CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest)
 	{
+		RecordBufferBinding(std::static_pointer_cast<BufferVk>(source).get(), { .written = false });
+		RecordTextureBinding(dest.view, { VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL });
+
 		EncodeCommand(CmdCopyBuffertoTexture{
 			.srcBuffer = source,
 			.nBytes = size,
@@ -264,9 +267,6 @@ namespace RGL {
 			.destLoc = dest.destLoc,
 			.arrayLayer = dest.arrayLayer
 		});
-
-		RecordBufferBinding(std::static_pointer_cast<BufferVk>(source).get(), {.written = false});
-		RecordTextureBinding(dest.view, {VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL});
 	}
 	void CommandBufferVk::CopyBufferToBuffer(BufferCopyConfig from, BufferCopyConfig to, uint32_t size)
 	{
