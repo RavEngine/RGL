@@ -874,7 +874,7 @@ namespace RGL {
 
 				region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				region.imageSubresource.mipLevel = 0;
-				region.imageSubresource.baseArrayLayer = 0;
+				region.imageSubresource.baseArrayLayer = arg.arrayLayer;
 				region.imageSubresource.layerCount = 1;
 
 				region.imageOffset = { 0, 0, 0 };
