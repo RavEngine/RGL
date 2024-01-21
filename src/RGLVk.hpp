@@ -1,6 +1,7 @@
 # pragma once
 
-//#define APITRACE	// uncomment to enable command logging
+//#define RECONSTRUCT	// uncomment to enable gfxreconstruct
+//#define APIDUMP		// uncomment to enable command logging
 
 #include <RGL/Types.hpp>
 #include "RGLCommon.hpp"
@@ -28,8 +29,11 @@ true;
 
 constexpr static const char* const validationLayers[] = {
 	"VK_LAYER_KHRONOS_validation",
-#ifdef APITRACE
+#ifdef RECONSTRUCT
 	"VK_LAYER_LUNARG_gfxreconstruct"
+#endif
+#ifdef APIDUMP
+	"VK_LAYER_LUNARG_api_dump",
 #endif
 };
 
