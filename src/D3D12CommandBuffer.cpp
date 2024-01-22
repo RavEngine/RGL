@@ -367,11 +367,13 @@ namespace RGL {
 	{
 
 		auto castedBuffer = std::static_pointer_cast<BufferD3D12>(source);
+		auto mip = 0;	// TODO: support mip levels other than 0
+		auto layer = dest.arrayLayer;
+
 		D3D12_TEXTURE_COPY_LOCATION destination{
 			.pResource = dest.view.texture.dx.parentResource->GetResource(),
 			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-			.SubresourceIndex = dest.arrayLayer
-		};
+			.SubresourceIndex = dest.view.texture.dx.parentResource->SubresourceIndexForMipLayer(mip,layer)};
 
 		D3D12_TEXTURE_COPY_LOCATION srcLocation = {
 			.pResource = castedBuffer->buffer.Get(),

@@ -238,7 +238,7 @@ namespace RGL {
 	}
 	uint32_t TextureD3D12::SubresourceIndexForMipLayer(uint32_t mip, uint32_t layer) const
 	{
-		return layer * numLayers + mip;
+		return layer * numMips + mip;
 	}
 	TextureView TextureD3D12::GetDefaultView() const
 	{
