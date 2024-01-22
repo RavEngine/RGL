@@ -614,7 +614,7 @@ namespace RGL {
 				auto index = arg.index;
 				auto key = TextureLastUseKey{ static_cast<const TextureVk*>(texture.parent), texture.texture.vk.coveredMips, texture.texture.vk.coveredLayers };
 				if (key.coveredMips == ALL_MIPS) {
-					key.coveredLayers = MakeMipMaskForIndex(0);
+					key.coveredMips = MakeMipMaskForIndex(0);
 				}
 				if (key.coveredLayers == ALL_LAYERS) {
 					key.coveredLayers = MakeLayerMaskForIndex(0);
