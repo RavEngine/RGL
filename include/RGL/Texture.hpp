@@ -79,7 +79,8 @@ namespace RGL {
 					return uavIDX != unallocated;
 				}
 				const TextureD3D12* parentResource;
-				uint32_t mip = 0;
+				covered_mips_t coveredMips = 0;
+				covered_layers_t coveredLayers = 0;
 			} dx;
 			NativeHandles(const decltype(dx)& dx) : dx(dx) {}
 #endif

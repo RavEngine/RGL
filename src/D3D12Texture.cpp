@@ -105,6 +105,7 @@ namespace RGL {
 		resourceDesc.Flags = config.usage.Storage ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
 		numMips = config.mipLevels;
+		numLayers = config.arrayLayers;
 
 
 		D3D12_CLEAR_VALUE optimizedClearValue = {
@@ -235,6 +236,10 @@ namespace RGL {
 			}
 		}
 	}
+	uint32_t TextureD3D12::SubresourceIndexForMipLayer(uint32_t mip, uint32_t layer) const
+	{
+		return layer * numLayers + mip;
+	}
 	TextureView TextureD3D12::GetDefaultView() const
 	{
 		return TextureView{ {
@@ -243,7 +248,8 @@ namespace RGL {
 			.srvIDX = srvIDX,
 			.uavIDX = uavIDX,
 			.parentResource = this,
-			.mip = ALL_MIPS
+			.coveredMips = ALL_MIPS,
+			.coveredLayers = ALL_LAYERS
 		}};
 	}
 	TextureView TextureD3D12::GetViewForMip(uint32_t mip) const
@@ -259,7 +265,8 @@ namespace RGL {
 			.srvIDX = hasSRV ? mipHeapIndicesSRV.at(mip) : unallocated,
 			.uavIDX = hasUAV ? mipHeapIndicesUAV.at(mip) : unallocated,
 			.parentResource = this,
-			.mip = mip
+			.coveredMips = MakeMipMaskForIndex(mip),
+			.coveredLayers = ALL_LAYERS,
 		} };
 	}
 	Dimension TextureD3D12::GetSize() const
