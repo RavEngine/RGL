@@ -93,7 +93,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G "Ninja" -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=33 -DCMAKE_ANDROID_ARCH_ABI="${{ matrix.arch }}" -DCMAKE_ANDROID_ARM_NEON=ON ..
+          cmake -G "Ninja" -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=33 -DCMAKE_ANDROID_ARCH_ABI="${{ matrix.arch }}" ..
       - name: Build
         run: cmake --build build --parallel
           
