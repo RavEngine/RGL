@@ -73,6 +73,31 @@ jobs:
             cd build
             cmake --build . --config Release --target RGL -- -quiet
 
+  build-android:
+    name: Android Compile Check
+    runs-on: ubuntu-latest
+    strategy:
+        fail-fast: false
+        matrix: 
+          arch: [x86, x86_64, arm64-v8a, armeabi-v7a]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: | 
+          sudo apt update
+          sudo apt install ninja-build -y
+      - name: Configure
+        run: |
+          mkdir build
+          cd build
+          cmake -G "Ninja" -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=33 -DCMAKE_ANDROID_ARCH_ABI="${{ matrix.arch }}" -DCMAKE_ANDROID_ARM_NEON=ON ..
+      - name: Build
+        run: cmake --build build --parallel
+          
+    
   build-web:
     name: Web Compile Check
     runs-on: ubuntu-latest
