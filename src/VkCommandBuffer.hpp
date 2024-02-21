@@ -5,7 +5,7 @@
 #include "RGLVk.hpp"
 #include <unordered_set>
 #include <unordered_map>
-#include "SubresourceRange.hpp"
+#include <RGL/SubresourceRange.hpp>
 
 namespace RGL {
 	struct TextureLastUseKey {
@@ -170,6 +170,7 @@ namespace RGL {
 
 		struct CmdCopyTextureToTexture {
 			TextureCopyConfig from, to;
+			uint32_t fromMip, fromLayer, toMip, toLayer;
 		};
 
 		std::vector < std::variant <

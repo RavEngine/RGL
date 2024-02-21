@@ -11,6 +11,7 @@
 #include "VkComputePipeline.hpp"
 #include <cstring>
 #include <iostream>
+#include <utility>
 
 namespace RGL {
 	VkAttachmentLoadOp RGL2LoadOp(LoadAccessOperation op) {
@@ -276,9 +277,24 @@ namespace RGL {
 	}
 	void CommandBufferVk::CopyTextureToTexture(const TextureCopyConfig& from, const TextureCopyConfig& to)
 	{
-		RecordTextureBinding(from.texture, {}, true);
-		RecordTextureBinding(to.texture, {}, true);
-		EncodeCommand(CmdCopyTextureToTexture{ from,to });
+		auto fromCpy = from.texture;
+		fromCpy.texture.vk.coveredLayers = MakeMipMaskForIndex(from.layer);
+		fromCpy.texture.vk.coveredMips = MakeMipMaskForIndex(from.mip);
+
+		auto toCpy = to.texture;
+		toCpy.texture.vk.coveredLayers = MakeMipMaskForIndex(to.layer);
+		toCpy.texture.vk.coveredMips = MakeMipMaskForIndex(to.mip);
+
+		RecordTextureBinding(fromCpy, {VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL}, false);
+		RecordTextureBinding(toCpy, { VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL }, false);
+
+		auto fromcnfcpy = from;
+		fromcnfcpy.texture = fromCpy;
+
+		auto tocnfcpy = to;
+		tocnfcpy.texture = toCpy;
+
+		EncodeCommand(CmdCopyTextureToTexture{ fromcnfcpy, tocnfcpy, from.mip, from.layer, to.mip, to.layer });
 	}
 	void CommandBufferVk::SetViewport(const Viewport& viewport)
 	{
@@ -803,7 +819,7 @@ namespace RGL {
 				auto dst = static_cast<const TextureVk*>(arg.to.texture.parent);
 
 				auto& srcLayout = activeTextures.at(TextureLastUseKey{src, arg.from.texture.texture.vk.coveredMips, arg.from.texture.texture.vk.coveredLayers });
-				auto& dstLayout = activeTextures.at(TextureLastUseKey{ src,arg.to.texture.texture.vk.coveredMips, arg.to.texture.texture.vk.coveredLayers });
+				auto& dstLayout = activeTextures.at(TextureLastUseKey{ dst, arg.to.texture.texture.vk.coveredMips, arg.to.texture.texture.vk.coveredLayers });
 
 				auto dim = src->GetSize();
 				VkImageCopy2 region{
@@ -811,14 +827,15 @@ namespace RGL {
 					.pNext = nullptr,
 					.srcSubresource = {
 						.aspectMask = src->createdAspectVk,
-						.mipLevel = 0,
-						.baseArrayLayer = 0,
+						.mipLevel = arg.fromMip,
+						.baseArrayLayer = arg.fromLayer,
 						.layerCount = 1
 					},
 					.srcOffset = {0,0,0},
 					.dstSubresource = {
 						.aspectMask = dst->createdAspectVk,
-						.baseArrayLayer = 0,
+						.mipLevel = arg.toMip,
+						.baseArrayLayer = arg.toLayer,
 						.layerCount = 1
 					},
 					.dstOffset = {0,0,0},

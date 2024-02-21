@@ -143,11 +143,11 @@ namespace RGL {
 			&allocation, IID_PPV_ARGS(&texture));
 
 		std::wstring wide;
-		wide.resize(config.debugName == nullptr? 0 : strlen(config.debugName));
-		MultiByteToWideChar(CP_UTF8, 0, config.debugName, -1, wide.data(), wide.size());
+		wide.resize(config.debugName.data() == nullptr ? 0 : config.debugName.length());
+		MultiByteToWideChar(CP_UTF8, 0, config.debugName.data(), -1, wide.data(), wide.size());
 		texture->SetName(wide.data());
 
-		if (config.debugName != nullptr) {
+		if (config.debugName.data() != nullptr) {
 			debugName = config.debugName;
 		}
 
@@ -269,6 +269,10 @@ namespace RGL {
 			.coveredLayers = ALL_LAYERS,
 		} };
 	}
+	RGLCustomTextureViewPtr TextureD3D12::MakeCustomTextureView(const CustomTextureViewConfig& config) const
+	{
+		return RGLCustomTextureViewPtr();
+	}
 	Dimension TextureD3D12::GetSize() const
 	{
 		return size;
@@ -301,6 +305,10 @@ namespace RGL {
 		for (const auto handle : mipHeapIndicesUAV) {
 			owningDevice->CBV_SRV_UAVHeap->DeallocateSingle(handle);
 		}
+	}
+	TextureView CustomTextureViewD3D12::GetView() const
+	{
+		return TextureView();
 	}
 }
 #endif
