@@ -55,6 +55,7 @@ namespace RGL {
 		TextureView GetDefaultView() const final;
 		TextureView GetViewForMip(uint32_t mip) const final;
 
+		RGLCustomTextureViewPtr MakeCustomTextureView(const CustomTextureViewConfig& config) const;
 
 		Dimension GetSize() const final;
 		virtual ~TextureD3D12();
@@ -64,5 +65,10 @@ namespace RGL {
 		}
 
 		std::string debugName;
+	};
+
+	struct CustomTextureViewD3D12 : public ICustomTextureView {
+
+		TextureView GetView() const;
 	};
 }

@@ -1,6 +1,8 @@
 #pragma once
+#include "Types.hpp"
 #include <cstdint>
 #include <limits>
+#include <string_view>
 #include "TextureFormat.hpp"
 #include "SubresourceRange.hpp"
 
@@ -118,6 +120,7 @@ namespace RGL {
 		TextureView() {}
 	};
 
+
 	struct TextureConfig {
 		TextureUsage usage;
 		TextureAspect aspect;
@@ -128,7 +131,17 @@ namespace RGL {
 		ResourceLayout initialLayout = ResourceLayout::Undefined;
 		bool isCubemap = false;
 		bool readbackEnabled = false;
-		const char* debugName = nullptr;
+        std::string_view debugName;
+	};
+
+	class ICustomTextureView {
+
+		virtual TextureView GetView() const = 0;
+	};
+
+	struct CustomTextureViewConfig {
+		uint32_t mip = 0;
+		uint32_t layer = 0;
 	};
 
 	class ITexture {
@@ -139,6 +152,7 @@ namespace RGL {
 		virtual Dimension GetSize() const = 0;
 		virtual TextureView GetDefaultView() const = 0;
 		virtual TextureView GetViewForMip(uint32_t mip) const = 0;
+		virtual RGLCustomTextureViewPtr MakeCustomTextureView(const CustomTextureViewConfig& config) const = 0;
 	};
 
 }
