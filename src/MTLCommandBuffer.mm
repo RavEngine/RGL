@@ -352,19 +352,26 @@ void CommandBufferMTL::CopyTextureToTexture(const TextureCopyConfig& from, const
 }
 
 void CommandBufferMTL::BeginRenderDebugMarker(const std::string &label){
-    [currentCommandEncoder pushDebugGroup:[NSString stringWithUTF8String:label.c_str()]];
+#ifndef NDEBUG
+    auto str = [NSString stringWithUTF8String:label.c_str()];
+    [currentComputeCommandEncoder pushDebugGroup:str];
+    [currentCommandEncoder pushDebugGroup:str];
+#endif
 }
 
 void CommandBufferMTL::BeginComputeDebugMarker(const std::string &label){
-    [currentComputeCommandEncoder pushDebugGroup:[NSString stringWithUTF8String:label.c_str()]];
+    BeginRenderDebugMarker(label);
 }
 
 void CommandBufferMTL::EndRenderDebugMarker(){
+#ifndef NDEBUG
     [currentCommandEncoder popDebugGroup];
+    [currentComputeCommandEncoder popDebugGroup];
+#endif
 }
 
 void CommandBufferMTL::EndComputeDebugMarker(){
-    [currentComputeCommandEncoder popDebugGroup];
+    EndRenderDebugMarker();
 }
 
 void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config) {
@@ -380,6 +387,11 @@ void CommandBufferMTL::ExecuteIndirectIndexed(const RGL::IndirectConfig & config
         [currentCommandEncoder drawIndexedPrimitives:MTLPrimitiveType(currentPrimitiveType) indexType:indexType indexBuffer:indexBuffer->buffer indexBufferOffset:0 indirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer + i * sizeof(IndirectIndexedCommand)];
     }
     
+}
+
+void CommandBufferMTL::DispatchIndirect(const DispatchIndirectConfig& config){
+    auto buffer = std::static_pointer_cast<BufferMTL>(config.indirectBuffer);
+    [currentComputeCommandEncoder dispatchThreadgroupsWithIndirectBuffer:buffer->buffer indirectBufferOffset:config.offsetIntoBuffer threadsPerThreadgroup:MTLSizeMake(config.blocksizeX, config.blocksizeY, config.blocksizeZ)];
 }
 
 void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {

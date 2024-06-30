@@ -40,8 +40,9 @@ namespace RGL {
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             //TODO: pass through more message types if the user wants them
-            LogMessage(severity, pCallbackData->pMessage);
+           
         }
+        LogMessage(severity, pCallbackData->pMessage);
 
         return VK_FALSE;
     }
@@ -83,6 +84,7 @@ namespace RGL {
 
         VkInstanceCreateInfo instanceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = nullptr,
             .pApplicationInfo = &appInfo,
             .enabledLayerCount = 0,
             .enabledExtensionCount = 0
@@ -114,6 +116,8 @@ namespace RGL {
             "VK_KHR_surface",
     #if _WIN32
             "VK_KHR_win32_surface",
+    #elif __ANDROID__
+            "VK_KHR_android_surface"
     #else
             "VK_KHR_xlib_surface",
             "VK_KHR_wayland_surface"

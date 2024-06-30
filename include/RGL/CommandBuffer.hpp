@@ -60,6 +60,10 @@ namespace RGL {
 		uint32_t baseInstance;
 	};
 
+	struct ComputeIndirectCommand {
+		uint32_t x, y, z;
+	};
+
 	struct IndirectCommand {
 		uint32_t vertexCount;
 		uint32_t instanceCount;
@@ -71,6 +75,12 @@ namespace RGL {
 		RGLBufferPtr indirectBuffer;
 		uint32_t offsetIntoBuffer = 0;	// in bytes
 		uint32_t nDraws;
+	};
+
+	struct DispatchIndirectConfig {
+		RGLBufferPtr indirectBuffer;
+		uint32_t offsetIntoBuffer = 0;
+        uint32_t blocksizeX = 0, blocksizeY = 0, blocksizeZ = 0;
 	};
 
 	struct VertexBufferBinding {
@@ -157,6 +167,7 @@ struct TextureView;
 
 		virtual void ExecuteIndirectIndexed(const IndirectConfig&) = 0;
 		virtual void ExecuteIndirect(const IndirectConfig&) = 0;
+		virtual void DispatchIndirect(const DispatchIndirectConfig&) = 0;
 
 		virtual void BeginRenderDebugMarker(const std::string& label) = 0;
 		virtual void BeginComputeDebugMarker(const std::string& label) = 0;
