@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <limits>
 #include <string_view>
+#include <array>
 #include "TextureFormat.hpp"
 #include "SubresourceRange.hpp"
 
@@ -125,6 +126,7 @@ namespace RGL {
 		TextureUsage usage;
 		TextureAspect aspect;
 		uint32_t width = 0, height = 0, depth = 1, mipLevels = 1, arrayLayers = 1;
+		std::array<float, 4> optimizedClearValue{ 0,0,0,0 };
 		TextureType imageType = decltype(imageType)::T2D;
 		TextureFormat format;
 		TilingMode mode = decltype(mode)::Optimal;

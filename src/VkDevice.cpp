@@ -388,6 +388,11 @@ namespace RGL {
         };
     }
 
+    TextureView DeviceVk::GetGlobalBindlessTextureHeap() const
+    {
+        return TextureView();
+    }
+
     RGLCommandQueuePtr DeviceVk::CreateCommandQueue(QueueType type)
     {
         return std::make_shared<CommandQueueVk>(shared_from_this());    // vulkan does not use the queue type

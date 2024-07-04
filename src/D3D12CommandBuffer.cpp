@@ -284,7 +284,7 @@ namespace RGL {
 		else {
 			assert(thisTexture.srvAllocated(), "Cannot bind this texture because it is not in a SRV heap!");
 		}
-		auto& heap = thisTexture.parentResource->owningDevice->CBV_SRV_UAVHeap;
+		auto& heap = owningQueue->owningDevice->CBV_SRV_UAVHeap;
 
 		if (isGraphics) {
 			commandList->SetGraphicsRootDescriptorTable(textureSlot.slot, heap->GetGpuHandle(textureSlot.isUAV ? thisTexture.uavIDX : thisTexture.srvIDX));
@@ -297,6 +297,12 @@ namespace RGL {
 	{
 		SetFragmentTexture(texture, index);
 	}
+
+	void CommandBufferD3D12::MakeResident(const TextureView& texture, const MakeResidentConfig& config)
+	{
+
+	}
+
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		commandList->DrawInstanced(nVertices, config.nInstances, config.startVertex, config.firstInstance);
@@ -625,6 +631,10 @@ namespace RGL {
 	}
 	void CommandBufferD3D12::SyncIfNeeded(TextureView texture, D3D12_RESOURCE_STATES needed, bool written)
 	{
+		if (texture.texture.dx.parentResource == nullptr) {
+			return;
+		}
+
 		D3D12TextureLastUseKey key{texture.texture.dx.parentResource, texture.texture.dx.coveredMips, texture.texture.dx.coveredLayers};
 		auto parent = texture.texture.dx.parentResource;
 

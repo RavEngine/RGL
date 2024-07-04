@@ -187,7 +187,7 @@ namespace RGL {
                     {
                         auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                            .NumDescriptors = 1,
+                            .NumDescriptors = item.count,
                             .BaseShaderRegister = item.binding,
                             .RegisterSpace = 0,
                             .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
@@ -202,9 +202,10 @@ namespace RGL {
                     {
                         auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                            .NumDescriptors = 1,
+                            .NumDescriptors = item.count,
                             .BaseShaderRegister = item.binding,
                             .RegisterSpace = 0,
+                            .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE,
                             .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                             });
                         textureBindingToRootSlot[item.binding] = { uint32_t(rootParameters.size()), false };
@@ -216,9 +217,10 @@ namespace RGL {
                     // UAV
                     auto& range = ranges.emplace_back(D3D12_DESCRIPTOR_RANGE1{
                         .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-                        .NumDescriptors = 1,
+                        .NumDescriptors = item.count,
                         .BaseShaderRegister = item.binding,
                         .RegisterSpace = 0,
+                        .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE,
                         .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                     });
                     textureBindingToRootSlot[item.binding] = { uint32_t(rootParameters.size()), true };

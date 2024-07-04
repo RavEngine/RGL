@@ -63,6 +63,8 @@ namespace RGL {
 
 		DeviceData GetDeviceData() final;
 
+		TextureView GetGlobalBindlessTextureHeap() const final;
+
 		RGLCommandQueuePtr CreateCommandQueue(QueueType type) final;
 		RGLFencePtr CreateFence(bool preSignaled) final;
 		void BlockUntilIdle() final;

@@ -234,6 +234,12 @@ namespace RGL {
 	{
 		SetFragmentTexture(texture, index);
 	}
+
+	void CommandBufferVk::MakeResident(const TextureView& texture, const MakeResidentConfig& config)
+	{
+
+	}
+
 	void CommandBufferVk::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		EncodeCommand(CmdDraw{ nVertices, config });

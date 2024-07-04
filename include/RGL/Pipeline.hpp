@@ -59,6 +59,7 @@ namespace RGL {
 	struct PipelineLayoutDescriptor {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
+			uint32_t count = 1;
 			BindingType type;
 			BindingVisibility stageFlags;
             bool writable = false;
