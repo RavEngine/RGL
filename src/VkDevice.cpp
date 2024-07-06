@@ -31,6 +31,7 @@ namespace RGL {
            VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
            VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
            VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+           VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME
     };
 
     auto getMissingDeviceExtensions(const VkPhysicalDevice device) {
@@ -179,9 +180,14 @@ namespace RGL {
             .pNext = &vulkan1_2Features
         };
 
+        VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBuffer{
+             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
+             .pNext = &vulkan1_1Features
+        };
+
         VkPhysicalDeviceCustomBorderColorFeaturesEXT customBorderColor{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT,
-            .pNext = &vulkan1_1Features,
+            .pNext = &descriptorBuffer,
         };
         VkPhysicalDeviceFeatures2 deviceFeatures2{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
@@ -199,6 +205,9 @@ namespace RGL {
         }
         if (customBorderColor.customBorderColors == VK_FALSE) {
             FatalError("Cannot init - CustomBorderColor is not supported");
+        }
+        if (descriptorBuffer.descriptorBuffer == VK_FALSE) {
+            FatalError("Cannot init - Descriptor Buffer is not supported");
         }
         if (vulkan1_2Features.samplerFilterMinmax == VK_FALSE) {
             FatalError("Cannot init - Minmax Sampler is not supported");
@@ -249,6 +258,7 @@ namespace RGL {
         loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
         loadVulkanFunction(device, rgl_vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
         loadVulkanFunction(device, rgl_vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
+        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutSizeEXT, "vkGetDescriptorSetLayoutSizeEXT");
 #endif
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
@@ -276,6 +286,29 @@ namespace RGL {
         };
 
         VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
+
+        constexpr static uint32_t nDescriptors = 2048;
+
+        VkDescriptorSetLayoutBinding set_layout_binding{
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .descriptorCount = nDescriptors,
+            .stageFlags = VK_SHADER_STAGE_ALL,
+            .pImmutableSamplers = VK_NULL_HANDLE,
+        };
+        VkDescriptorSetLayoutCreateInfo descriptor_layout_create_info{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
+            .bindingCount = 1,
+            .pBindings = &set_layout_binding
+        };
+
+        ;
+        VkDeviceSize descriptorSize = 0;
+        VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
+        rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &descriptorSize);
+        globalDescriptorBufferAllocation = createBuffer(this, descriptorSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
+
     }
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
@@ -295,6 +328,8 @@ namespace RGL {
 
     RGL::DeviceVk::~DeviceVk() {
 
+        vkDestroyDescriptorSetLayout(device, globalDescriptorSetLayout, VK_NULL_HANDLE);
+        vmaFreeMemory(vkallocator, globalDescriptorBufferAllocation);
         vmaDestroyAllocator(vkallocator);
         vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyDevice(device, nullptr);

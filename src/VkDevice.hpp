@@ -30,6 +30,7 @@ namespace RGL {
 
 		PFN_vkCmdEndDebugUtilsLabelEXT rgl_vkCmdEndDebugUtilsLabelEXT = nullptr;
 		PFN_vkCmdBeginDebugUtilsLabelEXT rgl_vkCmdBeginDebugUtilsLabelEXT = nullptr;
+		PFN_vkGetDescriptorSetLayoutSizeEXT rgl_vkGetDescriptorSetLayoutSizeEXT = nullptr;
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
@@ -67,6 +68,10 @@ namespace RGL {
 		size_t GetCurrentVRAMInUse() const final;
 
 		uint32_t frameIndex = 0;
+
+		VkBuffer globalDescriptorBuffer = VK_NULL_HANDLE;
+		VmaAllocation globalDescriptorBufferAllocation = VK_NULL_HANDLE;
+		VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
 	};
 
 	RGLDevicePtr CreateDefaultDeviceVk();
