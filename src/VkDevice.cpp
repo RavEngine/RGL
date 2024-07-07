@@ -305,9 +305,7 @@ namespace RGL {
             .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
             .bindingCount = 1,
             .pBindings = &set_layout_binding
-        };
-
-        ; 
+        }; 
         
         VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
         rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &globalDescriptorSetSize);
@@ -484,7 +482,7 @@ namespace RGL {
     }
     void* DeviceVk::GetDescriptorPointerForIndex(uint32_t descriptorIndex)
     {
-        return (char*)globalDescriptorMappedMemory + descriptorIndex * globalDescriptorSetSize + globalDescriptorSetOffset;
+        return (char*)globalDescriptorMappedMemory + descriptorIndex * bufferProperties.sampledImageDescriptorSize + globalDescriptorSetOffset;
     }
 }
 
