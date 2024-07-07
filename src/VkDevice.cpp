@@ -254,11 +254,14 @@ namespace RGL {
 
         // load extra functions
         loadVulkanFunction(device, vkCmdPushDescriptorSetKHR, "vkCmdPushDescriptorSetKHR");
+        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutSizeEXT, "vkGetDescriptorSetLayoutSizeEXT");
+        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutBindingOffsetEXT, "vkGetDescriptorSetLayoutBindingOffsetEXT");
+        loadVulkanFunction(device, rgl_vkGetDescriptorEXT, "vkGetDescriptorEXT");
+
 #ifndef NDEBUG
         loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
         loadVulkanFunction(device, rgl_vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
         loadVulkanFunction(device, rgl_vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
-        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutSizeEXT, "vkGetDescriptorSetLayoutSizeEXT");
 #endif
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
@@ -287,7 +290,6 @@ namespace RGL {
 
         VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
 
-        constexpr static uint32_t nDescriptors = 2048;
 
         VkDescriptorSetLayoutBinding set_layout_binding{
             .binding = 0,
@@ -304,11 +306,21 @@ namespace RGL {
         };
 
         ;
-        VkDeviceSize descriptorSize = 0;
+        
         VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
-        rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &descriptorSize);
-        globalDescriptorBufferAllocation = createBuffer(this, descriptorSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
+        rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &globalDescriptorSetSize);
+        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
 
+        vmaMapMemory(vkallocator, globalDescriptorBufferAllocation, &globalDescriptorMappedMemory);
+
+        rgl_vkGetDescriptorSetLayoutBindingOffsetEXT(device, globalDescriptorSetLayout, 0u, &globalDescriptorSetOffset);
+
+        VkPhysicalDeviceProperties2 properties{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+            .pNext = &bufferProperties
+        };
+
+        vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
     }
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
@@ -328,6 +340,7 @@ namespace RGL {
 
     RGL::DeviceVk::~DeviceVk() {
 
+        vmaUnmapMemory(vkallocator, globalDescriptorBufferAllocation);
         vkDestroyDescriptorSetLayout(device, globalDescriptorSetLayout, VK_NULL_HANDLE);
         vmaFreeMemory(vkallocator, globalDescriptorBufferAllocation);
         vmaDestroyAllocator(vkallocator);
@@ -453,6 +466,10 @@ namespace RGL {
         vmaGetHeapBudgets(vkallocator, &budgets);
 
         return budgets.usage;
+    }
+    void* DeviceVk::GetDescriptorPointerForIndex(uint32_t descriptorIndex)
+    {
+        return (char*)globalDescriptorMappedMemory + descriptorIndex * globalDescriptorSetSize + globalDescriptorSetOffset;
     }
 }
 

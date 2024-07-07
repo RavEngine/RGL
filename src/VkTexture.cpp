@@ -255,6 +255,22 @@ namespace RGL {
 
 		transitionImageLayout(vkImage, format, VK_IMAGE_LAYOUT_UNDEFINED, nativeFormat, owningDevice->device, owningDevice->commandPool, owningDevice->presentQueue, createdAspectVk);
 
+		// make a descriptor for the global descriptor buffer and put it in the buffer
+		globalDescriptorIndex = owningDevice->globalDescriptorFreeList.Allocate();
+
+		VkDescriptorImageInfo imginfo{
+			.sampler = VK_NULL_HANDLE,
+			.imageView = vkImageView,
+			.imageLayout = nativeFormat,
+		};
+		VkDescriptorGetInfoEXT image_descriptor_info{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
+			.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+			.data = {
+				.pSampledImage = &imginfo
+			}
+		};
+		owningDevice->rgl_vkGetDescriptorEXT(owningDevice->device, &image_descriptor_info, owningDevice->bufferProperties.sampledImageDescriptorSize, owningDevice->GetDescriptorPointerForIndex(globalDescriptorIndex));
 	}
 	Dimension TextureVk::GetSize() const
 	{
@@ -272,6 +288,8 @@ namespace RGL {
 			mipViews.clear();
 			vmaFreeMemory(owningDevice->vkallocator, alloc);
 			alloc = VK_NULL_HANDLE;
+
+			owningDevice->globalDescriptorFreeList.Deallocate(globalDescriptorIndex);
 		}
 	}
 	TextureView TextureVk::GetDefaultView() const

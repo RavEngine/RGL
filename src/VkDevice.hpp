@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.h>
 #include <RGL/Pipeline.hpp>
 #include <vk_mem_alloc.h>
+#include "FreeList.hpp"
 
 #undef CreateSemaphore
 
@@ -31,6 +32,8 @@ namespace RGL {
 		PFN_vkCmdEndDebugUtilsLabelEXT rgl_vkCmdEndDebugUtilsLabelEXT = nullptr;
 		PFN_vkCmdBeginDebugUtilsLabelEXT rgl_vkCmdBeginDebugUtilsLabelEXT = nullptr;
 		PFN_vkGetDescriptorSetLayoutSizeEXT rgl_vkGetDescriptorSetLayoutSizeEXT = nullptr;
+		PFN_vkGetDescriptorSetLayoutBindingOffsetEXT rgl_vkGetDescriptorSetLayoutBindingOffsetEXT = nullptr;
+		PFN_vkGetDescriptorEXT rgl_vkGetDescriptorEXT = nullptr;
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
@@ -72,6 +75,18 @@ namespace RGL {
 		VkBuffer globalDescriptorBuffer = VK_NULL_HANDLE;
 		VmaAllocation globalDescriptorBufferAllocation = VK_NULL_HANDLE;
 		VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+
+		constexpr static uint32_t nDescriptors = 2048;
+		FreeList<uint32_t, nDescriptors> globalDescriptorFreeList;
+		VkDeviceSize globalDescriptorSetSize = 0;
+		void* GetDescriptorPointerForIndex(uint32_t descriptorIndex);
+		VkPhysicalDeviceDescriptorBufferPropertiesEXT bufferProperties{
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT,
+			.pNext = nullptr
+		};
+	private:
+		VkDeviceSize globalDescriptorSetOffset = 0;
+		void* globalDescriptorMappedMemory = nullptr;
 	};
 
 	RGLDevicePtr CreateDefaultDeviceVk();
