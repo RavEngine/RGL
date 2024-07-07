@@ -275,7 +275,7 @@ namespace RGL {
         VK_CHECK(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool));
 
         VmaAllocatorCreateInfo allocInfo{
-            .flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT,
+            .flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
             .physicalDevice = physicalDevice,
             .device = device,
             .preferredLargeHeapBlockSize = 0,   // default
@@ -309,18 +309,27 @@ namespace RGL {
         
         VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
         rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &globalDescriptorSetSize);
-        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
+        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
 
         vmaMapMemory(vkallocator, globalDescriptorBufferAllocation, &globalDescriptorMappedMemory);
 
         rgl_vkGetDescriptorSetLayoutBindingOffsetEXT(device, globalDescriptorSetLayout, 0u, &globalDescriptorSetOffset);
 
+        // for writing things of the correct size into the descriptor buffer
         VkPhysicalDeviceProperties2 properties{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
             .pNext = &bufferProperties
         };
 
         vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
+
+        // get the buffer device address
+        VkBufferDeviceAddressInfo bdaInfo{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .pNext = nullptr,
+            .buffer = globalDescriptorBuffer
+        };
+        globalDescriptorBDA = vkGetBufferDeviceAddress(device, &bdaInfo);
     }
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
@@ -438,7 +447,9 @@ namespace RGL {
 
     TextureView DeviceVk::GetGlobalBindlessTextureHeap() const
     {
-        return TextureView();
+        return {
+            {.bda = globalDescriptorBDA}
+        };
     }
 
     RGLCommandQueuePtr DeviceVk::CreateCommandQueue(QueueType type)

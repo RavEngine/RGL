@@ -89,13 +89,19 @@ namespace RGL {
 #endif
 #if RGL_VK_AVAILABLE
 			struct vk {
-				VkImageView view;
+				VkImageView view = VK_NULL_HANDLE;
 				covered_mips_t coveredMips = 0;
 				covered_layers_t coveredLayers = 0;
+				struct bindlessInfo {
+					VkDeviceAddress bda = NULL;
+
+				} bindlessInfo;
 			}
 			vk;
 			NativeHandles(decltype(vk.view) view, decltype(vk.coveredMips) mips, decltype(vk.coveredLayers) layers) : vk{ view, mips, layers } {}
+			NativeHandles(decltype(vk.bindlessInfo) bda) : vk{ .bindlessInfo = bda } {}
 #endif
+
 			NativeHandles() {}
 
 		} texture;
@@ -103,6 +109,7 @@ namespace RGL {
 #if RGL_VK_AVAILABLE
 		const RGL::ITexture* parent = nullptr;
 		TextureView(decltype(parent) parent, VkImageView in_img, covered_mips_t mips, covered_layers_t layers, Dimension dim) : parent(parent), viewSize(dim), texture(in_img, mips, layers) {}
+		TextureView(decltype(texture.vk.bindlessInfo) bindless) : texture(bindless) {}
 #endif
 
 #if RGL_DX12_AVAILABLE

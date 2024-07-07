@@ -84,6 +84,7 @@ namespace RGL {
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT,
 			.pNext = nullptr
 		};
+		VkDeviceAddress globalDescriptorBDA = NULL;
 	private:
 		VkDeviceSize globalDescriptorSetOffset = 0;
 		void* globalDescriptorMappedMemory = nullptr;
