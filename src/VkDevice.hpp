@@ -34,6 +34,8 @@ namespace RGL {
 		PFN_vkGetDescriptorSetLayoutSizeEXT rgl_vkGetDescriptorSetLayoutSizeEXT = nullptr;
 		PFN_vkGetDescriptorSetLayoutBindingOffsetEXT rgl_vkGetDescriptorSetLayoutBindingOffsetEXT = nullptr;
 		PFN_vkGetDescriptorEXT rgl_vkGetDescriptorEXT = nullptr;
+		PFN_vkCmdBindDescriptorBuffersEXT rgl_vkCmdBindDescriptorBuffersEXT = nullptr;
+		PFN_vkCmdSetDescriptorBufferOffsetsEXT rgl_vkCmdSetDescriptorBufferOffsetsEXT = nullptr;
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);

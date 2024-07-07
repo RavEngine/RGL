@@ -126,6 +126,8 @@ namespace RGL {
 		}
 #endif
 		TextureView() {}
+
+		uint32_t GetReadonlyBindlessTextureHandle();
 	};
 
 

@@ -257,6 +257,8 @@ namespace RGL {
         loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutSizeEXT, "vkGetDescriptorSetLayoutSizeEXT");
         loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutBindingOffsetEXT, "vkGetDescriptorSetLayoutBindingOffsetEXT");
         loadVulkanFunction(device, rgl_vkGetDescriptorEXT, "vkGetDescriptorEXT");
+        loadVulkanFunction(device, rgl_vkCmdBindDescriptorBuffersEXT, "vkCmdBindDescriptorBuffersEXT");
+        loadVulkanFunction(device, rgl_vkCmdSetDescriptorBufferOffsetsEXT, "vkCmdSetDescriptorBufferOffsetsEXT");
 
 #ifndef NDEBUG
         loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
@@ -305,11 +307,11 @@ namespace RGL {
             .pBindings = &set_layout_binding
         };
 
-        ;
+        ; 
         
         VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
         rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &globalDescriptorSetSize);
-        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize,VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
+        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize, VK_BUFFER_USAGE_2_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
 
         vmaMapMemory(vkallocator, globalDescriptorBufferAllocation, &globalDescriptorMappedMemory);
 
@@ -330,6 +332,8 @@ namespace RGL {
             .buffer = globalDescriptorBuffer
         };
         globalDescriptorBDA = vkGetBufferDeviceAddress(device, &bdaInfo);
+
+        SetDebugNameForResource(globalDescriptorBuffer, VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, "Bindless Image Descriptor Buffer");
     }
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)

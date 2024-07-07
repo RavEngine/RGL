@@ -172,6 +172,11 @@ namespace RGL {
 			uint32_t size;
 		};
 
+		struct CmdBindlessSetTexture {
+			const VkDeviceAddress bda;
+			const uint32_t binding;
+		};
+
 		struct CmdCopyTextureToTexture {
 			TextureCopyConfig from, to;
 			uint32_t fromMip, fromLayer, toMip, toLayer;
@@ -201,7 +206,8 @@ namespace RGL {
 			CmdSetViewport,
 			CmdSetScissor,
 			CmdCopyBufferToBuffer,
-			CmdCopyBuffertoTexture
+			CmdCopyBuffertoTexture,
+			CmdBindlessSetTexture
 		>
 		> renderCommands;
 
