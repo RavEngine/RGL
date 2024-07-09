@@ -1,6 +1,8 @@
 #include "Texture.hpp"
 #include "RGL.hpp"
+#if RGL_VK_AVAILABLE
 #include "VkTexture.hpp"
+#endif
 #include <stdexcept>
 
 namespace RGL {
