@@ -129,12 +129,6 @@ struct TextureView;
         virtual void SetVertexTexture(const TextureView& texture, uint32_t index) = 0;
         virtual void SetFragmentTexture(const TextureView& texture, uint32_t index) = 0;
         virtual void SetComputeTexture(const TextureView& texture, uint32_t index) = 0;
-
-		struct MakeResidentConfig {
-			bool written = false;
-		};
-		virtual void MakeResident(const TextureView& texture, const MakeResidentConfig& config) = 0;
-
         
         virtual void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) = 0;
         virtual void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) = 0;

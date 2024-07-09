@@ -298,11 +298,6 @@ namespace RGL {
 		SetFragmentTexture(texture, index);
 	}
 
-	void CommandBufferD3D12::MakeResident(const TextureView& texture, const MakeResidentConfig& config)
-	{
-
-	}
-
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
 		commandList->DrawInstanced(nVertices, config.nInstances, config.startVertex, config.firstInstance);

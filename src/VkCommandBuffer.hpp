@@ -257,8 +257,6 @@ namespace RGL {
 		void SetFragmentTexture(const TextureView& texture, uint32_t index) final;
 		void SetComputeTexture(const TextureView& texture, uint32_t index) final;
 
-		void MakeResident(const TextureView& texture, const MakeResidentConfig& config) final;
-
 		void Draw(uint32_t nVertices, const DrawInstancedConfig & = {}) final;
 		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;
 
