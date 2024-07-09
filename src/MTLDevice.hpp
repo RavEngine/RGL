@@ -35,7 +35,7 @@ namespace RGL{
 
         RGLCommandQueuePtr CreateCommandQueue(QueueType type) final;
         
-        TextureView GetGlobalBindlessTextureHeap() const;
+        TextureView GetGlobalBindlessTextureHeap() const final;
         
         DeviceData GetDeviceData() final;
 

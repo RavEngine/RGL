@@ -322,7 +322,9 @@ namespace RGL {
             .pPoolSizes = poolSizes,
         };
         VK_CHECK(vkCreateDescriptorPool(device, &poolCreate, nullptr, &globalDescriptorPool));
+#if !__ANDROID__
         SetDebugNameForResource(globalDescriptorPool, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT, "Bindless descriptor pool");
+#endif
 
         VkDescriptorSetAllocateInfo setAllocInfo{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
