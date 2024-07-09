@@ -45,6 +45,10 @@ namespace librglc {
 		opt.mobile = false;
 		opt.debug = config.enableDebug;
 		opt.entryPoint = config.entrypointOutputName;
+        opt.mtlDeviceAddressSettings = {
+            .descSet = 1,
+            .deviceStorage = true
+        };
 		if (toAPI == API::Vulkan) {
 			opt.version = 15;
             opt.preambleContent = "#define RGL_SL_VK 1";

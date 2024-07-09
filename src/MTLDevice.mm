@@ -94,6 +94,10 @@ RGLSamplerPtr DeviceMTL::CreateSampler(const SamplerConfig& config){
     return std::make_shared<SamplerMTL>(shared_from_this(), config);
 }
 
+TextureView DeviceMTL::GetGlobalBindlessTextureHeap() const{
+    return {};
+}
+
 void DeviceMTL::BlockUntilIdle() {
     
 }
