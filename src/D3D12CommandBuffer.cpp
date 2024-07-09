@@ -269,7 +269,7 @@ namespace RGL {
 		bool isGraphics = (bool)currentRenderPipeline;
 
 		const auto pipelineLayout = isGraphics ? currentRenderPipeline->pipelineLayout : currentComputePipeline->pipelineLayout;
-		const auto textureSlot = pipelineLayout->slotForTextureIdx(index);
+		const auto textureSlot = pipelineLayout->slotForTextureIdx(index, texture.texture.dx.representsBindless);
 
 		// if this is a UAV, then we need the UAV state rather than pixel shader resource
 		if (textureSlot.isUAV) {

@@ -301,6 +301,7 @@ namespace RGL {
             .rtvIDX = 0,
             .srvIDX = 0,
             .uavIDX = 0,
+            .representsBindless = true,
             .parentResource = nullptr,      // bindless must set barriers elsewhere
             .coveredMips = ALL_MIPS,
             .coveredLayers = ALL_LAYERS

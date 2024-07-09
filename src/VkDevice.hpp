@@ -69,8 +69,6 @@ namespace RGL {
 
 		uint32_t frameIndex = 0;
 
-		VkBuffer globalDescriptorBuffer = VK_NULL_HANDLE;
-		VmaAllocation globalDescriptorBufferAllocation = VK_NULL_HANDLE;
 		VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
 
 		constexpr static uint32_t nDescriptors = 2048;		       // made-up number (matches the DX backend)

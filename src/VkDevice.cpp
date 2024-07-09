@@ -353,9 +353,7 @@ namespace RGL {
     RGL::DeviceVk::~DeviceVk() {
 
         vkDestroyDescriptorPool(device, globalDescriptorPool, VK_NULL_HANDLE);
-        vmaUnmapMemory(vkallocator, globalDescriptorBufferAllocation);
         vkDestroyDescriptorSetLayout(device, globalDescriptorSetLayout, VK_NULL_HANDLE);
-        vmaFreeMemory(vkallocator, globalDescriptorBufferAllocation);
         vmaDestroyAllocator(vkallocator);
         vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyDevice(device, nullptr);

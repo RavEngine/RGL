@@ -204,11 +204,11 @@ namespace RGL {
                             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                             .NumDescriptors = item.count,
                             .BaseShaderRegister = item.binding,
-                            .RegisterSpace = 0,
+                            .RegisterSpace = item.isBindless ? 1u : 0u,
                             .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE,
                             .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                             });
-                        textureBindingToRootSlot[item.binding] = { uint32_t(rootParameters.size()), false };
+                        textureBindingToRootSlot[{item.binding, item.isBindless ? 1u : 0u}] = { uint32_t(rootParameters.size()), false };
                         rootParameters.emplace_back().InitAsDescriptorTable(1, &range);
                     }
                 break;

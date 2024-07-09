@@ -68,6 +68,8 @@ namespace RGL {
 					rtvIDX = unallocated,
 					srvIDX = unallocated,
 					uavIDX = unallocated;
+				
+				bool representsBindless = false;
 
 				bool dsvAllocated() const {
 					return dsvIDX != unallocated;
