@@ -173,7 +173,7 @@ namespace RGL {
 		};
 
 		struct CmdBindlessSetTexture {
-			const VkDeviceAddress bda;
+			const VkDescriptorSet set;
 			const uint32_t binding;
 		};
 

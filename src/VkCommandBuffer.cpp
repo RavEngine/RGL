@@ -219,7 +219,7 @@ namespace RGL {
 		if (vktexture == nullptr) {
 
 			EncodeCommand(CmdBindlessSetTexture{
-				.bda = texture.texture.vk.bindlessInfo.bda,
+				.set = texture.texture.vk.bindlessInfo.bindlessSet,
 				.binding = index
 			});
 
@@ -698,27 +698,18 @@ namespace RGL {
 				}
 			},
 			[this](const CmdBindlessSetTexture& arg) {
-				// tell the command buffer about the descriptor buffer
-				VkDescriptorBufferBindingInfoEXT descriptor_buffer_binding_info{
-					.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT,
-					.address = arg.bda,
-					.usage = VK_BUFFER_USAGE_2_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
-				};
-				owningQueue->owningDevice->rgl_vkCmdBindDescriptorBuffersEXT(commandBuffer,1, &descriptor_buffer_binding_info);
+				bool isCompute = currentRenderPipeline ? false : true;
+				auto activeLayout = isCompute ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout;
 
-				uint32_t bufferIndices[] = { arg.binding };
-				VkDeviceSize offset = 0;
-
-				// assign it a binding slot
-				const bool isCompute = currentRenderPipeline ? false : true;
-				const auto activeLayout = isCompute ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout;
-				owningQueue->owningDevice->rgl_vkCmdSetDescriptorBufferOffsetsEXT(commandBuffer,
+				vkCmdBindDescriptorSets(commandBuffer,
 					isCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
 					activeLayout->layout,
-					0,
 					1,
-					bufferIndices,
-					&offset);
+					1,
+					& arg.set,
+					0,
+					nullptr
+				);
 			},
 			[this](const CmdDraw& arg) {
 				vkCmdDraw(commandBuffer, arg.nVertices, arg.config.nInstances, arg.config.startVertex, arg.config.firstInstance);

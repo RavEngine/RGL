@@ -31,7 +31,6 @@ namespace RGL {
            VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
            VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
            VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
-           VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME
     };
 
     auto getMissingDeviceExtensions(const VkPhysicalDevice device) {
@@ -180,14 +179,9 @@ namespace RGL {
             .pNext = &vulkan1_2Features
         };
 
-        VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBuffer{
-             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
-             .pNext = &vulkan1_1Features
-        };
-
         VkPhysicalDeviceCustomBorderColorFeaturesEXT customBorderColor{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT,
-            .pNext = &descriptorBuffer,
+            .pNext = &vulkan1_1Features,
         };
         VkPhysicalDeviceFeatures2 deviceFeatures2{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
@@ -205,9 +199,6 @@ namespace RGL {
         }
         if (customBorderColor.customBorderColors == VK_FALSE) {
             FatalError("Cannot init - CustomBorderColor is not supported");
-        }
-        if (descriptorBuffer.descriptorBuffer == VK_FALSE) {
-            FatalError("Cannot init - Descriptor Buffer is not supported");
         }
         if (vulkan1_2Features.samplerFilterMinmax == VK_FALSE) {
             FatalError("Cannot init - Minmax Sampler is not supported");
@@ -254,11 +245,6 @@ namespace RGL {
 
         // load extra functions
         loadVulkanFunction(device, vkCmdPushDescriptorSetKHR, "vkCmdPushDescriptorSetKHR");
-        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutSizeEXT, "vkGetDescriptorSetLayoutSizeEXT");
-        loadVulkanFunction(device, rgl_vkGetDescriptorSetLayoutBindingOffsetEXT, "vkGetDescriptorSetLayoutBindingOffsetEXT");
-        loadVulkanFunction(device, rgl_vkGetDescriptorEXT, "vkGetDescriptorEXT");
-        loadVulkanFunction(device, rgl_vkCmdBindDescriptorBuffersEXT, "vkCmdBindDescriptorBuffersEXT");
-        loadVulkanFunction(device, rgl_vkCmdSetDescriptorBufferOffsetsEXT, "vkCmdSetDescriptorBufferOffsetsEXT");
 
 #ifndef NDEBUG
         loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
@@ -292,6 +278,14 @@ namespace RGL {
 
         VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
 
+        VkDescriptorBindingFlags bindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreate{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+            .pNext = nullptr,
+            .bindingCount = 1,
+            .pBindingFlags = &bindingFlags,
+        };
 
         VkDescriptorSetLayoutBinding set_layout_binding{
             .binding = 0,
@@ -302,36 +296,43 @@ namespace RGL {
         };
         VkDescriptorSetLayoutCreateInfo descriptor_layout_create_info{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
+            .pNext = &bindingFlagsCreate,
+            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
             .bindingCount = 1,
             .pBindings = &set_layout_binding
         }; 
         
         VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
-        rgl_vkGetDescriptorSetLayoutSizeEXT(device, globalDescriptorSetLayout, &globalDescriptorSetSize);
-        globalDescriptorBufferAllocation = createBuffer(this, globalDescriptorSetSize, VK_BUFFER_USAGE_2_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, globalDescriptorBuffer);
 
-        vmaMapMemory(vkallocator, globalDescriptorBufferAllocation, &globalDescriptorMappedMemory);
+        // --- descriptor pool and set
 
-        rgl_vkGetDescriptorSetLayoutBindingOffsetEXT(device, globalDescriptorSetLayout, 0u, &globalDescriptorSetOffset);
-
-        // for writing things of the correct size into the descriptor buffer
-        VkPhysicalDeviceProperties2 properties{
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
-            .pNext = &bufferProperties
+        VkDescriptorPoolSize poolSizes[] = {
+            {
+                .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+                .descriptorCount = nDescriptors
+            }
         };
 
-        vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
-
-        // get the buffer device address
-        VkBufferDeviceAddressInfo bdaInfo{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+        VkDescriptorPoolCreateInfo poolCreate{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .pNext = nullptr,
-            .buffer = globalDescriptorBuffer
+            .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT,
+            .maxSets = 1000,        // overkill
+            .poolSizeCount = std::size(poolSizes),
+            .pPoolSizes = poolSizes,
         };
-        globalDescriptorBDA = vkGetBufferDeviceAddress(device, &bdaInfo);
+        VK_CHECK(vkCreateDescriptorPool(device, &poolCreate, nullptr, &globalDescriptorPool));
+        SetDebugNameForResource(globalDescriptorPool, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT, "Bindless descriptor pool");
 
-        SetDebugNameForResource(globalDescriptorBuffer, VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, "Bindless Image Descriptor Buffer");
+        VkDescriptorSetAllocateInfo setAllocInfo{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .descriptorPool = globalDescriptorPool,
+            .descriptorSetCount = 1,
+            .pSetLayouts = &globalDescriptorSetLayout
+        };
+
+        VK_CHECK(vkAllocateDescriptorSets(device, &setAllocInfo, &globalDescriptorSet));// we don't need to manually destroy the descriptor set
     }
 
     void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
@@ -351,6 +352,7 @@ namespace RGL {
 
     RGL::DeviceVk::~DeviceVk() {
 
+        vkDestroyDescriptorPool(device, globalDescriptorPool, VK_NULL_HANDLE);
         vmaUnmapMemory(vkallocator, globalDescriptorBufferAllocation);
         vkDestroyDescriptorSetLayout(device, globalDescriptorSetLayout, VK_NULL_HANDLE);
         vmaFreeMemory(vkallocator, globalDescriptorBufferAllocation);
@@ -450,7 +452,7 @@ namespace RGL {
     TextureView DeviceVk::GetGlobalBindlessTextureHeap() const
     {
         return {
-            {.bda = globalDescriptorBDA}
+            {.bindlessSet = globalDescriptorSet}
         };
     }
 
@@ -479,10 +481,6 @@ namespace RGL {
         vmaGetHeapBudgets(vkallocator, &budgets);
 
         return budgets.usage;
-    }
-    void* DeviceVk::GetDescriptorPointerForIndex(uint32_t descriptorIndex)
-    {
-        return (char*)globalDescriptorMappedMemory + descriptorIndex * bufferProperties.sampledImageDescriptorSize + globalDescriptorSetOffset;
     }
 }
 

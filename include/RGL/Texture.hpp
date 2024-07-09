@@ -93,13 +93,13 @@ namespace RGL {
 				covered_mips_t coveredMips = 0;
 				covered_layers_t coveredLayers = 0;
 				struct bindlessInfo {
-					VkDeviceAddress bda = NULL;
+					VkDescriptorSet bindlessSet = NULL;
 
 				} bindlessInfo;
 			}
 			vk;
 			NativeHandles(decltype(vk.view) view, decltype(vk.coveredMips) mips, decltype(vk.coveredLayers) layers) : vk{ view, mips, layers } {}
-			NativeHandles(decltype(vk.bindlessInfo) bda) : vk{ .bindlessInfo = bda } {}
+			NativeHandles(decltype(vk.bindlessInfo) set) : vk{ .bindlessInfo = set } {}
 #endif
 
 			NativeHandles() {}

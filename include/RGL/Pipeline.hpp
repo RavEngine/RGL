@@ -60,6 +60,7 @@ namespace RGL {
 		struct LayoutBindingDesc {
 			uint32_t binding = 0;
 			uint32_t count = 1;
+			bool isBindless = false;
 			BindingType type;
 			BindingVisibility stageFlags;
             bool writable = false;

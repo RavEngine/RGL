@@ -31,11 +31,6 @@ namespace RGL {
 
 		PFN_vkCmdEndDebugUtilsLabelEXT rgl_vkCmdEndDebugUtilsLabelEXT = nullptr;
 		PFN_vkCmdBeginDebugUtilsLabelEXT rgl_vkCmdBeginDebugUtilsLabelEXT = nullptr;
-		PFN_vkGetDescriptorSetLayoutSizeEXT rgl_vkGetDescriptorSetLayoutSizeEXT = nullptr;
-		PFN_vkGetDescriptorSetLayoutBindingOffsetEXT rgl_vkGetDescriptorSetLayoutBindingOffsetEXT = nullptr;
-		PFN_vkGetDescriptorEXT rgl_vkGetDescriptorEXT = nullptr;
-		PFN_vkCmdBindDescriptorBuffersEXT rgl_vkCmdBindDescriptorBuffersEXT = nullptr;
-		PFN_vkCmdSetDescriptorBufferOffsetsEXT rgl_vkCmdSetDescriptorBufferOffsetsEXT = nullptr;
 
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
@@ -78,18 +73,16 @@ namespace RGL {
 		VmaAllocation globalDescriptorBufferAllocation = VK_NULL_HANDLE;
 		VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
 
-		constexpr static uint32_t nDescriptors = 2048;
+		constexpr static uint32_t nDescriptors = 2048;		       // made-up number (matches the DX backend)
 		FreeList<uint32_t, nDescriptors> globalDescriptorFreeList;
-		VkDeviceSize globalDescriptorSetSize = 0;
-		void* GetDescriptorPointerForIndex(uint32_t descriptorIndex);
-		VkPhysicalDeviceDescriptorBufferPropertiesEXT bufferProperties{
-			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT,
-			.pNext = nullptr
-		};
-		VkDeviceAddress globalDescriptorBDA = NULL;
+
+		VkDescriptorSet globalDescriptorSet = VK_NULL_HANDLE;
+
 	private:
 		VkDeviceSize globalDescriptorSetOffset = 0;
 		void* globalDescriptorMappedMemory = nullptr;
+
+		VkDescriptorPool globalDescriptorPool = VK_NULL_HANDLE;
 	};
 
 	RGLDevicePtr CreateDefaultDeviceVk();
