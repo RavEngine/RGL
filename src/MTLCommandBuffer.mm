@@ -278,7 +278,7 @@ void CommandBufferMTL::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) 
     [currentComputeCommandEncoder setSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
 
-constexpr static uint32_t bindlessOffset = 1;
+constexpr static uint32_t bindlessOffset = 0;
 
 void CommandBufferMTL::SetVertexTexture(const TextureView& view, uint32_t index){
     if (view.texture.mtl.representsBindless){
