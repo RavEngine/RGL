@@ -267,6 +267,8 @@ namespace RGL {
 
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Rect&) final;
+        
+        void UseResource(const TextureView& tx) final;
 
 		void Commit(const CommitConfig&) final;
 

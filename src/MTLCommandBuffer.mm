@@ -278,6 +278,10 @@ void CommandBufferMTL::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) 
     [currentComputeCommandEncoder setSamplerState:std::static_pointer_cast<SamplerMTL>(sampler)->sampler atIndex:index];
 }
 
+void CommandBufferMTL::UseResource(const TextureView& view){
+    [currentCommandEncoder useResource:view.texture.mtl.texture->texture usage:MTLResourceUsageRead stages:MTLRenderStageVertex | MTLRenderStageFragment];
+}
+
 constexpr static uint32_t bindlessOffset = 0;
 
 void CommandBufferMTL::SetVertexTexture(const TextureView& view, uint32_t index){

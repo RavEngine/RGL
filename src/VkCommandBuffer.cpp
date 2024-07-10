@@ -315,6 +315,12 @@ namespace RGL {
 	{
 		EncodeCommand(CmdSetScissor{ scissorin });
 	}
+
+    void CommandBufferVk::UseResource(const TextureView& view){
+        
+    }
+
+
 	void CommandBufferVk::Commit(const CommitConfig& config)
 	{
 		owningQueue->Submit(this, config, internalFence);
