@@ -51,9 +51,10 @@ namespace RGL {
 			NativeHandles {
 #if RGL_MTL_AVAILABLE
             struct mtl_t {
-                const TextureMTL* texture;
+                const TextureMTL* texture = nullptr;
                 uint32_t mip = 0;
                 constexpr static decltype(mip) ALL_MIPS = std::numeric_limits<decltype(mip)>::max();
+                bool representsBindless = false;
             } mtl;
 #endif
 #if RGL_WEBGPU_AVAILABLE

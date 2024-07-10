@@ -3,6 +3,9 @@
 #if RGL_VK_AVAILABLE
 #include "VkTexture.hpp"
 #endif
+#if RGL_MTL_AVAILABLE
+#include "MTLTexture.hpp"
+#endif
 #include <stdexcept>
 
 namespace RGL {
@@ -16,6 +19,10 @@ namespace RGL {
 #if RGL_VK_AVAILABLE
 		case API::Vulkan:
 			return static_cast<const TextureVk*>(parent)->globalDescriptorIndex;
+#endif
+#if RGL_MTL_AVAILABLE
+        case API::Metal:
+            return static_cast<const TextureMTL*>(texture.mtl.texture)->globalIndex;
 #endif
 		default:
 			throw std::runtime_error("Current backend does not support bindless texturing.");
