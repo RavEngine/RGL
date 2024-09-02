@@ -3,11 +3,12 @@
 #include <RGL/Buffer.hpp>
 #include <memory>
 #include <span>
-#include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
+#include <volk.h>
 #ifndef NDEBUG
 #include <string>
 #endif
+
+struct VmaAllocation_T;
 
 namespace RGL {
 	struct DeviceVk;
@@ -15,7 +16,7 @@ namespace RGL {
 	struct BufferVk : public IBuffer {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		VkBuffer buffer = VK_NULL_HANDLE;
-		VmaAllocation allocation = VK_NULL_HANDLE;
+        VmaAllocation_T* allocation = VK_NULL_HANDLE;
 		const RGL::BufferAccess accessType;
 
 		MutableSpan mappedMemory;

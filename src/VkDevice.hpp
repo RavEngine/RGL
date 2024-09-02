@@ -3,12 +3,13 @@
 #include <RGL/Device.hpp>
 #include <optional>
 #include <memory>
-#include <vulkan/vulkan.h>
+#include <volk.h>
 #include <RGL/Pipeline.hpp>
-#include <vk_mem_alloc.h>
 #include "FreeList.hpp"
 
 #undef CreateSemaphore
+
+struct VmaAllocator_T;
 
 namespace RGL {
 	struct QueueFamilyIndices {
@@ -25,7 +26,7 @@ namespace RGL {
 		QueueFamilyIndices indices;
 		VkQueue presentQueue = VK_NULL_HANDLE;	// do not need to be destroyed
 		VkCommandPool commandPool = VK_NULL_HANDLE;
-		VmaAllocator vkallocator;
+        VmaAllocator_T* vkallocator;
 		PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR = nullptr;	// device-tied extension function
 		PFN_vkDebugMarkerSetObjectNameEXT rgl_vkDebugMarkerSetObjectNameEXT = nullptr;
 

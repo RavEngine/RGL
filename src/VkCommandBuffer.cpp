@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <utility>
+#include <vk_mem_alloc.h>
 
 namespace RGL {
 	VkAttachmentLoadOp RGL2LoadOp(LoadAccessOperation op) {
@@ -216,6 +217,7 @@ namespace RGL {
 
 		auto vktexture = static_cast<const TextureVk*>(texture.parent);
 
+		// are we bindless?
 		if (vktexture == nullptr) {
 
 			EncodeCommand(CmdBindlessSetTexture{
@@ -702,12 +704,17 @@ namespace RGL {
 				bool isCompute = currentRenderPipeline ? false : true;
 				auto activeLayout = isCompute ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout;
 
+				VkDescriptorSet sets[] = {
+					arg.set,
+					arg.set
+				};
+
 				vkCmdBindDescriptorSets(commandBuffer,
 					isCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
 					activeLayout->layout,
-					1,
-					1,
-					& arg.set,
+					1,		// first set index
+					std::size(sets),		// number of sets
+					sets,
 					0,
 					nullptr
 				);

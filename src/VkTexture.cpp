@@ -3,6 +3,7 @@
 #include "VkDevice.hpp"
 #include "RGLVk.hpp"
 #include <cstring>
+#include <vk_mem_alloc.h>
 
 namespace RGL {
 
@@ -263,7 +264,7 @@ namespace RGL {
 			VkDescriptorImageInfo imginfo{
 				.sampler = VK_NULL_HANDLE,
 				.imageView = vkImageView,
-				.imageLayout = nativeFormat,
+				.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 			};
 
 			VkWriteDescriptorSet bindlessDescriptorWrite{

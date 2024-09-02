@@ -49,6 +49,7 @@ namespace RGL {
         // decide the heap type
         
         if (config.access == RGL::BufferAccess::Shared) {
+
             heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             canBeTransitioned = false;
             nativeState = D3D12_RESOURCE_STATE_GENERIC_READ;   // UPLOAD requires this state, and resources cannot leave this state
@@ -117,7 +118,6 @@ namespace RGL {
         };
         buffer->Unmap(0, &range);
         mappedMemory.data = nullptr;
-        mappedMemory.size = 0;
 	}
 	void BufferD3D12::UpdateBufferData(untyped_span data, decltype(BufferConfig::nElements) offset)
 	{

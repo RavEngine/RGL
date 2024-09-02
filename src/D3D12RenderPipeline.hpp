@@ -3,7 +3,7 @@
 #include <RGL/Types.hpp>
 #include <RGL/Pipeline.hpp>
 #include "RGLD3D12.hpp"
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <directx/d3dx12.h>
 #include <vector>
 #include <unordered_map>
@@ -66,7 +66,7 @@ namespace RGL {
 		}
 
 		auto slotForTextureIdx(uint32_t bindingPos, bool isBindless) {
-			return textureBindingToRootSlot.at({ bindingPos, isBindless? 1u : 0u });
+			return textureBindingToRootSlot.at({ bindingPos, isBindless? bindingPos : 0u });
 		}
 
 		bool bufferIdxIsUAV(uint32_t bindingPos) {

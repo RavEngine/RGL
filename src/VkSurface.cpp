@@ -1,4 +1,13 @@
 #if RGL_VK_AVAILABLE
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#elif __ANDROID__
+#define VK_USE_PLATFORM_ANDROID_KHR
+#elif __linux__ 
+#define VK_USE_PLATFORM_XLIB_KHR
+#define VK_USE_PLATFORM_WAYLAND_KHR
+#endif
+
 #include "VkSurface.hpp"
 #include "RGLVk.hpp"
 
@@ -8,10 +17,8 @@
 #include <vulkan/vulkan_win32.h>
 #elif __linux__ && !__ANDROID__
 #include <X11/Xlib.h>
-#include <vulkan/vulkan_xlib.h>
 #include <wayland-client-core.h>
 #include <wayland-util.h>
-#include <vulkan/vulkan_wayland.h>
 #elif __ANDROID__
 #include <vulkan/vulkan_android.h>
 #endif

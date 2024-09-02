@@ -6,6 +6,7 @@
 #include "VkDevice.hpp"
 #include <stdexcept>
 #include <cstring>
+#include <vk_mem_alloc.h>
 
 STATIC(RGL::instance) = VK_NULL_HANDLE;
 
@@ -72,6 +73,9 @@ namespace RGL {
         Assert(CanInitAPI(RGL::API::Vulkan), "Vulkan cannot be initialized on this platform.");
         RGL::currentAPI = API::Vulkan;
 
+        // load Volk
+        VK_CHECK(volkInitialize());
+
         // create the vulkan instance
         VkApplicationInfo appInfo{
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -104,7 +108,7 @@ namespace RGL {
                     return strcmp(layerName, layerProperties.layerName) == 0;
                     }
                 ) == availableLayers.end()) {
-                    throw std::runtime_error(std::string("required validation layer not found: ") + layerName);
+                    FatalError(std::string("required validation layer not found: ") + layerName);
                 }
             }
             instanceCreateInfo.enabledLayerCount = std::size(validationLayers);
@@ -137,6 +141,8 @@ namespace RGL {
 
         // init vulkan
         VK_CHECK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance));
+
+        volkLoadInstance(instance);
 
         // setup the debug messenger
         if constexpr (enableValidationLayers) {
@@ -210,7 +216,7 @@ namespace RGL {
             }
         }
 
-        throw std::runtime_error("failed to find suitable memory type!");
+       FatalError("findMemoryType(): failed to find suitable memory type!");
     }
 
     VmaAllocation createBuffer(DeviceVk* rgldevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer) {
@@ -292,6 +298,8 @@ namespace RGL {
         case decltype(format)::RGBA16_Sfloat:       return VK_FORMAT_R16G16B16A16_SFLOAT;
         case decltype(format)::RGBA32_Sfloat:       return VK_FORMAT_R16G16B16A16_SFLOAT;
 
+        case decltype(format)::R8_Uint:             return VK_FORMAT_R8_UINT;
+        case decltype(format)::R16_Float:           return VK_FORMAT_R16_SFLOAT;
         case decltype(format)::R32_Uint:            return VK_FORMAT_R32_UINT;
         case decltype(format)::R32_Float:           return VK_FORMAT_R32_SFLOAT;
 

@@ -1,5 +1,4 @@
 #pragma once
-#define NOMINMAX
 #include <RGL/Types.hpp>
 #include <RGL/Core.hpp>
 #include <RGL/TextureFormat.hpp>
@@ -9,7 +8,7 @@
 #include <comdef.h>
 #include <wrl.h>
 #include <format>
-#include <d3d12.h>
+#include <directx/d3d12.h>
 
 //#define REFL_ENABLED
 

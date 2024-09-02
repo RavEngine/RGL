@@ -136,8 +136,15 @@ void CommandBufferMTL::Reset(){
     indexBuffer = nullptr;
 }
 
+// avoid allocating this every frame
+static MTLCommandBufferDescriptor* desc = [MTLCommandBufferDescriptor new];
+
+
 void CommandBufferMTL::Begin(){
-    currentCommandBuffer = [owningQueue->commandQueue commandBuffer];
+#ifndef NDEBUG
+desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
+#endif
+    currentCommandBuffer = [owningQueue->commandQueue commandBufferWithDescriptor:desc];
 }
 
 void CommandBufferMTL::End(){
@@ -286,7 +293,7 @@ constexpr static uint32_t bindlessOffset = 0;
 
 void CommandBufferMTL::SetVertexTexture(const TextureView& view, uint32_t index){
     if (view.texture.mtl.representsBindless){
-        [currentCommandEncoder setVertexBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:bindlessOffset];
+        [currentCommandEncoder setVertexBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:index];
         return;
     }
     
@@ -295,7 +302,7 @@ void CommandBufferMTL::SetVertexTexture(const TextureView& view, uint32_t index)
 }
 void CommandBufferMTL::SetFragmentTexture(const TextureView& view, uint32_t index){
     if (view.texture.mtl.representsBindless){
-        [currentCommandEncoder setFragmentBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:bindlessOffset];
+        [currentCommandEncoder setFragmentBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:index];
         return;
     }
     
@@ -304,7 +311,7 @@ void CommandBufferMTL::SetFragmentTexture(const TextureView& view, uint32_t inde
 }
 void CommandBufferMTL::SetComputeTexture(const TextureView& view, uint32_t index){
     if (view.texture.mtl.representsBindless){
-        [currentComputeCommandEncoder setBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:bindlessOffset];
+        [currentComputeCommandEncoder setBuffer:owningQueue->owningDevice->globalTextureBuffer offset:0 atIndex:index];
         return;
     }
     
@@ -427,6 +434,13 @@ void CommandBufferMTL::ExecuteIndirect(const RGL::IndirectConfig & config) {
 void CommandBufferMTL::BlockUntilCompleted()
 {
     [currentCommandBuffer waitUntilCompleted];
+    if (auto err = currentCommandBuffer.error){
+        if (NSArray<MTLCommandBufferEncoderInfo>* encoderInfos = err.userInfo[MTLCommandBufferEncoderInfoErrorKey]){
+            for(auto info in encoderInfos){
+                
+            }
+        }
+    }
 }
 
 }
