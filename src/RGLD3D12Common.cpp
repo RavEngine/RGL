@@ -16,8 +16,6 @@
 #define PIX_ENABLED 1
 #endif
 
-#define DX12_USE_AGILITY 1
-
 #define TDR_PIX_CAPTURE 0
 
 // Exports for the Agility SDK. For Windows 10 users, Go here: https://www.nuget.org/packages/Microsoft.Direct3D.D3D12/1.614.0 then unzip it, and place 
@@ -226,12 +224,8 @@ namespace RGL {
         PIXEndCapture(FALSE);
 #endif
 #if defined(_DEBUG)
-       
-#if _UWP
-        OutputDebugStringW(_com_error(reason, nullptr).ErrorMessage());
-#else
+
         OutputDebugStringA(_com_error(reason, nullptr).ErrorMessage());
-#endif
 
         ComPtr<ID3D12DeviceRemovedExtendedData> pDred;
         DX_CHECK(pDevice->QueryInterface(IID_PPV_ARGS(&pDred)));
@@ -289,12 +283,7 @@ namespace RGL {
         DX_CHECK(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)));
         debugInterface->EnableDebugLayer();
 
-        constexpr static const char* const pixlibname = 
-#if _UWP
-            "WinPixEventRuntime_UAP.dll";
-#else
-            "WinPixEventRuntime.dll";
-#endif
+        constexpr static const char* const pixlibname = "WinPixEventRuntime.dll";
 
 #if 0
         // load WinPixEventRuntime manually so we don't have to use the NuGet (because it doesn't work with cmake projects)
@@ -384,6 +373,24 @@ namespace RGL {
         case decltype(format)::RGBA16_Snorm:  return DXGI_FORMAT_R16G16B16A16_SNORM;
         case decltype(format)::RGBA16_Sfloat:  return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case decltype(format)::RGBA32_Sfloat:  return DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+        case decltype(format)::BC1_RGBA_SRGB:  return DXGI_FORMAT_BC1_UNORM_SRGB;
+        case decltype(format)::BC1_RGBA_Unorm:  return DXGI_FORMAT_BC1_UNORM;
+        case decltype(format)::BC1_RGB_SRGB:  return DXGI_FORMAT_BC1_UNORM_SRGB;
+        case decltype(format)::BC1_RGB_Unorm:  return DXGI_FORMAT_BC1_UNORM;
+
+        case decltype(format)::BC2_SRGB:  return DXGI_FORMAT_BC2_UNORM_SRGB;
+        case decltype(format)::BC2_Unorm:  return DXGI_FORMAT_BC2_UNORM;
+
+        case decltype(format)::BC3_SRGB:  return DXGI_FORMAT_BC3_UNORM_SRGB;
+        case decltype(format)::BC3_Unorm:  return DXGI_FORMAT_BC3_UNORM;
+
+        case decltype(format)::BC4_SRGB:  return DXGI_FORMAT_BC4_SNORM;
+        case decltype(format)::BC4_Unorm:  return DXGI_FORMAT_BC4_UNORM;
+
+        case decltype(format)::BC5_SRGB:  return DXGI_FORMAT_BC5_SNORM;
+        case decltype(format)::BC5_Unorm:  return DXGI_FORMAT_BC5_UNORM;
+        
 
         case decltype(format)::R8_Uint:  return DXGI_FORMAT_R8_UINT;
         case decltype(format)::R16_Float:  return DXGI_FORMAT_R16_FLOAT;

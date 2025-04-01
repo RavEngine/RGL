@@ -5,6 +5,7 @@
 #include "D3D12CommandQueue.hpp"
 #include <D3D12MemAlloc.h>
 #include <ResourceUploadBatch.h>
+#include <DirectXTex.h>
 
 using namespace Microsoft::WRL;
 
@@ -50,14 +51,18 @@ namespace RGL {
 		PlaceInHeaps(owningDevice, format, config);
 		nativeState = nativeStateOverride;
 	}
-	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureD3D12(owningDevice, config)
+	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config, const TextureUploadData& bytes) : TextureD3D12(owningDevice, config)
 	{
 
 		DirectX::ResourceUploadBatch upload(owningDevice->device.Get());
 
 		upload.Begin();
 
-		D3D12_SUBRESOURCE_DATA initData = { bytes.data(), bytes.size() / config.height, bytes.size()};
+		const auto size = GetSize();
+		size_t outRowPitch = 0, slicePitch=0;
+		DX_CHECK(DirectX::ComputePitch(textureFormat, size.width, size.height, outRowPitch, slicePitch));
+
+		D3D12_SUBRESOURCE_DATA initData = { bytes.data.data(), outRowPitch, slicePitch};
 		upload.Transition(texture.Get(),
 			nativeState,
 			D3D12_RESOURCE_STATE_COPY_DEST
@@ -80,6 +85,7 @@ namespace RGL {
 	TextureD3D12::TextureD3D12(decltype(owningDevice) owningDevice, const TextureConfig& config) : owningDevice(owningDevice), ITexture({ config.width,config.height })
 	{
 		auto format = rgl2dxgiformat_texture(config.format);
+		textureFormat = format;
 		auto mainResourceFormat = format;
 
 		const bool isDS = (config.aspect.HasDepth || config.aspect.HasStencil);

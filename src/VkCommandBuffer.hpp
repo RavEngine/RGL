@@ -84,7 +84,7 @@ namespace RGL {
 		};
 
 		struct CmdSetPushConstantData {
-			std::byte data[128]{ };
+			std::byte data[256]{ };
 			uint32_t size = 0;
 			uint32_t offset = 0;
 		};
@@ -177,6 +177,11 @@ namespace RGL {
 			const uint32_t binding;
 		};
 
+		struct CmdBindlessSetBuffer {
+			const VkDescriptorSet set;
+			const uint32_t setIndex;
+		};
+
 		struct CmdCopyTextureToTexture {
 			TextureCopyConfig from, to;
 			uint32_t fromMip, fromLayer, toMip, toLayer;
@@ -207,7 +212,8 @@ namespace RGL {
 			CmdSetScissor,
 			CmdCopyBufferToBuffer,
 			CmdCopyBuffertoTexture,
-			CmdBindlessSetTexture
+			CmdBindlessSetTexture,
+			CmdBindlessSetBuffer
 		>
 		> renderCommands;
 
@@ -253,6 +259,8 @@ namespace RGL {
 		void SetFragmentSampler(RGLSamplerPtr sampler, uint32_t index) final;
 		void SetComputeSampler(RGLSamplerPtr sampler, uint32_t index) final;
 
+		void BindBindlessBufferDescriptorSet(uint32_t set_idx) final;
+
 		void SetVertexTexture(const TextureView& texture, uint32_t index) final;
 		void SetFragmentTexture(const TextureView& texture, uint32_t index) final;
 		void SetComputeTexture(const TextureView& texture, uint32_t index) final;
@@ -269,6 +277,7 @@ namespace RGL {
 		void SetScissor(const Rect&) final;
         
         void UseResource(const TextureView& tx) final;
+		void UseResource(const RGLBufferPtr buffer) final;
 
 		void Commit(const CommitConfig&) final;
 

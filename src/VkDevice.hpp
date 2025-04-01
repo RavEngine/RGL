@@ -28,7 +28,6 @@ namespace RGL {
 		VkCommandPool commandPool = VK_NULL_HANDLE;
         VmaAllocator_T* vkallocator;
 		PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR = nullptr;	// device-tied extension function
-		PFN_vkDebugMarkerSetObjectNameEXT rgl_vkDebugMarkerSetObjectNameEXT = nullptr;
 
 		PFN_vkCmdEndDebugUtilsLabelEXT rgl_vkCmdEndDebugUtilsLabelEXT = nullptr;
 		PFN_vkCmdBeginDebugUtilsLabelEXT rgl_vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -36,7 +35,7 @@ namespace RGL {
 		virtual ~DeviceVk();
 		DeviceVk(decltype(physicalDevice) physicalDevice);
 
-		void SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName);
+		void SetDebugNameForResource(void* resource, VkObjectType type, const char* debugName);
 
 		// IDevice
 		std::string GetBrandString() final;
@@ -52,7 +51,7 @@ namespace RGL {
 		RGLShaderLibraryPtr CreateShaderLibraryFromPath(const std::filesystem::path&) final;
 
 		RGLBufferPtr CreateBuffer(const BufferConfig&) final;
-		RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) final;
+		RGLTexturePtr CreateTextureWithData(const TextureConfig&, const TextureUploadData&) final;
 		RGLTexturePtr CreateTexture(const TextureConfig&) final;
 
 		RGLSamplerPtr CreateSampler(const SamplerConfig&) final;
@@ -70,18 +69,18 @@ namespace RGL {
 
 		uint32_t frameIndex = 0;
 
-		VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout globalTextureDescriptorSetLayout = VK_NULL_HANDLE, globalBufferDescriptorSetLayout;
 
-		constexpr static uint32_t nDescriptors = 2048;		       // made-up number (matches the DX backend)
-		FreeList<uint32_t, nDescriptors> globalDescriptorFreeList;
+		constexpr static uint32_t nTextureDescriptors = 2048;		       // made-up number (matches the DX backend)
+		FreeList<uint32_t, nTextureDescriptors> globalTextureDescriptorFreeList;
 
-		VkDescriptorSet globalDescriptorSet = VK_NULL_HANDLE;
+		constexpr static uint32_t nBufferDescriptors = 65536;			// matches DX backend
+		FreeList<uint32_t, nBufferDescriptors> globalBufferDescriptorFreeList;
+		VkDescriptorSet globalTextureDescriptorSet = VK_NULL_HANDLE, globalBufferDescriptorSet = VK_NULL_HANDLE;
 
 	private:
-		VkDeviceSize globalDescriptorSetOffset = 0;
-		void* globalDescriptorMappedMemory = nullptr;
 
-		VkDescriptorPool globalDescriptorPool = VK_NULL_HANDLE;
+		VkDescriptorPool globalTextureDescriptorPool = VK_NULL_HANDLE, globalBufferDescriptorPool = VK_NULL_HANDLE;
 	};
 
 	RGLDevicePtr CreateDefaultDeviceVk();

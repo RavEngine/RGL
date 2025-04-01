@@ -132,11 +132,11 @@ namespace RGL {
 
 		transitionImageLayout(vkImage, format, VK_IMAGE_LAYOUT_UNDEFINED, nativeFormat, owningDevice->device, owningDevice->commandPool, owningDevice->presentQueue, createdAspectVk);
 	}
-	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, untyped_span bytes) : TextureVk(owningDevice, config)
+	TextureVk::TextureVk(decltype(owningDevice) owningDevice, const TextureConfig& config, const TextureUploadData& bytes) : TextureVk(owningDevice, config)
 	{
 		// allocate a staging buffer for the texture
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
-		auto allocation = createBuffer(owningDevice.get(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer);
+		auto allocation = createBuffer(owningDevice.get(), bytes.data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer);
 
 		auto device = owningDevice->device;
 
@@ -144,7 +144,7 @@ namespace RGL {
 		// put the data in the buffer
 		void* data;
 		vmaMapMemory(owningDevice->vkallocator, allocation, &data);
-		memcpy(data, bytes.data(), bytes.size());
+		memcpy(data, bytes.data.data(), bytes.data.size());
 		vmaUnmapMemory(owningDevice->vkallocator, allocation);
 
 		format = RGL2VkTextureFormat(config.format);
@@ -236,10 +236,10 @@ namespace RGL {
 		createdAspectVk = rgl2vkAspectFlags(config.aspect);
 
 		if (config.debugName.data() != nullptr) {
-			owningDevice->SetDebugNameForResource((void*)vkImage, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, config.debugName.data());
-			owningDevice->SetDebugNameForResource((void*)vkImageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, config.debugName.data());
+			owningDevice->SetDebugNameForResource((void*)vkImage, VK_OBJECT_TYPE_IMAGE, config.debugName.data());
+			owningDevice->SetDebugNameForResource((void*)vkImageView, VK_OBJECT_TYPE_IMAGE_VIEW, config.debugName.data());
 			for (int i = 0; i < mipViews.size(); i++) {
-				owningDevice->SetDebugNameForResource((void*)mipViews[i].texture.vk.view, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, config.debugName.data());
+				owningDevice->SetDebugNameForResource((void*)mipViews[i].texture.vk.view, VK_OBJECT_TYPE_IMAGE_VIEW, config.debugName.data());
 			}
 			debugName = config.debugName;
 		}
@@ -259,7 +259,7 @@ namespace RGL {
 
 		if (config.usage.Sampled) {
 			// make a descriptor for the global descriptor buffer and put it in the buffer
-			globalDescriptorIndex = owningDevice->globalDescriptorFreeList.Allocate();
+			globalDescriptorIndex = owningDevice->globalTextureDescriptorFreeList.Allocate();
 
 			VkDescriptorImageInfo imginfo{
 				.sampler = VK_NULL_HANDLE,
@@ -270,7 +270,7 @@ namespace RGL {
 			VkWriteDescriptorSet bindlessDescriptorWrite{
 				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 				.pNext = nullptr,
-				.dstSet = owningDevice->globalDescriptorSet,
+				.dstSet = owningDevice->globalTextureDescriptorSet,
 				.dstBinding = 0,							// bindless is always at binding 0 set N
 				.dstArrayElement = globalDescriptorIndex,
 				.descriptorCount = 1,
@@ -300,7 +300,7 @@ namespace RGL {
 			vmaFreeMemory(owningDevice->vkallocator, alloc);
 			alloc = VK_NULL_HANDLE;
 
-			owningDevice->globalDescriptorFreeList.Deallocate(globalDescriptorIndex);
+			owningDevice->globalTextureDescriptorFreeList.Deallocate(globalDescriptorIndex);
 		}
 	}
 	TextureView TextureVk::GetDefaultView() const

@@ -18,7 +18,7 @@ namespace RGL {
 		const std::shared_ptr<DeviceVk> owningDevice;
 		bool owning = false;
 		TextureVk(decltype(owningDevice), decltype(vkImageView) imageView, decltype(vkImage) image, const Dimension& size);
-		TextureVk(decltype(owningDevice), const TextureConfig&, untyped_span bytes);
+		TextureVk(decltype(owningDevice), const TextureConfig&, const TextureUploadData& bytes);
 		TextureVk(decltype(owningDevice), const TextureConfig&);
 		Dimension GetSize() const final;
 		virtual ~TextureVk();
@@ -41,6 +41,10 @@ namespace RGL {
 		std::string debugName;
 
 		uint32_t globalDescriptorIndex = 0;
+
+		uint8_t GetNumMips() const final {
+			return createdConfig.mipLevels;
+		}
 	};
 
 	struct CustomTextureViewVk : public ICustomTextureView {

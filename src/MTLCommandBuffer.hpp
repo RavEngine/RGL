@@ -8,6 +8,7 @@ namespace RGL{
 struct CommandQueueMTL;
 struct TextureMTL;
 struct IBuffer;
+struct RenderPipelineDescriptor;
 struct BufferMTL;
 
     struct CommandBufferMTL : public ICommandBuffer{
@@ -52,6 +53,8 @@ struct BufferMTL;
         void SetVertexTexture(const TextureView& texture, uint32_t index) final;
         void SetFragmentTexture(const TextureView& texture, uint32_t index) final;
         void SetComputeTexture(const TextureView& texture, uint32_t index) final;
+        
+        void BindBindlessBufferDescriptorSet(uint32_t set_idx) final;
 
         void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) final;
         void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) final;
@@ -65,6 +68,7 @@ struct BufferMTL;
         void CopyBufferToTexture(RGLBufferPtr source, uint32_t size, const TextureDestConfig& dest) final;
         
         void UseResource(const TextureView& tx) final;
+        void UseResource(const RGLBufferPtr buffer) final;
 
         void Commit(const CommitConfig&) final;
                 
@@ -81,6 +85,11 @@ struct BufferMTL;
         void EndComputeDebugMarker() final;
 
         void BlockUntilCompleted() final;
+    private:
+        bool isRender = false;
+        const RenderPipelineDescriptor* pipelineConstructionSettings = nullptr;
+        std::shared_ptr<RenderPipelineMTL> currentRenderPipeline = nullptr;
+        std::shared_ptr<ComputePipelineMTL> currentComputePipeline = nullptr;
     };
 
 }

@@ -48,12 +48,37 @@ namespace librglc {
         opt.mtlDeviceAddressSettings = {
             {
                 .descSet = 1,
-                .deviceStorage = true
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::SampledImage,
             },
             {
                 .descSet = 2,
-                .deviceStorage = true
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::SampledImage,
             },
+            {
+                .descSet = 3,
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::Buffer,
+            },
+            {
+                .descSet = 4,
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::Buffer,
+            },
+            {
+                .descSet = 5,
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::Buffer,
+            },
+            {
+                .descSet = 6,
+                .deviceStorage = true,
+                .type = Options::BindlessSettings::Type::Buffer,
+            },
+        };
+        opt.bufferBindingSettings = {
+            .stageInputSize = MTL_STAGE_INPUT_SIZE
         };
 		if (toAPI == API::Vulkan) {
 			opt.version = 15;
@@ -64,7 +89,7 @@ namespace librglc {
             opt.preambleContent = "#define RGL_SL_DX 1";
 		}
 		else if (toAPI == API::Metal) {
-			opt.version = 31;
+			opt.version = 32;
             opt.pushConstantSettings.firstIndex = MTL_FIRST_BUFFER;    // the [[stage_input]] consumes slot 0, extra vertex buffers consume the next slots
             opt.preambleContent = "#define RGL_SL_MTL 1";
 		}
@@ -85,10 +110,11 @@ namespace librglc {
 		return config.outputBinary ? result.data.binaryData : result.data.sourceData;
 	}
 
-	std::string CompileString(const std::string_view source, API toAPI, ShaderStage input_stage, const Config& config)
+	std::string CompileString(const std::string_view source, const std::string_view sourceFileName, API toAPI, ShaderStage input_stage, const Config& config)
 	{
 		MemoryCompileTask task{
 			.source = std::string(source),
+			.sourceFileName = std::string(sourceFileName),
 			.stage = rgl2shadert(input_stage),
 			.includePaths = config.include_paths,
 		};

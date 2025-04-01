@@ -294,6 +294,22 @@ namespace RGL {
 			commandList->SetComputeRootDescriptorTable(textureSlot.slot, heap->GetGpuHandle(textureSlot.isUAV ? thisTexture.uavIDX : thisTexture.srvIDX));
 		}
 	}
+
+	void CommandBufferD3D12::BindBindlessBufferDescriptorSet(uint32_t set_idx)
+	{
+		bool isGraphics = (bool)currentRenderPipeline;
+		const auto pipelineLayout = isGraphics ? currentRenderPipeline->pipelineLayout : currentComputePipeline->pipelineLayout;
+		const auto slot = pipelineLayout->slotForBufferIdx(set_idx, true);
+		auto& heap = owningQueue->owningDevice->CBV_SRV_UAVHeap;
+
+		if (isGraphics) {
+			commandList->SetGraphicsRootDescriptorTable(slot, heap->GetFirstGpuHandle());
+		}
+		else {
+			commandList->SetComputeRootDescriptorTable(slot, heap->GetFirstGpuHandle());
+		}
+	}
+
 	void CommandBufferD3D12::SetComputeTexture(const TextureView& texture, uint32_t index)
 	{
 		SetFragmentTexture(texture, index);
@@ -307,6 +323,11 @@ namespace RGL {
 		SyncIfNeeded(thisTexture, neededState, false);
     }
 
+	void CommandBufferD3D12::UseResource(const RGLBufferPtr buffer)
+	{
+
+	}
+
 
 	void CommandBufferD3D12::Draw(uint32_t nVertices, const DrawInstancedConfig& config)
 	{
@@ -316,6 +337,7 @@ namespace RGL {
 	{
 		commandList->DrawIndexedInstanced(nIndices, config.nInstances, config.firstIndex, config.startVertex, config.firstInstance);
 	}
+
 	void CommandBufferD3D12::SetViewport(const Viewport& viewport)
 	{
 		D3D12_VIEWPORT m_Viewport{
@@ -456,13 +478,15 @@ namespace RGL {
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dstLocation.SubresourceIndex = to.texture.texture.dx.parentResource->SubresourceIndexForMipLayer(to.mip, to.layer);
 
+		const auto mipdivisor = std::pow(2, from.mip);
+
 		// Create a box that specifies the region to copy
 		D3D12_BOX box = {};
 		box.left = 0;
 		box.top = 0;
 		box.front = 0;
-		box.right = srcLocation.pResource->GetDesc().Width;
-		box.bottom = srcLocation.pResource->GetDesc().Height;
+		box.right = srcLocation.pResource->GetDesc().Width / mipdivisor;
+		box.bottom = srcLocation.pResource->GetDesc().Height / mipdivisor;
 		box.back = 1;
 
 		// Copy the region from the source texture to the destination texture

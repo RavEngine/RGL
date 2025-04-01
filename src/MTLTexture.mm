@@ -7,6 +7,19 @@
 
 namespace RGL {
 
+uint32_t bytesPerPixel(RGL::TextureFormat format){
+    switch(format){
+        case decltype(format)::RGBA32_Sfloat:   return sizeof(float) * 4;
+        case decltype(format)::RGBA16_Snorm:
+        case decltype(format)::RGBA16_Unorm:
+        case decltype(format)::RGBA16_Sfloat:   return sizeof(float) / 2 * 4;
+        case decltype(format)::RGBA8_Uint:
+        case decltype(format)::RGBA8_Unorm:   return sizeof(uint8_t) * 4;
+        default:
+            FatalError("bytesPerPixel: Invalid textureformat");
+    }
+}
+
 TextureMTL::TextureMTL(decltype(drawable) texture, const Dimension& size) : drawable(texture), ITexture(size){
     
 }
@@ -63,7 +76,7 @@ Dimension TextureMTL::GetSize() const{
     return size;
 }
 
-TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config, const untyped_span data) : TextureMTL(owningDevice, config){
+TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const TextureConfig& config, const TextureUploadData& data) : TextureMTL(owningDevice, config){
     
     
     MTLRegion region = {
@@ -71,11 +84,11 @@ TextureMTL::TextureMTL(const std::shared_ptr<DeviceMTL> owningDevice, const Text
         {config.width, config.height, 1} // MTLSize
     };
     
-    NSUInteger bytesPerRow = 4 * config.width;   // TODO: replace 4 with nchannels of format
+    NSUInteger bytesPerRow = bytesPerPixel(config.format) * config.width;
     
     [texture replaceRegion:region
                 mipmapLevel:0
-                  withBytes:data.data()
+                  withBytes:data.data.data()
                 bytesPerRow:bytesPerRow];
 }
 
@@ -107,6 +120,10 @@ id<MTLTexture> TextureMTL::ViewToTexture(const TextureView& view){
 TextureView RGL::CustomTextureViewMTL::GetView() const
 {
     return TextureView();
+}
+
+uint8_t TextureMTL::GetNumMips() const {
+    return texture.mipmapLevelCount;
 }
 
 }

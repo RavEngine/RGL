@@ -20,7 +20,7 @@ struct TextureMTL : public ITexture{
     virtual ~TextureMTL();
     
     TextureMTL(decltype(drawable), const Dimension&);
-    TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config, const untyped_span);
+    TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config, const TextureUploadData&);
     TextureMTL(const std::shared_ptr<DeviceMTL>, const TextureConfig& config);
     
     Dimension GetSize() const;
@@ -29,6 +29,8 @@ struct TextureMTL : public ITexture{
     TextureView GetViewForMip(uint32_t mip) const final;
 
     RGLCustomTextureViewPtr MakeCustomTextureView(const CustomTextureViewConfig& config) const;
+    
+    uint8_t GetNumMips() const final;
     
     std::vector<OBJC_ID(MTLTexture)> mipTextures;
     

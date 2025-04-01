@@ -1,5 +1,4 @@
 #pragma once
-#define NOMINMAX
 #include <RGL/Types.hpp>
 #include <RGL/Device.hpp>
 #include <RGL/Pipeline.hpp>
@@ -32,7 +31,9 @@ namespace RGL {
 
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature> multidrawSignature, multidrawIndexedSignature, dispatchIndirectSignature;
 
-		std::optional<D3D12DynamicDescriptorHeap> RTVHeap, DSVHeap, CBV_SRV_UAVHeap, SamplerHeap;
+		std::optional<D3D12DynamicDescriptorHeap<2048>> RTVHeap, DSVHeap;
+		std::optional<D3D12DynamicDescriptorHeap<65536>> CBV_SRV_UAVHeap;
+		std::optional<D3D12DynamicDescriptorHeap<2048>> SamplerHeap;
 
 		DeviceD3D12(decltype(adapter) adapter);
 		virtual ~DeviceD3D12();
@@ -53,7 +54,7 @@ namespace RGL {
 		RGLShaderLibraryPtr CreateShaderLibraryFromPath(const std::filesystem::path&) final;
 
 		RGLBufferPtr CreateBuffer(const BufferConfig&) final;
-		RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) final;
+		RGLTexturePtr CreateTextureWithData(const TextureConfig&, const TextureUploadData&) final;
 		RGLTexturePtr CreateTexture(const TextureConfig&) final;
 
 		RGLSamplerPtr CreateSampler(const SamplerConfig&) final;

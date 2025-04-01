@@ -13,11 +13,6 @@
 
 using namespace Microsoft::WRL;
 
-#if _UWP
-#include <winrt/Windows.UI.h>
-#include <winrt/Windows.UI.Core.h>
-using namespace winrt;
-#endif
 
 namespace RGL {
     // gsync, freesync, etc
@@ -77,7 +72,6 @@ namespace RGL {
 
         ComPtr<IDXGISwapChain1> swapChain1;
 
-#if !_UWP
         auto hwnd = *static_cast<const HWND*>(hWndPtr);
         DX_CHECK(dxgiFactory4->CreateSwapChainForHwnd(
             commandQueue.Get(),
@@ -90,19 +84,6 @@ namespace RGL {
         // Disable the Alt+Enter fullscreen toggle feature. Switching to fullscreen
        // will be handled manually.
         DX_CHECK(dxgiFactory4->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER));
-#else
-        using cwt = winrt::Windows::UI::Core::CoreWindow;
-        auto ptr_c = static_cast<const cwt*>(hWndPtr);
-        auto ptr = const_cast<cwt*>(ptr_c);
-
-        DX_CHECK(dxgiFactory4->CreateSwapChainForCoreWindow(
-            commandQueue.Get(),
-            reinterpret_cast<IUnknown*>(ptr),
-            &swapChainDesc,
-            nullptr,
-            &swapChain1
-        ));
-#endif
 
         DX_CHECK(swapChain1.As(&dxgiSwapChain4));
 
@@ -118,7 +99,7 @@ namespace RGL {
         tearingSupported = CheckTearingSupport();
     }
 
-    void SwapchainD3D12::UpdateRenderTargetViews(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapChain, D3D12DynamicDescriptorHeap& descriptorHeap)
+    void SwapchainD3D12::UpdateRenderTargetViews(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapChain, D3D12DynamicDescriptorHeap<2048>& descriptorHeap)
     {
         auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 

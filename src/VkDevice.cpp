@@ -14,35 +14,28 @@
 #include <vector>
 #include <stdexcept>
 #include <set>
+#include <unordered_set>
 #include <vk_mem_alloc.h>
+#include <algorithm>
 
 namespace RGL {
 
     template<typename T>
-    void loadVulkanFunction(VkDevice device, T& ptr, const char* fnname) {
+    void loadVulkanFunction(VkDevice device, T& ptr, const char* fnname, bool continueOnFail = false) {
         ptr = (std::remove_reference_t<decltype(ptr)>) vkGetDeviceProcAddr(device, fnname);
-        if (!ptr) {
+        if (!ptr && !continueOnFail) {
             FatalError(std::string("Cannot get Vulkan function pointer: ") + fnname);
         }
     }
 
-    constexpr static const char* const deviceExtensions[] = {
-           VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-           VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
-           VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
-#if !__ANDROID__    // only 5% of android devices have this extension so we have to go without it
-           VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
-#endif
-    };
-
-    auto getMissingDeviceExtensions(const VkPhysicalDevice device) {
+    auto getMissingDeviceExtensions(const VkPhysicalDevice device, auto&& extensionList) {
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
         std::vector<VkExtensionProperties> availableExtensions(extensionCount);
         vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
-        std::set<std::string> requiredExtensions(std::begin(deviceExtensions), std::end(deviceExtensions));
+        std::unordered_set<std::string> requiredExtensions(std::begin(extensionList), std::end(extensionList));
 
         for (const auto& extension : availableExtensions) {
             requiredExtensions.erase(extension.extensionName);
@@ -50,6 +43,20 @@ namespace RGL {
 
         return requiredExtensions;
     };
+
+    constexpr static const char* const deviceExtensions[] = {
+           VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+           VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
+           VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
+           VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
+           VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
+           VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME,
+#if !__ANDROID__    // only 5% of android devices have this extension so we have to go without it
+           VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+#endif
+    };
+
+    
 
     // find a queue of the right family
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
@@ -121,6 +128,9 @@ namespace RGL {
             if (typeRank(features1.deviceType) < typeRank(features2.deviceType)){
                 return true;
             }
+            else if (typeRank(features1.deviceType) > typeRank(features2.deviceType)) {
+                return false;
+            }
 
             constexpr static auto GetTotalVRAM = [](VkPhysicalDevice dev){
                 VkPhysicalDeviceMemoryProperties mem;
@@ -165,10 +175,18 @@ namespace RGL {
             };
             queueCreateInfos.push_back(queueCreateInfo);
         }
+        VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT lib_features{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT,
+            .pNext = nullptr
+        };
 
+        VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT fse_features{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT,
+            .pNext = &lib_features
+        };
         VkPhysicalDeviceVulkan13Features vulkan1_3Features{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-            .pNext = nullptr
+            .pNext = &fse_features
         };
         
         VkPhysicalDeviceVulkan12Features vulkan1_2Features{
@@ -208,32 +226,30 @@ namespace RGL {
         if (vulkan1_1Features.shaderDrawParameters == VK_FALSE) {
             FatalError("Cannot init - Shader Draw Parameters (baseInstance et al) are not supported.");
         }
-
-        std::vector<const char*> runtimeExtensions{std::begin(deviceExtensions),std::end(deviceExtensions)};
-
-#ifndef NDEBUG
-        runtimeExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-#endif
+        if (fse_features.fragmentShaderPixelInterlock == VK_FALSE) {
+            FatalError("Cannot init - Fragment Shader Interlock is not supported");
+        }
+        if (lib_features.graphicsPipelineLibrary == VK_FALSE) {
+            FatalError("Cannot init - Graphics Pipeline Library is not supported");
+        }
 
         VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .pNext = &deviceFeatures2,
             .queueCreateInfoCount = static_cast<decltype(VkDeviceCreateInfo::queueCreateInfoCount)>(queueCreateInfos.size()),
             .pQueueCreateInfos = queueCreateInfos.data(),      // could pass an array here if we were making more than one queue
-            .enabledExtensionCount = static_cast<uint32_t>(runtimeExtensions.size()),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
-            .ppEnabledExtensionNames = runtimeExtensions.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(std::size(deviceExtensions)),             // device-specific extensions are ignored on later vulkan versions but we set it anyways
+            .ppEnabledExtensionNames = deviceExtensions,
             .pEnabledFeatures = nullptr,        // because we are using deviceFeatures2
         };
-        if constexpr (enableValidationLayers) {
+        if (IsValidationEnabled()) {
             deviceCreateInfo.enabledLayerCount = std::size(validationLayers);
             deviceCreateInfo.ppEnabledLayerNames = validationLayers;
         }
-#if !__ANDROID__
-        VK_CHECK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
-#else
+
         auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
         if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-            auto missing = getMissingDeviceExtensions(physicalDevice);
+            auto missing = getMissingDeviceExtensions(physicalDevice, deviceExtensions);
             std::string message = "vkCreateDevice error: Missing extensions:\n";
             for (const auto& ext : missing) {
                 message += "\t - " + ext + "\n";
@@ -243,16 +259,19 @@ namespace RGL {
         else if (result != VK_SUCCESS) {
             FatalError(std::string("vkCreateDevice failed: ") + string_VkResult(result));
         }
-#endif
+
 
         //volkLoadDevice(device);
         // load extra functions
         loadVulkanFunction(device, vkCmdPushDescriptorSetKHR, "vkCmdPushDescriptorSetKHR");
 
 #ifndef NDEBUG
-        loadVulkanFunction(device, rgl_vkDebugMarkerSetObjectNameEXT, "vkDebugMarkerSetObjectNameEXT");
-        loadVulkanFunction(device, rgl_vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
-        loadVulkanFunction(device, rgl_vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
+        loadVulkanFunction(device, vkSetDebugUtilsObjectNameEXT, "vkSetDebugUtilsObjectNameEXT",true);
+        loadVulkanFunction(device, rgl_vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT",true);
+        loadVulkanFunction(device, rgl_vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT",true);
+        if (vkSetDebugUtilsObjectNameEXT == nullptr || rgl_vkCmdBeginDebugUtilsLabelEXT == nullptr || rgl_vkCmdEndDebugUtilsLabelEXT == nullptr) {
+            LogMessage(MessageSeverity::Warning, "Debug Utils are not present. Capture debug info will be limited.");
+        }
 #endif
         
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
@@ -311,84 +330,96 @@ namespace RGL {
 
         VK_CHECK(vmaCreateAllocator(&allocInfo,&vkallocator));
 
-        VkDescriptorBindingFlags bindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+        auto createDescriptorSetForBindless = [this](VkDescriptorType descriptorType, VkDescriptorSetLayout& layout, VkDescriptorPool& descriptorPool, VkDescriptorSet& descriptorSet) {
+            VkDescriptorBindingFlags bindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
-        VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreate{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
-            .pNext = nullptr,
-            .bindingCount = 1,
-            .pBindingFlags = &bindingFlags,
-        };
+            VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreate{
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+                .pNext = nullptr,
+                .bindingCount = 1,
+                .pBindingFlags = &bindingFlags,
+            };
 
-        VkDescriptorSetLayoutBinding set_layout_binding{
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
-            .descriptorCount = nDescriptors,
-            .stageFlags = VK_SHADER_STAGE_ALL,
-            .pImmutableSamplers = VK_NULL_HANDLE,
-        };
-        VkDescriptorSetLayoutCreateInfo descriptor_layout_create_info{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .pNext = &bindingFlagsCreate,
-            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
-            .bindingCount = 1,
-            .pBindings = &set_layout_binding
-        }; 
-        
-        VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &globalDescriptorSetLayout));
+            VkDescriptorSetLayoutBinding set_layout_binding{
+                .binding = 0,
+                .descriptorType = descriptorType,
+                .descriptorCount = nTextureDescriptors,
+                .stageFlags = VK_SHADER_STAGE_ALL,
+                .pImmutableSamplers = VK_NULL_HANDLE,
+            };
+            VkDescriptorSetLayoutCreateInfo descriptor_layout_create_info{
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                .pNext = &bindingFlagsCreate,
+                .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+                .bindingCount = 1,
+                .pBindings = &set_layout_binding
+            };
 
-        // --- descriptor pool and set
+            VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptor_layout_create_info, nullptr, &layout));
 
-        VkDescriptorPoolSize poolSizes[] = {
-            {
-                .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
-                .descriptorCount = nDescriptors
-            }
-        };
+            // --- descriptor pool and set
 
-        VkDescriptorPoolCreateInfo poolCreate{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT,
-            .maxSets = 1000,        // overkill
-            .poolSizeCount = std::size(poolSizes),
-            .pPoolSizes = poolSizes,
-        };
-        VK_CHECK(vkCreateDescriptorPool(device, &poolCreate, nullptr, &globalDescriptorPool));
+            VkDescriptorPoolSize poolSizes[] = {
+                {
+                    .type = descriptorType,
+                    .descriptorCount = nTextureDescriptors
+                }
+            };
+
+            VkDescriptorPoolCreateInfo poolCreate{
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT,
+                .maxSets = 1000,        // overkill
+                .poolSizeCount = std::size(poolSizes),
+                .pPoolSizes = poolSizes,
+            };
+            VK_CHECK(vkCreateDescriptorPool(device, &poolCreate, nullptr, &descriptorPool));
 #if !__ANDROID__
-        SetDebugNameForResource(globalDescriptorPool, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT, "Bindless descriptor pool");
+            SetDebugNameForResource(descriptorPool, VK_OBJECT_TYPE_DESCRIPTOR_POOL, "Bindless descriptor pool");
 #endif
 
-        VkDescriptorSetAllocateInfo setAllocInfo{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .descriptorPool = globalDescriptorPool,
-            .descriptorSetCount = 1,
-            .pSetLayouts = &globalDescriptorSetLayout
+            VkDescriptorSetAllocateInfo setAllocInfo{
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                .pNext = nullptr,
+                .descriptorPool = descriptorPool,
+                .descriptorSetCount = 1,
+                .pSetLayouts = &layout
+            };
+
+            VK_CHECK(vkAllocateDescriptorSets(device, &setAllocInfo, &descriptorSet));// we don't need to manually destroy the descriptor set
         };
 
-        VK_CHECK(vkAllocateDescriptorSets(device, &setAllocInfo, &globalDescriptorSet));// we don't need to manually destroy the descriptor set
+        // textures
+        createDescriptorSetForBindless(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, globalTextureDescriptorSetLayout, globalTextureDescriptorPool, globalTextureDescriptorSet);
+
+        // buffers
+        createDescriptorSetForBindless(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, globalBufferDescriptorSetLayout, globalBufferDescriptorPool, globalBufferDescriptorSet);
     }
 
-    void DeviceVk::SetDebugNameForResource(void* resource, VkDebugReportObjectTypeEXT type, const char* debugName)
+    void DeviceVk::SetDebugNameForResource(void* resource, VkObjectType type, const char* debugName)
     {
 #ifndef NDEBUG
-        VkDebugMarkerObjectNameInfoEXT objectName{
-           .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
-           .pNext = nullptr,
-           .objectType = type,
-           .object = reinterpret_cast<uint64_t>(resource),
-           .pObjectName = debugName
-        };
 
-        VK_CHECK(this->rgl_vkDebugMarkerSetObjectNameEXT(this->device, &objectName));
+        VkDebugUtilsObjectNameInfoEXT objectName{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+            .pNext = nullptr,
+            .objectType = type,
+            .objectHandle = reinterpret_cast<uint64_t>(resource),
+            .pObjectName = debugName
+        };
+        if (vkSetDebugUtilsObjectNameEXT) {
+            VK_CHECK(vkSetDebugUtilsObjectNameEXT(this->device, &objectName));
+        }
 #endif
     }
 
     RGL::DeviceVk::~DeviceVk() {
 
-        vkDestroyDescriptorPool(device, globalDescriptorPool, VK_NULL_HANDLE);
-        vkDestroyDescriptorSetLayout(device, globalDescriptorSetLayout, VK_NULL_HANDLE);
+        vkDestroyDescriptorPool(device, globalTextureDescriptorPool, VK_NULL_HANDLE);
+        vkDestroyDescriptorPool(device, globalBufferDescriptorPool, VK_NULL_HANDLE);
+        vkDestroyDescriptorSetLayout(device, globalTextureDescriptorSetLayout, VK_NULL_HANDLE);
+        vkDestroyDescriptorSetLayout(device, globalBufferDescriptorSetLayout, VK_NULL_HANDLE);
         vmaDestroyAllocator(vkallocator);
         vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyDevice(device, nullptr);
@@ -454,9 +485,9 @@ namespace RGL {
         return std::make_shared<BufferVk>(shared_from_this(), config);
     }
 
-    RGLTexturePtr DeviceVk::CreateTextureWithData(const TextureConfig& config, untyped_span bytes)
+    RGLTexturePtr DeviceVk::CreateTextureWithData(const TextureConfig& config, const TextureUploadData& data)
     {
-        return std::make_shared<TextureVk>(shared_from_this(), config, bytes);
+        return std::make_shared<TextureVk>(shared_from_this(), config, data);
     }
 
     RGLTexturePtr DeviceVk::CreateTexture(const TextureConfig& config)
@@ -485,7 +516,7 @@ namespace RGL {
     TextureView DeviceVk::GetGlobalBindlessTextureHeap() const
     {
         return {
-            {.bindlessSet = globalDescriptorSet}
+            {.bindlessSet = globalTextureDescriptorSet}
         };
     }
 

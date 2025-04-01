@@ -46,6 +46,7 @@ namespace RGL {
 
 	void RGL::CommandBufferVk::Reset()
 	{
+		vkWaitForFences(owningQueue->owningDevice->device, 1, &internalFence, VK_TRUE, INT_MAX);
 		VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
 		vkResetFences(owningQueue->owningDevice->device, 1, &internalFence);
 	}
@@ -168,7 +169,7 @@ namespace RGL {
 
 	void CommandBufferVk::setPushConstantData(const RGL::untyped_span& data, const uint32_t& offset)
 	{
-		Assert(data.size() <= 128, "Push constant data size must be no more than 128 bytes");
+		//Assert(data.size() <= 128, "Push constant data size must be no more than 128 bytes");
 		CmdSetPushConstantData cmd{
 			// size must be a multiple of 4
 			// need to get a little extra space for safety
@@ -207,6 +208,13 @@ namespace RGL {
 	void CommandBufferVk::SetComputeSampler(RGLSamplerPtr sampler, uint32_t index)
 	{
 		EncodeCommand(CmdSetSampler{ sampler, index, true });
+	}
+	void CommandBufferVk::BindBindlessBufferDescriptorSet(uint32_t set_idx)
+	{
+		EncodeCommand(CmdBindlessSetBuffer{
+			.set = owningQueue->owningDevice->globalBufferDescriptorSet,
+			.setIndex = set_idx
+		});
 	}
 	void CommandBufferVk::SetVertexTexture(const TextureView& texture, uint32_t index)
 	{
@@ -321,6 +329,11 @@ namespace RGL {
     void CommandBufferVk::UseResource(const TextureView& view){
         
     }
+
+	void CommandBufferVk::UseResource(const RGLBufferPtr buffer)
+	{
+
+	}
 
 
 	void CommandBufferVk::Commit(const CommitConfig& config)
@@ -719,6 +732,24 @@ namespace RGL {
 					nullptr
 				);
 			},
+			[this](const CmdBindlessSetBuffer& arg) {
+				bool isCompute = currentRenderPipeline ? false : true;
+				auto activeLayout = isCompute ? currentComputePipeline->pipelineLayout : currentRenderPipeline->pipelineLayout;
+
+				VkDescriptorSet sets[] = {
+					arg.set,
+				};
+
+				vkCmdBindDescriptorSets(commandBuffer,
+					isCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
+					activeLayout->layout,
+					arg.setIndex,						// first set index
+					std::size(sets),					// number of sets
+					sets,
+					0,
+					nullptr
+				);
+			},
 			[this](const CmdDraw& arg) {
 				vkCmdDraw(commandBuffer, arg.nVertices, arg.config.nInstances, arg.config.startVertex, arg.config.firstInstance);
 			},
@@ -817,14 +848,18 @@ namespace RGL {
 				currentRenderPipeline = pipeline;
 			},
 			[this](const CmdBeginDebugMarker& arg) {
-				VkDebugUtilsLabelEXT markerInfo = {
-				.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-				.pLabelName = arg.label.c_str()
+				if (owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT) {
+					VkDebugUtilsLabelEXT markerInfo = {
+					.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+					.pLabelName = arg.label.c_str()
 					};
-				owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &markerInfo);
+					owningQueue->owningDevice->rgl_vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &markerInfo);
+				}
 			},
 			[this](const CmdEndDebugMarker&) {
-				owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+				if (owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT) {
+					owningQueue->owningDevice->rgl_vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+				}
 			},
 			[this](const CmdBeginCompute& arg) {
 				ApplyBarriers();
@@ -872,6 +907,7 @@ namespace RGL {
 				auto& srcLayout = activeTextures.at(TextureLastUseKey{src, arg.from.texture.texture.vk.coveredMips, arg.from.texture.texture.vk.coveredLayers });
 				auto& dstLayout = activeTextures.at(TextureLastUseKey{ dst, arg.to.texture.texture.vk.coveredMips, arg.to.texture.texture.vk.coveredLayers });
 
+				int dimDivisor = std::pow(2, arg.from.mip);
 				auto dim = src->GetSize();
 				VkImageCopy2 region{
 					.sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
@@ -890,7 +926,7 @@ namespace RGL {
 						.layerCount = 1
 					},
 					.dstOffset = {0,0,0},
-					.extent = {dim.width, dim.height ,1}
+					.extent = {dim.width / dimDivisor, dim.height / dimDivisor, 1}
 				};
 				VkCopyImageInfo2 copyInfo{
 					.sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,

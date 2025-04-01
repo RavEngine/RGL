@@ -1,5 +1,4 @@
 #pragma once
-#define NOMINMAX
 #include <RGL/Types.hpp>
 #include <RGL/CommandBuffer.hpp>
 #include "RGLD3D12.hpp"
@@ -94,6 +93,8 @@ namespace RGL {
 		void Draw(uint32_t nVertices, const DrawInstancedConfig & = {}) final;
 		void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig & = {}) final;
 
+		void BindBindlessBufferDescriptorSet(uint32_t set_idx) final;
+
 		void SetViewport(const Viewport&) final;
 		void SetScissor(const Rect&) final;
 
@@ -119,6 +120,7 @@ namespace RGL {
 		void EndComputeDebugMarker() final;
         
         void UseResource(const TextureView& tx) final;
+		void UseResource(const RGLBufferPtr buffer) final;
 
 		void BlockUntilCompleted() final;
 

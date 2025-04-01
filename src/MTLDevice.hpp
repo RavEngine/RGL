@@ -14,7 +14,9 @@ namespace RGL{
         OBJC_ID(MTLLibrary) defaultLibrary = nullptr;
         OBJC_ID(MTLCommandQueue) uploadQueue = nullptr;
         OBJC_ID(MTLArgumentEncoder) globalTextureEncoder = nullptr;
+        OBJC_ID(MTLArgumentEncoder) globalBufferEncoder = nullptr;
         OBJC_ID(MTLBuffer) globalTextureBuffer = nullptr;
+        OBJC_ID(MTLBuffer) globalBufferBuffer = nullptr;
 	
         DeviceMTL(decltype(device) device);
 		std::string GetBrandString() final;
@@ -32,7 +34,7 @@ namespace RGL{
         RGLShaderLibraryPtr CreateShaderLibraryFromPath(const std::filesystem::path&) final;
 
         RGLBufferPtr CreateBuffer(const BufferConfig&) final;
-        RGLTexturePtr CreateTextureWithData(const TextureConfig&, untyped_span) final;
+        RGLTexturePtr CreateTextureWithData(const TextureConfig&, const TextureUploadData&) final;
         RGLTexturePtr CreateTexture(const TextureConfig&) final;
         RGLSamplerPtr CreateSampler(const SamplerConfig&) final;
 
@@ -49,6 +51,7 @@ namespace RGL{
         size_t GetCurrentVRAMInUse() const final;
         
         FreeList<uint32_t, 2048> textureFreelist;
+        FreeList<uint32_t, 65536> bufferFreelist;
         
         virtual ~DeviceMTL(){}
 	};

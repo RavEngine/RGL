@@ -21,6 +21,7 @@ option(RGL_DISABLE_WEBGPU "Force-disable the WebGPU backend" OFF)
 option(RGL_ENABLE_WEBGPU "Force-enable the WebGPU backend" OFF)
 option(RGL_RUNTIME_COMPILATION "Enable runtime shader compilation" OFF)
 option(RGL_SKIP_BACKEND_CHECK "Skip the SDK check" OFF)
+option(RGL_DX_USE_AGILITY "Use the Agility SDK" ON)
 option(RGL_IDE_ROOT "IDE parent folder for targets" "RGL")
 if (NOT RGL_IDE_ROOT)
 	set(RGL_IDE_ROOT "RGL") # CMake sets this to "OFF" for some insane reason
@@ -56,30 +57,37 @@ if (APPLE)
 endif()
 
 # setup compiler
-if (RGL_WEBGPU_AVAILABLE)
-	set(ST_ENABLE_WGSL ON CACHE INTERNAL "")
+if (RGL_RUNTIME_COMPILATION OR RGL_ENABLE_RGLC)
+	if (RGL_WEBGPU_AVAILABLE)
+		set(ST_ENABLE_WGSL ON CACHE INTERNAL "")
+	else()
+		set(ST_ENABLE_WGSL OFF CACHE INTERNAL "")
+	endif()
+	set(ST_ENABLE_TEST OFF CACHE INTERNAL "")
+	if(WIN32 AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler/CMakeLists.txt")
+		message("Building DXC from source")
+		set(ST_BUNDLED_DXC ON)
+	else()
+		message("Not building DXC from source")
+		set(ST_BUNDLED_DXC OFF)
+	endif()
+	add_subdirectory(deps/ShaderTranspiler EXCLUDE_FROM_ALL)
+	file(GLOB_RECURSE LIBRGLC_SOURCES "tools/librglc/*.cpp" "tools/librglc/*.hpp")
+	add_library(librglc ${LIBRGLC_SOURCES}) 
+	target_link_libraries(librglc PRIVATE ShaderTranspiler)
+	target_compile_features(librglc PRIVATE cxx_std_20)
+	target_include_directories(librglc
+		PRIVATE
+			"tools/librglc/include/"
+		PUBLIC
+			"tools/librglc/include/"
+	)
 else()
-	set(ST_ENABLE_WGSL OFF CACHE INTERNAL "")
+	# we still need spirv-reflect
+	set(SPIRV_REFLECT_EXECUTABLE OFF)
+	set(SPIRV_REFLECT_STATIC_LIB ON)
+	add_subdirectory(deps/ShaderTranspiler/deps/SPIRV-Reflect EXCLUDE_FROM_ALL)
 endif()
-set(ST_ENABLE_TEST OFF CACHE INTERNAL "")
-if((WIN32 AND NOT WINDOWS_STORE) AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler/CMakeLists.txt")
-	message("Building DXC from source")
-	set(ST_BUNDLED_DXC ON)
-else()
-	message("Not building DXC from source")
-	set(ST_BUNDLED_DXC OFF)
-endif()
-add_subdirectory(deps/ShaderTranspiler EXCLUDE_FROM_ALL)
-file(GLOB_RECURSE LIBRGLC_SOURCES "tools/librglc/*.cpp" "tools/librglc/*.hpp")
-add_library(librglc ${LIBRGLC_SOURCES}) 
-target_link_libraries(librglc PRIVATE ShaderTranspiler)
-target_compile_features(librglc PRIVATE cxx_std_20)
-target_include_directories(librglc
-	PRIVATE
-		"tools/librglc/include/"
-	PUBLIC
-		"tools/librglc/include/"
-)
 
 # setup command line compiler utility
 if (RGL_ENABLE_RGLC)
@@ -88,6 +96,7 @@ if (RGL_ENABLE_RGLC)
 	target_compile_features(rglc PRIVATE cxx_std_20)
 	target_link_libraries(rglc PRIVATE librglc)
 	target_include_directories(rglc PRIVATE "deps/cxxopts/include")
+	target_compile_definitions(rglc PRIVATE CXXOPTS_NO_RTTI=1)
 	set(rglc_path "rglc" CACHE INTERNAL "rglc compiler path")
 	set(rglc_exe "rglc")
 	set_target_properties(rglc
@@ -96,9 +105,12 @@ if (RGL_ENABLE_RGLC)
 		LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rglc"
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rglc"
 	)
+	if (WIN32)
+		add_dependencies(rglc dxc) # ensure the dxc target is enabled
+	endif()
 endif()
 
-if(WINDOWS_STORE OR RGL_DISABLE_VK OR APPLE OR CMAKE_SYSTEM_NAME MATCHES "Emscripten")
+if(RGL_DISABLE_VK OR APPLE OR CMAKE_SYSTEM_NAME MATCHES "Emscripten")
 	set(VK_FORCE_DISABLED ON)
 else()
 	set(VK_FORCE_DISABLED OFF)
@@ -115,7 +127,7 @@ if (NOT VK_FORCE_DISABLED)
 		target_compile_definitions(volk PRIVATE VK_USE_PLATFORM_XLIB_KHR VK_USE_PLATFORM_WAYLAND_KHR)
 	elseif(ANDROID)
 		target_compile_definitions(volk PRIVATE VK_USE_PLATFORM_ANDROID_KHR)
-	elseif(WIN32 OR WINDOWS_STORE)
+	elseif(WIN32)
 		target_compile_definitions(volk PRIVATE VK_USE_PLATFORM_WIN32_KHR)
 	endif()
 
@@ -138,6 +150,11 @@ if (NOT VK_FORCE_DISABLED)
 	if(RGL_USE_MINIVKSDK)
 		set_target_properties(vulkan vvl VkLayer_utils loader_asm_gen_files PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
 	endif()
+
+	target_link_libraries(${PROJECT_NAME} PRIVATE spirv-reflect-static ${X11_LIBRARIES})
+	set_target_properties("spirv-reflect-static" PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries"
+	)
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_VK_AVAILABLE=0)
 	set(RGL_VK_AVAILABLE OFF CACHE INTERNAL "RGL Vulkan")
@@ -151,6 +168,11 @@ if(MSVC AND NOT RGL_DISABLE_DX)
 	add_subdirectory("deps/D3D12MemoryAllocator" EXCLUDE_FROM_ALL)
 	set(BUILD_XAUDIO_WIN10 OFF CACHE INTERNAL "")
 	add_subdirectory("deps/DirectXTK12" EXCLUDE_FROM_ALL)
+
+	set(BUILD_TOOLS OFF)
+	set(BUILD_SAMPLE OFF)
+	set(BUILD_DX11 OFF)
+	add_subdirectory(deps/DirectXTex EXCLUDE_FROM_ALL)
 
 	target_include_directories(${PROJECT_NAME} PUBLIC "deps/DirectXTK12/Inc")
 
@@ -168,10 +190,26 @@ if(MSVC AND NOT RGL_DISABLE_DX)
 		d3dcompiler.lib
 		D3D12MemoryAllocator 
 		DirectXTK12
+		DirectXTex
 		$<$<NOT:$<CONFIG:release>>:WinPixEventRuntime>
 	)
 
 	set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
+	set_target_properties(DirectXTex PROPERTIES FOLDER "${RGL_IDE_ROOT}/Libraries")
+
+	if (RGL_DX_USE_AGILITY)
+		set(AGILITY_SDK_MAJOR_VERSION "1")
+		set(AGILITY_SDK_MINOR_VERSION "614")
+		set(AGILITY_SDK_OUTPUT_DIR "${CMAKE_BINARY_DIR}/$<CONFIGURATION>/D3D12")
+		include(cmake/FetchAgilitySDK.cmake)
+		target_compile_definitions(${PROJECT_NAME} PRIVATE DX12_USE_AGILITY=1)
+		target_link_libraries(${PROJECT_NAME} PRIVATE AgilitySDK)
+
+		set_target_properties("AgilitySDK" "_AgilitySDKInternal" PROPERTIES 
+			FOLDER "${RGL_IDE_ROOT}/Libraries/"
+		)
+		endif()
+		add_dependencies(${PROJECT_NAME} _AgilitySDKInternal)
 else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_DX12_AVAILABLE=0)
 	set(RGL_DX12_AVAILABLE OFF CACHE INTERNAL "RGL DX12")
@@ -180,7 +218,7 @@ endif()
 if(APPLE)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC RGL_MTL_AVAILABLE=1)
 	set(MTL_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/deps/metal-cpp" "${CMAKE_CURRENT_LIST_DIR}/deps/metal-cpp-extensions")
-	find_library(FOUNDATION_LIB Cocoa REQUIRED)
+	find_library(FOUNDATION_LIB Foundation REQUIRED)
     find_library(METAL_LIB Metal REQUIRED)
     find_library(QZC_LIB QuartzCore REQUIRED)
 	set(RGL_MTL_AVAILABLE ON CACHE INTERNAL "RGL Metal")
@@ -206,7 +244,6 @@ if (RGL_RUNTIME_COMPILATION)
 	target_link_libraries(${PROJECT_NAME} PRIVATE librglc)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SPIRV-Reflect ${X11_LIBRARIES})
 
 if (APPLE)
 	target_include_directories(${PROJECT_NAME} PRIVATE "tools/librglc/include/")
@@ -240,53 +277,62 @@ target_include_directories(${PROJECT_NAME}
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX=1)
 
-set_target_properties("RGL" ${rglc_exe} "librglc" PROPERTIES 
+set_target_properties("RGL" PROPERTIES 
 	FOLDER "${RGL_IDE_ROOT}"
 	XCODE_GENERATE_SCHEME ON
 )
-set_target_properties("SPIRV-Reflect" "ShaderTranspiler" PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries"
-)
-if (RGL_WEBGPU_AVAILABLE)
-set_target_properties("libtint" "tint_diagnostic_utils" PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries"
-)
+
+if (RGL_RUNTIME_COMPILATION OR RGL_ENABLE_RGLC)
+	
+	set_target_properties(${rglc_exe} "librglc" PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}"
+		XCODE_GENERATE_SCHEME ON
+	)
+	set_target_properties("ShaderTranspiler" PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries"
+	)
+	if (RGL_WEBGPU_AVAILABLE)
+	set_target_properties("libtint" "tint_diagnostic_utils" PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries"
+	)
+	endif()
+
+	set_target_properties("GenericCodeGen" "glslang" "MachineIndependent" "OSDependent" "SPIRV" "SPVRemapper" "glslang-default-resource-limits" PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries/glslang"
+	)
+
+	set_target_properties(
+		"SPIRV-Tools-opt" "SPIRV-Tools-reduce" "SPIRV-Tools-static" "SPIRV-Tools-shared" "SPIRV-Tools-lint" "SPIRV-Tools-diff" "SPIRV-Tools-link"
+		"spirv-tools-shared-pkg-config" "spirv-tools-pkg-config" "spirv-reflect-static"
+		PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Tools Libraries"
+	)
+	set_target_properties(
+		"spirv-cross-core" "spirv-cross-glsl" "spirv-cross-hlsl" "spirv-cross-msl" 
+		"spirv-cross-reflect" "spirv-cross-cpp" "spirv-cross-util"
+		PROPERTIES 
+		FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Cross"
+	)
+
+	if(ST_BUNDLED_DXC)
+		function(dxc_set_for_dir DIR)
+			get_property(TGTS DIRECTORY "${DIR}" PROPERTY BUILDSYSTEM_TARGETS)
+			set_target_properties(
+				${TGTS}
+				PROPERTIES 
+				FOLDER "${RGL_IDE_ROOT}/Libraries/DirectXShaderCompiler"
+			)
+
+			get_property(SUBDIRS DIRECTORY "${DIR}" PROPERTY SUBDIRECTORIES)
+			foreach(SUBDIR IN LISTS SUBDIRS)
+				dxc_set_for_dir("${SUBDIR}")
+			endforeach()
+		endfunction()
+		dxc_set_for_dir("${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler")
+		dxc_set_for_dir("${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler/projects/include/Tracing")
+	endif()
 endif()
 
-set_target_properties("GenericCodeGen" "glslang" "OGLCompiler" "MachineIndependent" "OSDependent" "SPIRV" "SPVRemapper" "glslang-default-resource-limits" PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries/glslang"
-)
-
-set_target_properties(
-	"SPIRV-Tools-opt" "SPIRV-Tools-reduce" "SPIRV-Tools-static" "SPIRV-Tools-shared" "SPIRV-Tools-lint" "SPIRV-Tools-diff" "SPIRV-Tools-link"
-	"spirv-tools-shared-pkg-config" "spirv-tools-pkg-config"
-	PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Tools Libraries"
-)
-
-set_target_properties(
-	"spirv-cross-core"
-	"spirv-cross-glsl" "spirv-cross-hlsl" "spirv-cross-msl" "spirv-cross-reflect" "spirv-cross-cpp" "spirv-cross-util"
-	PROPERTIES 
-	FOLDER "${RGL_IDE_ROOT}/Libraries/SPIRV-Cross"
-)
-
-if(ST_BUNDLED_DXC AND NOT WINDOWS_STORE)
-	function(dxc_set_for_dir DIR)
-		get_property(TGTS DIRECTORY "${DIR}" PROPERTY BUILDSYSTEM_TARGETS)
-		set_target_properties(
-			${TGTS}
-			PROPERTIES 
-			FOLDER "${RGL_IDE_ROOT}/Libraries/DirectXShaderCompiler"
-		)
-
-		get_property(SUBDIRS DIRECTORY "${DIR}" PROPERTY SUBDIRECTORIES)
-		foreach(SUBDIR IN LISTS SUBDIRS)
-			dxc_set_for_dir("${SUBDIR}")
-		endforeach()
-	endfunction()
-	dxc_set_for_dir("${CMAKE_CURRENT_LIST_DIR}/deps/ShaderTranspiler/deps/DirectXShaderCompiler")
-endif()
 
 if (NOT RGL_SKIP_BACKEND_CHECK)
 	if (RGL_VK_AVAILABLE OR RGL_DX12_AVAILABLE OR RGL_MTL_AVAILABLE OR RGL_WEBGPU_AVAILABLE)

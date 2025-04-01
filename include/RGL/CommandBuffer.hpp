@@ -133,10 +133,13 @@ struct TextureView;
         virtual void Draw(uint32_t nVertices, const DrawInstancedConfig& = {}) = 0;
         virtual void DrawIndexed(uint32_t nIndices, const DrawIndexedInstancedConfig& = {}) = 0;
 
+		virtual void BindBindlessBufferDescriptorSet(uint32_t set_idx) = 0;
+
 		virtual void SetViewport(const Viewport&) = 0;
 		virtual void SetScissor(const Rect&) = 0;
         
         virtual void UseResource(const TextureView& tx) = 0;
+        virtual void UseResource(const RGLBufferPtr buffer) = 0;
 
 		virtual void CopyTextureToBuffer(TextureView& sourceTexture, const Rect& sourceRect, size_t offset, RGLBufferPtr desetBuffer) = 0;
 

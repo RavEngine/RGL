@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.hpp"
+#include "Span.hpp"
 #include <cstdint>
 #include <limits>
 #include <string_view>
@@ -158,6 +159,12 @@ namespace RGL {
 		uint32_t layer = 0;
 	};
 
+	struct TextureUploadData {
+		untyped_span data{nullptr, 0};
+		TextureUploadData(const decltype(data)& data) : data(data) {}
+		TextureUploadData() {};
+	};
+
 	class ITexture {
 	protected:
 		Dimension size;
@@ -166,6 +173,7 @@ namespace RGL {
 		virtual Dimension GetSize() const = 0;
 		virtual TextureView GetDefaultView() const = 0;
 		virtual TextureView GetViewForMip(uint32_t mip) const = 0;
+		virtual uint8_t GetNumMips() const = 0;
 		virtual RGLCustomTextureViewPtr MakeCustomTextureView(const CustomTextureViewConfig& config) const = 0;
 	};
 
